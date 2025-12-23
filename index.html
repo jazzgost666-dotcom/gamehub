@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameDev Hub - Edição Limpa</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Rajdhani', sans-serif; background: #0b0915; overflow: hidden; color: white; }
+        
+        /* --- INTRO ANIMATION --- */
+        #intro-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .intro-g {
+            font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6;
+            text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards;
+            margin-bottom: 50px;
+        }
+        .credits-container { height: 100px; overflow: hidden; position: relative; width: 100%; text-align: center; }
+        .credits-roll {
+            position: absolute; width: 100%; animation: rollCredits 4s linear 2s forwards;
+            transform: translateY(100%); opacity: 0;
+        }
+        @keyframes fallBounce {
+            0% { transform: translateY(-500px); opacity: 0; }
+            60% { transform: translateY(0); opacity: 1; }
+            75% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes rollCredits {
+            0% { transform: translateY(100%); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-100%); opacity: 0; }
+        }
+
+        /* --- UI COMPONENTS --- */
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
+        .neon-border:focus { border-color: #8b5cf6; box-shadow: 0 0 10px #8b5cf644; }
+        #main-hub { display: none; height: 100vh; overflow-y: auto; }
+        
+        .profile-banner { width: 100%; height: 200px; background-size: cover; background-position: center; border-radius: 20px; position: relative; background-image: url('https://i.ibb.co/4M0L8P2/default-banner.jpg'); }
+        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -50px; left: 30px; background-size: cover; background-color: #1a1a1a; }
+        
+        .game-card { position: relative; transition: 0.3s; overflow: hidden; }
+        .game-card:hover { transform: translateY(-5px); border-color: #8b5cf6; }
+        .game-thumb { width: 100%; height: 140px; object-fit: cover; background: #1a1625; cursor: pointer; }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen">
+        <div class="intro-g">G</div>
+        <div class="credits-container">
+            <div class="credits-roll">
+                <p class="text-purple-400 text-xs uppercase tracking-tighter">Lead Developer</p>
+                <p class="text-2xl font-bold mb-4">Chad Helper</p>
+                <p class="text-purple-400 text-xs uppercase tracking-tighter">Executive Producer</p>
+                <p class="text-2xl font-bold">Exiled Owner</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-screen" class="fixed inset-0 bg-[#0b0915] z-[9998] hidden flex items-center justify-center">
+        <div class="glass p-10 rounded-3xl w-full max-w-md">
+            <h2 class="font-orbitron text-2xl font-bold mb-8 text-center text-purple-500">IDENTIFICAÇÃO</h2>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <input type="text" id="login-user" placeholder="Nome de Usuário" required class="w-full bg-black/40 border border-white/10 p-3 rounded-lg neon-border outline-none">
+                <input type="email" id="login-email" placeholder="email@gmail.com" required class="w-full bg-black/40 border border-white/10 p-3 rounded-lg neon-border outline-none">
+                <button class="w-full bg-purple-600 font-bold py-3 rounded-lg hover:bg-purple-500 transition">ENTRAR</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-hub">
+        <header class="p-6 border-b border-white/5 flex justify-between items-center bg-black/20 sticky top-0 z-50 backdrop-blur-md">
+            <h1 class="font-orbitron text-xl font-black text-purple-500">GAMEDEV <span class="text-white">HUB</span></h1>
+            <div class="flex items-center gap-4">
+                <button onclick="openModal('modal-upload')" class="bg-purple-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-500 transition">+ PUBLICAR</button>
+                <div onclick="openModal('modal-profile')" class="cursor-pointer flex items-center gap-2 hover:opacity-80">
+                    <span id="nav-username" class="font-bold text-sm">User</span>
+                    <div id="nav-avatar" class="w-8 h-8 rounded-full border border-purple-500 bg-cover"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-6">
+            <div id="display-banner" class="profile-banner mb-20 shadow-2xl">
+                <div id="display-avatar" class="profile-avatar shadow-lg"></div>
+            </div>
+
+            <h2 class="text-2xl font-orbitron font-bold mb-6 flex items-center gap-2">
+                <span class="w-2 h-8 bg-purple-600 inline-block"></span> MINHA BIBLIOTECA
+            </h2>
+
+            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-profile" class="modal">
+        <div class="glass modal-content p-8 rounded-3xl">
+            <h3 class="font-orbitron text-xl font-bold mb-6 text-purple-400">PERSONALIZAR PERFIL</h3>
+            <div class="space-y-4">
+                <input type="text" id="edit-name" placeholder="Novo Nome" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none">
+                <input type="text" id="edit-avatar" placeholder="URL da Foto (PNG/GIF)" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none">
+                <input type="text" id="edit-banner" placeholder="URL do Banner (PNG/GIF)" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none">
+                <div class="flex gap-2">
+                    <button onclick="saveProfile()" class="flex-1 bg-green-600 font-bold py-3 rounded-lg hover:bg-green-500 transition">SALVAR</button>
+                    <button onclick="closeModal('modal-profile')" class="px-6 bg-white/10 py-3 rounded-lg">FECHAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-upload" class="modal">
+        <div class="glass modal-content p-8 rounded-3xl">
+            <h3 id="upload-title" class="font-orbitron text-xl font-bold mb-6 text-purple-400 uppercase">Publicar Projeto</h3>
+            <form id="game-form" onsubmit="handleGameSubmit(event)" class="space-y-4">
+                <input type="hidden" id="edit-index" value="-1">
+                <input type="text" id="game-name" placeholder="Nome do Jogo" required class="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none">
+                <input type="text" id="game-capa" placeholder="URL da Capa (Opcional)" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none">
+                
+                <div class="border-t border-white/5 pt-4">
+                    <p class="text-[10px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Método de Postagem</p>
+                    <select id="post-type" onchange="togglePostFields()" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg mb-4 outline-none">
+                        <option value="url">URL Externa (GitHub, Site, etc)</option>
+                        <option value="file">Arquivo Local (.html)</option>
+                        <option value="code">Código Direto (HTML)</option>
+                    </select>
+
+                    <input type="url" id="field-url" placeholder="https://exemplo.com/jogo" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none">
+                    <input type="file" id="field-file" accept=".html" class="hidden w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none">
+                    <textarea id="field-code" placeholder="Cole o código HTML aqui..." class="hidden w-full bg-black/40 border border-white/10 p-3 rounded-lg h-32 outline-none"></textarea>
+                </div>
+
+                <div class="flex gap-2 pt-4">
+                    <button type="submit" class="flex-1 bg-purple-600 font-bold py-3 rounded-lg hover:bg-purple-500 transition">POSTAR JOGO</button>
+                    <button type="button" onclick="closeModal('modal-upload')" class="px-6 bg-white/10 py-3 rounded-lg">CANCELAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="game-modal" class="fixed inset-0 bg-black z-[10000] hidden">
+        <div class="absolute top-4 left-4 flex gap-4 items-center">
+            <button onclick="closeGame()" class="bg-red-600 hover:bg-red-500 px-6 py-2 rounded-lg font-bold transition">SAIR</button>
+            <span id="playing-title" class="font-orbitron text-xs text-white/50 uppercase tracking-widest"></span>
+        </div>
+        <iframe id="game-frame" class="w-full h-full border-0 shadow-2xl"></iframe>
+    </div>
+
+    <script>
+        // --- DATA RESET (ZERADINHA) ---
+        localStorage.removeItem('gdev_games'); // Garante que a lista comece vazia
+        let games = [];
+        let currentUser = JSON.parse(localStorage.getItem('gdev_user')) || { name: 'Player', email: '', avatar: '', banner: '' };
+
+        // --- SISTEMA ---
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('intro-screen').style.display = 'none';
+                    // Verifica se já fez login antes
+                    if(!localStorage.getItem('gdev_logged')) {
+                        document.getElementById('login-screen').classList.remove('hidden');
+                    } else {
+                        startHub();
+                    }
+                }, 1000);
+            }, 6000);
+        };
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            if(!email.endsWith('@gmail.com')) return alert('Por favor, use um e-mail @gmail.com');
+            
+            currentUser.name = document.getElementById('login-user').value;
+            currentUser.email = email;
+            localStorage.setItem('gdev_user', JSON.stringify(currentUser));
+            localStorage.setItem('gdev_logged', 'true');
+            document.getElementById('login-screen').classList.add('hidden');
+            startHub();
+        }
+
+        function startHub() {
+            document.getElementById('main-hub').style.display = 'block';
+            document.body.style.overflow = 'auto';
+            updateUI();
+            renderGames();
+        }
+
+        function updateUI() {
+            document.getElementById('nav-username').innerText = currentUser.name;
+            document.getElementById('nav-avatar').style.backgroundImage = `url('${currentUser.avatar || 'https://via.placeholder.com/80'}')`;
+            document.getElementById('display-avatar').style.backgroundImage = `url('${currentUser.avatar || 'https://via.placeholder.com/100'}')`;
+            document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner || 'https://i.ibb.co/4M0L8P2/default-banner.jpg'}')`;
+        }
+
+        function saveProfile() {
+            currentUser.name = document.getElementById('edit-name').value || currentUser.name;
+            currentUser.avatar = document.getElementById('edit-avatar').value || currentUser.avatar;
+            currentUser.banner = document.getElementById('edit-banner').value || currentUser.banner;
+            localStorage.setItem('gdev_user', JSON.stringify(currentUser));
+            updateUI();
+            closeModal('modal-profile');
+        }
+
+        function togglePostFields() {
+            const type = document.getElementById('post-type').value;
+            document.getElementById('field-url').className = type === 'url' ? 'w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none' : 'hidden';
+            document.getElementById('field-file').className = type === 'file' ? 'w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none' : 'hidden';
+            document.getElementById('field-code').className = type === 'code' ? 'w-full bg-black/40 border border-white/10 p-3 rounded-lg h-32 outline-none' : 'hidden';
+        }
+
+        async function handleGameSubmit(e) {
+            e.preventDefault();
+            const index = parseInt(document.getElementById('edit-index').value);
+            const type = document.getElementById('post-type').value;
+            let content = "";
+
+            if(type === 'url') content = document.getElementById('field-url').value;
+            else if(type === 'code') content = document.getElementById('field-code').value;
+            else {
+                const file = document.getElementById('field-file').files[0];
+                if(file) content = await file.text();
+            }
+
+            const gameData = {
+                name: document.getElementById('game-name').value,
+                capa: document.getElementById('game-capa').value,
+                type: type,
+                content: content,
+                author: currentUser.email
+            };
+
+            if(index === -1) games.push(gameData);
+            else games[index] = gameData;
+
+            renderGames();
+            closeModal('modal-upload');
+            e.target.reset();
+        }
+
+        function renderGames() {
+            const grid = document.getElementById('games-grid');
+            grid.innerHTML = "";
+            
+            if(games.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-gray-500 italic py-10">Sua biblioteca está vazia. Publique um jogo!</p>`;
+                return;
+            }
+
+            games.forEach((game, i) => {
+                grid.innerHTML += `
+                    <div class="glass game-card rounded-2xl">
+                        <img src="${game.capa || 'https://i.ibb.co/h7Vf4Y1/no-capa.jpg'}" class="game-thumb" onclick="playGame(${i})">
+                        <div class="p-4">
+                            <h3 class="font-bold truncate text-sm uppercase">${game.name}</h3>
+                            <div class="flex gap-3 mt-3">
+                                <button onclick="editGame(${i})" class="text-[10px] font-bold hover:text-purple-400 transition">EDITAR</button>
+                                <button onclick="deleteGame(${i})" class="text-[10px] font-bold hover:text-red-500 transition">EXCLUIR</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function playGame(i) {
+            const g = games[i];
+            const frame = document.getElementById('game-frame');
+            document.getElementById('playing-title').innerText = `JOGANDO: ${g.name}`;
+            
+            if(g.type === 'url') {
+                frame.src = g.content;
+            } else {
+                const blob = new Blob([g.content], { type: 'text/html' });
+                frame.src = URL.createObjectURL(blob);
+            }
+            document.getElementById('game-modal').classList.remove('hidden');
+        }
+
+        function closeGame() {
+            document.getElementById('game-frame').src = "";
+            document.getElementById('game-modal').classList.add('hidden');
+        }
+
+        function deleteGame(i) {
+            if(confirm('Deseja excluir este jogo?')) {
+                games.splice(i, 1);
+                renderGames();
+            }
+        }
+
+        function editGame(i) {
+            const g = games[i];
+            document.getElementById('upload-title').innerText = "EDITAR JOGO";
+            document.getElementById('edit-index').value = i;
+            document.getElementById('game-name').value = g.name;
+            document.getElementById('game-capa').value = g.capa;
+            document.getElementById('post-type').value = g.type;
+            togglePostFields();
+            if(g.type === 'url') document.getElementById('field-url').value = g.content;
+            if(g.type === 'code') document.getElementById('field-code').value = g.content;
+            openModal('modal-upload');
+        }
+
+        function openModal(id) { 
+            if(id === 'modal-upload' && document.getElementById('edit-index').value === "-1") {
+                document.getElementById('game-form').reset();
+                togglePostFields();
+            }
+            document.getElementById(id).style.display = 'flex'; 
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    </script>
+</body>
+</html>
