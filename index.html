@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - Global Network</title>
+    <title>GameDev Space - LIMPEZA TOTAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, update, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
@@ -23,10 +23,16 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window.db = db; window.dbRefs = { ref, set, push, onValue, update, increment };
-        
-        // AQUI NÃO TEM MAIS O COMANDO DE REMOVER. 
-        // ELE VAI LER TUDO O QUE TIVER NO BANCO.
+        window.db = db; window.dbRefs = { ref, set, push, onValue, update, increment, remove };
+
+        // --- ÁREA DE EXTERMÍNIO ---
+        // ESTAS LINHAS VÃO APAGAR TODO O BANCO DE DADOS ASSIM QUE A PÁGINA ABRIR
+        console.log("INICIANDO LIMPEZA DO BANCO DE DADOS...");
+        remove(ref(db, 'games'));     // REMOVE TODOS OS JOGOS
+        remove(ref(db, 'comments'));  // REMOVE TODOS OS COMENTÁRIOS
+        console.log("LIMPEZA CONCLUÍDA.");
+        // --------------------------
+
     </script>
 
     <style>
@@ -117,8 +123,7 @@
                 <span class="w-1 h-8 bg-purple-600"></span> FEED GLOBAL
             </h2>
 
-            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                </div>
+            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
         </main>
     </div>
 
@@ -245,11 +250,10 @@
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 const data = snap.val();
-                if(!data) {
-                    // Feedback visual se estiver vazio mas sem deletar nada
-                    grid.innerHTML = '<p class="text-gray-500 col-span-full text-center">Nenhum jogo encontrado na rede.</p>';
-                    return;
-                }
+                
+                // SE NÃO TIVER DADOS, FICA QUIETO E NÃO MOSTRA NADA
+                if(!data) return;
+
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
