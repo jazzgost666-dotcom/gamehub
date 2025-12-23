@@ -1,92 +1,342 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHub - Status</title>
+    <title>GameDev Space - Clean Start</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
+            authDomain: "game-dev-space.firebaseapp.com",
+            databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
+            projectId: "game-dev-space",
+            storageBucket: "game-dev-space.firebasestorage.app",
+            messagingSenderId: "1073185335190",
+            appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        window.db = db; window.dbRefs = { ref, set, push, onValue, update, increment, remove };
+    </script>
+
     <style>
-        /* Estilização Geral */
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: radial-gradient(circle, #1a1a2e 0%, #0f0f1b 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-            overflow: hidden;
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        body { font-family: 'Rajdhani', sans-serif; background: #08070f; color: white; overflow-x: hidden; }
+        
+        /* INTRO COM CRÉDITOS */
+        #intro-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .intro-g {
+            font-family: 'Orbitron'; font-size: 140px; font-weight: 900; color: #8b5cf6;
+            text-shadow: 0 0 30px #8b5cf6; animation: fallBounce 1.5s ease-out forwards;
+        }
+        .credits-container { height: 120px; overflow: hidden; margin-top: 20px; text-align: center; }
+        .credits-roll {
+            animation: rollUp 4s linear 1.5s forwards;
+            transform: translateY(100%); opacity: 0;
+        }
+        @keyframes fallBounce {
+            0% { transform: translateY(-500px); opacity: 0; }
+            60% { transform: translateY(0); opacity: 1; }
+            80% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes rollUp {
+            0% { transform: translateY(100%); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-100%); opacity: 0; }
         }
 
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(139, 92, 246, 0.1); }
+        .btn-neon { background: #8b5cf6; transition: 0.3s; font-weight: 800; }
+        .btn-neon:hover { box-shadow: 0 0 25px #8b5cf6; transform: translateY(-2px); }
 
-        h1 {
-            font-size: 3rem;
-            margin: 0;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
+        /* VIEWER LAYOUT */
+        #game-viewer { display: none; position: fixed; inset: 0; background: #000; z-index: 500; }
+        .viewer-grid { display: grid; grid-template-columns: 1fr 380px; height: 100vh; }
+        .fs-active { grid-template-columns: 1fr; }
+        .fs-active .side-panel { display: none; }
 
-        /* O Círculo Vermelho */
-        .status-circle {
-            width: 25px;
-            height: 25px;
-            background-color: #ff4b2b;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 15px #ff4b2b;
-            animation: pulse 2s infinite;
-        }
-
-        /* Animação de Pulsação */
-        @keyframes pulse {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.7);
-            }
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 15px rgba(255, 75, 43, 0);
-            }
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(255, 75, 43, 0);
-            }
-        }
-
-        p {
-            color: #888;
-            margin-top: 20px;
-            font-size: 1.1rem;
-        }
-
-        .brand {
-            font-weight: bold;
-            color: #4ecca3; /* Cor de destaque para a marca */
-        }
+        .game-card { transition: 0.4s; border: 1px solid rgba(255,255,255,0.03); }
+        .game-card:hover { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.05); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>
-            <span class="brand">GameHub</span> está Offline 
-            <span class="status-circle"></span>
-        </h1>
-        <p>Estamos realizando uma manutenção rápida. Voltamos logo!</p>
+    <div id="intro-screen">
+        <div class="intro-g">G</div>
+        <div class="credits-container">
+            <div class="credits-roll">
+                <p class="text-purple-500 text-[10px] uppercase font-bold tracking-widest">Lead Developer</p>
+                <p class="text-2xl font-black mb-4">CHAD HELPER</p>
+                <p class="text-purple-500 text-[10px] uppercase font-bold tracking-widest">Executive Producer</p>
+                <p class="text-2xl font-black">EXILED OWNER</p>
+            </div>
+        </div>
     </div>
 
+    <div id="main-hub" class="hidden">
+        <header class="p-6 flex justify-between items-center glass sticky top-0 z-50">
+            <h1 class="font-orbitron text-xl font-black text-purple-500 tracking-tighter">GAMEDEV SPACE</h1>
+            <div class="flex items-center gap-6">
+                <button onclick="openModal('modal-upload')" class="btn-neon px-6 py-2 rounded-lg text-[10px] uppercase">Publicar Novo Jogo</button>
+                <div onclick="openModal('modal-profile')" class="cursor-pointer flex items-center gap-3 bg-white/5 p-1 pr-4 rounded-full border border-white/10">
+                    <div id="nav-avatar" class="w-8 h-8 rounded-full bg-purple-900 flex items-center justify-center font-bold text-xs">?</div>
+                    <span id="nav-username" class="text-xs font-bold">Player</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-8">
+            <div class="relative mb-24">
+                <div id="display-banner" class="w-full h-48 rounded-[30px] bg-gradient-to-r from-purple-900/20 to-black border border-white/5"></div>
+                <div id="display-avatar" class="w-28 h-28 rounded-full absolute -bottom-14 left-10 border-4 border-[#08070f] bg-purple-600 flex items-center justify-center text-3xl font-black">?</div>
+            </div>
+
+            <h2 class="text-2xl font-orbitron font-black mb-10 flex items-center gap-4 italic opacity-80">
+                <span class="w-2 h-8 bg-purple-600"></span> BIBLIOTECA GLOBAL
+            </h2>
+
+            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                </div>
+        </main>
+    </div>
+
+    <div id="game-viewer">
+        <div id="v-grid" class="viewer-grid">
+            <div class="relative flex items-center justify-center bg-[#050505]">
+                <div class="absolute top-6 left-6 z-50 flex gap-3">
+                    <button onclick="closeViewer()" class="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-2 rounded-lg font-bold text-[10px] transition">SAIR</button>
+                    <button id="fs-btn" onclick="toggleFS()" class="bg-purple-600 px-4 py-2 rounded-lg font-bold text-[10px]">TELA CHEIA</button>
+                    <button id="min-btn" onclick="toggleFS()" class="hidden bg-white/10 px-4 py-2 rounded-lg font-bold text-[10px]">MINIMIZAR</button>
+                </div>
+                <iframe id="game-frame" class="w-[90%] h-[85%] rounded-2xl shadow-2xl border border-white/5"></iframe>
+            </div>
+
+            <div class="side-panel glass p-8 flex flex-col border-l border-white/5">
+                <h3 id="v-name" class="font-orbitron text-xl font-black text-purple-500 mb-1">---</h3>
+                <p id="v-author" class="text-[10px] text-gray-500 uppercase font-bold tracking-[0.2em] mb-8">AUTOR: ---</p>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-white/5 p-4 rounded-2xl text-center">
+                        <span class="block text-[10px] opacity-40 uppercase">Acessos</span>
+                        <b id="v-views" class="text-lg">0</b>
+                    </div>
+                    <button id="like-action" class="bg-white/5 p-4 rounded-2xl text-center hover:bg-purple-600/10 transition">
+                        <span class="block text-[10px] opacity-40 uppercase">Likes</span>
+                        <b id="v-likes" class="text-lg text-red-500">0</b>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-hidden flex flex-col">
+                    <p class="text-[10px] font-black opacity-30 mb-4 uppercase tracking-widest">Feedback em Tempo Real</p>
+                    <div id="comm-list" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 text-sm"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="comm-input" placeholder="Diga algo..." class="flex-1 bg-white/5 border border-white/10 p-3 rounded-xl text-xs outline-none">
+                        <button onclick="postComm()" class="bg-purple-600 px-4 rounded-xl font-bold">➔</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[1000] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[40px] w-full max-w-xl">
+            <h3 class="font-orbitron text-xl font-bold mb-6 text-purple-500 uppercase">Novo Projeto</h3>
+            <form onsubmit="handleUpload(event)" class="space-y-4">
+                <input type="text" id="up-name" placeholder="Título do Jogo" required class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 outline-none">
+                <input type="text" id="up-capa" placeholder="Link da Imagem de Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 outline-none">
+                <select id="up-type" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 outline-none">
+                    <option value="url">Link Externo</option>
+                    <option value="code">Código HTML Puro</option>
+                </select>
+                <textarea id="up-content" placeholder="Insira o link ou código aqui..." required class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 outline-none"></textarea>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-purple-600 py-4 rounded-2xl font-black btn-neon">PUBLICAR NO FEED</button>
+                    <button type="button" onclick="closeModal('modal-upload')" class="px-8 bg-white/5 rounded-2xl font-bold">FECHAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-profile" class="hidden fixed inset-0 bg-black/95 z-[1000] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[30px] w-full max-w-md">
+            <h3 class="font-orbitron text-xl font-bold mb-6 text-center">PERFIL DEV</h3>
+            <div class="space-y-4">
+                <input type="text" id="p-name" placeholder="Seu Nick" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 outline-none">
+                <input type="text" id="p-avatar" placeholder="URL Foto" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 outline-none">
+                <button onclick="saveProfile()" class="w-full bg-purple-600 py-4 rounded-2xl font-black">SALVAR ALTERAÇÕES</button>
+                <button onclick="closeModal('modal-profile')" class="w-full text-xs opacity-40 py-2">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let user = JSON.parse(localStorage.getItem('gdev_user')) || { name: 'Player', avatar: '' };
+        let activeId = null;
+
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.display = 'none';
+                document.getElementById('main-hub').classList.remove('hidden');
+                updateUI();
+                loadGames();
+            }, 6000); // 6 segundos para dar tempo do roll dos créditos
+        };
+
+        function updateUI() {
+            document.getElementById('nav-username').innerText = user.name;
+            const av = document.getElementById('nav-avatar');
+            const dav = document.getElementById('display-avatar');
+            if(user.avatar) {
+                av.style.backgroundImage = `url('${user.avatar}')`; av.innerText = "";
+                dav.style.backgroundImage = `url('${user.avatar}')`; dav.innerText = "";
+            } else {
+                av.innerText = user.name.charAt(0);
+                dav.innerText = user.name.charAt(0);
+            }
+        }
+
+        function saveProfile() {
+            user.name = document.getElementById('p-name').value || user.name;
+            user.avatar = document.getElementById('p-avatar').value || user.avatar;
+            localStorage.setItem('gdev_user', JSON.stringify(user));
+            updateUI();
+            closeModal('modal-profile');
+        }
+
+        function handleUpload(e) {
+            e.preventDefault();
+            const { ref, push, set } = window.dbRefs;
+            const newRef = push(ref(window.db, 'games'));
+            set(newRef, {
+                name: document.getElementById('up-name').value,
+                capa: document.getElementById('up-capa').value,
+                type: document.getElementById('up-type').value,
+                content: document.getElementById('up-content').value,
+                author: user.name,
+                likes: 0, views: 0, ts: Date.now()
+            });
+            closeModal('modal-upload');
+            e.target.reset();
+        }
+
+        function loadGames() {
+            const { ref, onValue } = window.dbRefs;
+            onValue(ref(window.db, 'games'), (snap) => {
+                const grid = document.getElementById('games-grid');
+                grid.innerHTML = "";
+                const data = snap.val();
+                if(!data) {
+                    grid.innerHTML = `<div class="col-span-full py-20 text-center opacity-20 font-bold uppercase tracking-[0.5em]">Biblioteca Vazia</div>`;
+                    return;
+                }
+                Object.keys(data).reverse().forEach(id => {
+                    const g = data[id];
+                    grid.innerHTML += `
+                        <div class="game-card glass p-4 rounded-3xl" onclick="openViewer('${id}')">
+                            <img src="${g.capa || 'https://i.ibb.co/h7Vf4Y1/no-capa.jpg'}" class="w-full h-40 object-cover rounded-2xl mb-4 bg-black">
+                            <h4 class="font-bold uppercase text-xs truncate">${g.name}</h4>
+                            <div class="flex justify-between items-center mt-3 text-[10px] text-purple-400 font-bold">
+                                <span>@${g.author}</span>
+                                <span class="bg-purple-600/20 px-2 py-1 rounded">❤️ ${g.likes || 0}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function openViewer(id) {
+            const { ref, onValue, update, increment } = window.dbRefs;
+            activeId = id;
+            update(ref(window.db, `games/${id}`), { views: increment(1) });
+
+            onValue(ref(window.db, `games/${id}`), (snap) => {
+                const g = snap.val();
+                if(!g) return;
+                document.getElementById('v-name').innerText = g.name;
+                document.getElementById('v-author').innerText = "AUTOR: " + g.author;
+                document.getElementById('v-views').innerText = g.views || 0;
+                document.getElementById('v-likes').innerText = g.likes || 0;
+                const fr = document.getElementById('game-frame');
+                if(g.type === 'url') fr.src = g.content; else fr.srcdoc = g.content;
+            });
+
+            document.getElementById('like-action').onclick = () => {
+                update(ref(window.db, `games/${id}`), { likes: increment(1) });
+            };
+
+            loadComms(id);
+            document.getElementById('game-viewer').style.display = 'block';
+        }
+
+        function toggleFS() {
+            const grid = document.getElementById('v-grid');
+            const frame = document.getElementById('game-frame');
+            const isFS = grid.classList.toggle('fs-active');
+            
+            if(isFS) {
+                frame.classList.replace('w-[90%]', 'w-full');
+                frame.classList.replace('h-[85%]', 'h-full');
+                frame.classList.remove('rounded-2xl');
+                document.getElementById('fs-btn').classList.add('hidden');
+                document.getElementById('min-btn').classList.remove('hidden');
+            } else {
+                frame.classList.replace('w-full', 'w-[90%]');
+                frame.classList.replace('h-full', 'h-[85%]');
+                frame.classList.add('rounded-2xl');
+                document.getElementById('fs-btn').classList.remove('hidden');
+                document.getElementById('min-btn').classList.add('hidden');
+            }
+        }
+
+        function postComm() {
+            const input = document.getElementById('comm-input');
+            if(!input.value.trim() || !activeId) return;
+            const { ref, push, set } = window.dbRefs;
+            set(push(ref(window.db, `comments/${activeId}`)), {
+                user: user.name, text: input.value, ts: Date.now()
+            });
+            input.value = "";
+        }
+
+        function loadComms(id) {
+            const { ref, onValue } = window.dbRefs;
+            onValue(ref(window.db, `comments/${id}`), (snap) => {
+                const box = document.getElementById('comm-list');
+                box.innerHTML = "";
+                const data = snap.val();
+                if(data) Object.values(data).forEach(c => {
+                    box.innerHTML += `
+                        <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
+                            <p class="text-[9px] text-purple-500 font-bold uppercase mb-1">${c.user}</p>
+                            <p class="opacity-80">${c.text}</p>
+                        </div>
+                    `;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        function closeViewer() {
+            document.getElementById('game-viewer').style.display = 'none';
+            document.getElementById('game-frame').src = "";
+            activeId = null;
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
 </body>
 </html>
