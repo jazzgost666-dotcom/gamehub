@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - Global Network</title>
+    <title>GameDev Space - Global Library</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, update, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
@@ -23,11 +23,11 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window.db = db; window.dbRefs = { ref, set, push, onValue, update, increment };
+        window.db = db; window.dbRefs = { ref, set, push, onValue, update, increment, remove };
     </script>
 
     <style>
-        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #8b5cf6 #05040a; }
+        * { box-sizing: border-box; }
         body { font-family: 'Rajdhani', sans-serif; background: #05040a; color: white; overflow-x: hidden; }
         
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(139, 92, 246, 0.2); }
@@ -36,114 +36,135 @@
         #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
         .intro-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 30px #8b5cf6; }
 
-        /* Banner & Profile */
+        /* Profile HUD */
         .profile-banner { width: 100%; height: 240px; border-radius: 24px; background: linear-gradient(45deg, #0f0c29, #302b63, #24243e); background-size: 400%; animation: grad 15s infinite; border: 1px solid rgba(139, 92, 246, 0.3); }
         @keyframes grad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -60px; left: 40px; background-size: cover; box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -60px; left: 40px; background-size: cover; background-position: center; box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
 
-        /* Game Page Style */
+        /* Game Page */
         #game-viewer { display: none; position: fixed; inset: 0; background: #05040a; z-index: 200; overflow-y: auto; }
-        .game-container-split { display: grid; grid-template-columns: 1fr 350px; height: calc(100vh - 80px); gap: 20px; padding: 20px; }
-        .iframe-wrapper { position: relative; background: #000; border-radius: 20px; overflow: hidden; border: 1px solid #8b5cf655; }
+        .game-container-split { display: grid; grid-template-columns: 1fr 380px; height: calc(100vh - 80px); gap: 20px; padding: 20px; }
+        .iframe-wrapper { position: relative; background: #000; border-radius: 24px; overflow: hidden; border: 1px solid #8b5cf633; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5); }
         
-        /* Fullscreen Class */
-        .fullscreen-active { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 300; grid-template-columns: 1fr !important; padding: 0 !important; }
+        .fullscreen-active { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 300; grid-template-columns: 1fr !important; padding: 0 !important; border-radius: 0 !important; }
+        .fullscreen-active .iframe-wrapper { border-radius: 0 !important; border: none; }
 
         .btn-neon { transition: 0.3s; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
-        .btn-neon:hover { box-shadow: 0 0 15px #8b5cf6; transform: translateY(-2px); }
+        .btn-neon:hover { box-shadow: 0 0 20px #8b5cf6; transform: translateY(-2px); }
+
+        .game-card { transition: 0.4s; border: 1px solid rgba(255,255,255,0.05); }
+        .game-card:hover { transform: translateY(-8px); border-color: #8b5cf6; box-shadow: 0 12px 30px -10px rgba(139, 92, 246, 0.4); }
     </style>
 </head>
 <body>
 
     <div id="intro-screen">
         <div class="intro-g">G</div>
-        <p class="font-orbitron text-[10px] tracking-[1em] text-purple-500 animate-pulse mt-4">CONNECTING TO DATABASE</p>
+        <p class="font-orbitron text-[10px] tracking-[1em] text-purple-500 animate-pulse mt-4">SISTEMA ONLINE ATIVO</p>
     </div>
 
     <div id="main-hub" class="hidden">
         <header class="p-6 flex justify-between items-center glass sticky top-0 z-50">
-            <h1 class="font-orbitron text-2xl font-black"><span class="text-purple-500">GAMEDEV</span> SPACE</h1>
+            <h1 class="font-orbitron text-2xl font-black tracking-tighter"><span class="text-purple-500">GAME</span>DEV SPACE</h1>
             <div class="flex items-center gap-6">
-                <button onclick="openModal('modal-upload')" class="bg-purple-600 px-6 py-2 rounded-full text-xs btn-neon">+ POSTAR JOGO</button>
-                <div onclick="openModal('modal-profile')" class="cursor-pointer flex items-center gap-3">
-                    <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center"></div>
+                <button onclick="openModal('modal-upload')" class="bg-purple-600 px-6 py-2 rounded-full text-xs btn-neon font-black">PUBLICAR JOGO</button>
+                <div onclick="openModal('modal-profile')" class="cursor-pointer group flex items-center gap-3">
+                    <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center group-hover:scale-110 transition"></div>
                 </div>
             </div>
         </header>
 
         <main class="container mx-auto p-8">
             <div class="relative mb-24">
-                <div id="display-banner" class="profile-banner"></div>
-                <div id="display-avatar" class="profile-avatar"></div>
+                <div id="display-banner" class="profile-banner shadow-2xl"></div>
+                <div id="display-avatar" class="profile-avatar shadow-2xl"></div>
             </div>
 
-            <h2 class="text-2xl font-orbitron font-black mb-8 flex items-center gap-4">
-                <span class="w-2 h-8 bg-purple-600"></span> GLOBAL FEED
-            </h2>
-
-            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="flex items-end justify-between mb-10">
+                <div>
+                    <h2 class="text-4xl font-orbitron font-black text-white italic">FEED GLOBAL</h2>
+                    <p class="text-purple-400/60 text-xs tracking-[0.3em] uppercase">Projetos da Comunidade em tempo real</p>
                 </div>
+            </div>
+
+            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
         </main>
     </div>
 
     <div id="game-viewer">
-        <header class="h-20 flex justify-between items-center px-8 border-b border-white/10">
-            <button onclick="closeViewer()" class="text-sm font-bold text-gray-400 hover:text-white">← VOLTAR</button>
-            <h3 id="view-title" class="font-orbitron font-bold text-purple-500"></h3>
+        <header class="h-20 flex justify-between items-center px-8 border-b border-white/10 bg-black/50 backdrop-blur-md">
+            <button onclick="closeViewer()" class="text-xs font-black tracking-widest text-gray-500 hover:text-white transition">← ESC / VOLTAR</button>
+            <div class="text-center">
+                <h3 id="view-title" class="font-orbitron font-bold text-purple-500 leading-none">JOGO</h3>
+                <span id="view-author" class="text-[9px] text-white/30 uppercase tracking-[0.2em]">Autor do Projeto</span>
+            </div>
             <div class="flex gap-4">
-                <button id="like-btn" class="bg-white/5 px-4 py-2 rounded-lg hover:bg-purple-600 transition">❤️ <span id="view-likes">0</span></button>
-                <button onclick="toggleFullscreen()" class="bg-purple-600 px-4 py-2 rounded-lg btn-neon">TELA CHEIA</button>
+                <button id="like-btn" class="bg-white/5 px-5 py-2 rounded-xl hover:bg-purple-600/20 border border-white/5 transition flex items-center gap-2">
+                    <span class="text-red-500">❤️</span> <span id="view-likes" class="font-bold">0</span>
+                </button>
+                <button onclick="toggleFullscreen()" class="bg-purple-600 px-6 py-2 rounded-xl btn-neon text-xs">TELA CHEIA</button>
             </div>
         </header>
 
         <div id="viewer-layout" class="game-container-split">
-            <div class="iframe-wrapper">
+            <div class="iframe-wrapper group">
                 <iframe id="game-frame" class="w-full h-full border-0"></iframe>
-                <button id="minimize-btn" onclick="toggleFullscreen()" class="hidden absolute top-4 right-4 bg-black/50 p-2 rounded-full hover:bg-black">
-                    <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+                <button id="minimize-btn" onclick="toggleFullscreen()" class="hidden absolute top-6 right-6 bg-purple-600/80 p-3 rounded-full hover:bg-purple-600 transition shadow-xl">
+                    <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
                 </button>
             </div>
 
-            <div class="glass p-6 rounded-2xl flex flex-col h-full">
-                <h4 class="font-orbitron text-xs mb-4 text-purple-400 uppercase tracking-widest">Feedback da Comunidade</h4>
-                <div id="comments-list" class="flex-1 overflow-y-auto space-y-4 mb-4 text-sm pr-2">
+            <div class="glass p-6 rounded-[24px] flex flex-col h-full border-white/5">
+                <div class="flex items-center gap-2 mb-6 text-purple-400">
+                    <span class="w-1 h-4 bg-purple-500"></span>
+                    <h4 class="font-orbitron text-[10px] font-bold uppercase tracking-widest">Chat do Projeto</h4>
+                </div>
+                
+                <div id="comments-list" class="flex-1 overflow-y-auto space-y-4 mb-6 pr-2 custom-scroll">
                     </div>
-                <div class="mt-auto flex gap-2">
-                    <input type="text" id="comm-input" placeholder="Escreva algo..." class="flex-1 bg-white/5 border border-white/10 p-2 rounded-lg outline-none focus:border-purple-500 text-xs">
-                    <button onclick="postComment()" class="bg-purple-600 p-2 rounded-lg">➔</button>
+
+                <div class="relative mt-auto">
+                    <input type="text" id="comm-input" placeholder="Envie seu feedback..." class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition text-sm">
+                    <button onclick="postComment()" class="absolute right-2 top-2 bg-purple-600 w-10 h-10 rounded-xl hover:bg-purple-500 flex items-center justify-center transition">➔</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="modal-upload" class="hidden fixed inset-0 bg-black/90 z-[500] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[32px] w-full max-w-xl">
-            <h3 class="font-orbitron text-xl font-bold mb-6 text-purple-500 uppercase">Novo Projeto Online</h3>
-            <form onsubmit="handleUpload(event)" class="space-y-4">
-                <input type="text" id="up-name" placeholder="Nome do Jogo" required class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none">
-                <input type="text" id="up-capa" placeholder="Link da Capa" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none">
-                <select id="up-type" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none">
-                    <option value="url">URL do Jogo</option>
-                    <option value="code">Código HTML (Paste)</option>
-                </select>
-                <textarea id="up-content" placeholder="Conteúdo..." required class="w-full bg-white/5 border border-white/10 p-3 rounded-xl h-32 outline-none"></textarea>
-                <div class="flex gap-2">
-                    <button type="submit" class="flex-1 bg-purple-600 py-3 rounded-xl font-bold">SUBIR PARA A REDE</button>
-                    <button type="button" onclick="closeModal('modal-upload')" class="px-6 bg-white/5 rounded-xl">CANCELAR</button>
+    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[500] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass p-10 rounded-[40px] w-full max-w-2xl border-purple-500/20">
+            <h3 class="font-orbitron text-2xl font-black mb-8 text-purple-500">DEPLOY DE PROJETO</h3>
+            <form onsubmit="handleUpload(event)" class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <input type="text" id="up-name" placeholder="Título do Jogo" required class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500">
                 </div>
+                <div class="col-span-2">
+                    <input type="text" id="up-capa" placeholder="URL da Capa (Imagem)" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500">
+                </div>
+                <div class="col-span-2">
+                    <select id="up-type" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none">
+                        <option value="url">Link Externo (GitHub/Vercel)</option>
+                        <option value="code">Código Direto (HTML/JS)</option>
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <textarea id="up-content" placeholder="Cole o Link ou o Código aqui..." required class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl h-40 outline-none focus:border-purple-500"></textarea>
+                </div>
+                <button type="submit" class="col-span-1 bg-purple-600 py-4 rounded-2xl font-black tracking-widest hover:bg-purple-500 transition shadow-lg shadow-purple-600/20">POSTAR ONLINE</button>
+                <button type="button" onclick="closeModal('modal-upload')" class="col-span-1 bg-white/5 rounded-2xl font-bold">CANCELAR</button>
             </form>
         </div>
     </div>
 
-    <div id="modal-profile" class="hidden fixed inset-0 bg-black/90 z-[500] flex items-center justify-center p-4">
+    <div id="modal-profile" class="hidden fixed inset-0 bg-black/95 z-[500] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-[32px] w-full max-w-md">
-            <h3 class="font-orbitron text-xl font-bold mb-6">Meu Perfil</h3>
+            <h3 class="font-orbitron text-xl font-bold mb-6 text-center text-purple-400 uppercase">Configurações de Dev</h3>
             <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Seu Nome" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none">
-                <input type="text" id="p-avatar" placeholder="Link do Avatar" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none">
-                <input type="text" id="p-banner" placeholder="Link do Banner" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none">
-                <button onclick="saveProfile()" class="w-full bg-purple-600 py-3 rounded-xl font-bold">SALVAR ALTERAÇÕES</button>
-                <button onclick="closeModal('modal-profile')" class="w-full text-xs text-gray-500">FECHAR</button>
+                <input type="text" id="p-name" placeholder="Apelido de Desenvolvedor" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500">
+                <input type="text" id="p-avatar" placeholder="URL da Foto" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none">
+                <input type="text" id="p-banner" placeholder="URL do Banner" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none">
+                <button onclick="saveProfile()" class="w-full bg-purple-600 py-4 rounded-2xl font-black btn-neon">SALVAR TUDO</button>
+                <button onclick="closeModal('modal-profile')" class="w-full text-xs text-gray-500 uppercase tracking-widest">Fechar</button>
             </div>
         </div>
     </div>
@@ -151,11 +172,10 @@
     <script>
         let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { 
             name: 'Dev_' + Math.floor(Math.random()*999), 
-            avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=1' 
+            avatar: 'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=' + Math.random() 
         };
         let activeGameId = null;
 
-        // Inicialização
         window.onload = () => {
             setTimeout(() => {
                 document.getElementById('intro-screen').style.opacity = '0';
@@ -171,7 +191,10 @@
         function updateUI() {
             document.getElementById('nav-avatar').style.backgroundImage = `url('${currentUser.avatar}')`;
             document.getElementById('display-avatar').style.backgroundImage = `url('${currentUser.avatar}')`;
-            if(currentUser.banner) document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
+            if(currentUser.banner) {
+                document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
+                document.getElementById('display-banner').style.animation = 'none';
+            }
         }
 
         function saveProfile() {
@@ -183,7 +206,7 @@
             closeModal('modal-profile');
         }
 
-        // Firebase - Jogos
+        // FIREBASE - LOGICA DE JOGOS
         function handleUpload(e) {
             e.preventDefault();
             const { ref, push, set } = window.dbRefs;
@@ -209,18 +232,25 @@
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 if(!data) {
-                    grid.innerHTML = `<p class="col-span-full text-center text-white/20 font-orbitron py-20">NENHUM JOGO ONLINE NO MOMENTO</p>`;
+                    grid.innerHTML = `<div class="col-span-full text-center py-20 opacity-30 font-orbitron">SEM JOGOS NO FEED</div>`;
                     return;
                 }
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
-                        <div class="glass rounded-2xl overflow-hidden group hover:border-purple-500 transition cursor-pointer" onclick="openViewer('${id}')">
-                            <img src="${g.capa || 'https://via.placeholder.com/400x200'}" class="w-full h-40 object-cover group-hover:scale-105 transition duration-500">
-                            <div class="p-4">
-                                <h4 class="font-bold truncate text-sm uppercase">${g.name}</h4>
-                                <div class="flex justify-between items-center mt-2 text-[10px] text-purple-400 font-bold">
-                                    <span>BY ${g.author}</span>
+                        <div class="glass game-card rounded-[24px] overflow-hidden group cursor-pointer" onclick="openViewer('${id}')">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="${g.capa || 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=500'}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                                <div class="absolute bottom-4 left-4">
+                                    <p class="text-[9px] text-purple-400 font-black tracking-widest uppercase">Projeto</p>
+                                    <h4 class="font-orbitron font-bold text-sm truncate w-40">${g.name}</h4>
+                                </div>
+                            </div>
+                            <div class="p-4 flex justify-between items-center bg-white/[0.02]">
+                                <span class="text-[10px] text-white/40 font-bold uppercase">Dev: ${g.author}</span>
+                                <div class="flex gap-3 text-[10px] font-bold">
+                                    <span>❤️ ${g.likes || 0}</span>
                                     <span>👁️ ${g.views || 0}</span>
                                 </div>
                             </div>
@@ -230,18 +260,17 @@
             });
         }
 
-        // Viewer de Jogos
+        // VIEWER
         function openViewer(id) {
             const { ref, onValue, update, increment } = window.dbRefs;
             activeGameId = id;
-            
-            // Incrementar view
             update(ref(window.db, `games/${id}`), { views: increment(1) });
 
             onValue(ref(window.db, `games/${id}`), (snapshot) => {
                 const g = snapshot.val();
                 if(!g) return;
                 document.getElementById('view-title').innerText = g.name;
+                document.getElementById('view-author').innerText = "Desenvolvido por: " + g.author;
                 document.getElementById('view-likes').innerText = g.likes || 0;
                 
                 const frame = document.getElementById('game-frame');
@@ -249,7 +278,6 @@
                 else frame.srcdoc = g.content;
             });
 
-            // Like Btn Action
             document.getElementById('like-btn').onclick = () => {
                 update(ref(window.db, `games/${id}`), { likes: increment(1) });
             };
@@ -273,7 +301,7 @@
             miniBtn.classList.toggle('hidden');
         }
 
-        // Comentários
+        // COMENTARIOS
         function postComment() {
             if(!activeGameId) return;
             const input = document.getElementById('comm-input');
@@ -298,17 +326,17 @@
                 if(data) {
                     Object.values(data).forEach(c => {
                         list.innerHTML += `
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/5">
-                                <p class="text-[10px] text-purple-500 font-bold uppercase mb-1">${c.user}</p>
-                                <p class="text-white/80">${c.text}</p>
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5 animate-fade-in">
+                                <p class="text-[10px] text-purple-400 font-black uppercase mb-1">${c.user}</p>
+                                <p class="text-sm text-white/80 leading-relaxed">${c.text}</p>
                             </div>
                         `;
                     });
+                    list.scrollTop = list.scrollHeight;
                 }
             });
         }
 
-        // Helpers Modais
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
     </script>
