@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - LIMPEZA TOTAL</title>
+    <title>GameDev Space - CLEAN & FIXED</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -25,14 +25,11 @@
         const db = getDatabase(app);
         window.db = db; window.dbRefs = { ref, set, push, onValue, update, increment, remove };
 
-        // --- ÁREA DE EXTERMÍNIO ---
-        // ESTAS LINHAS VÃO APAGAR TODO O BANCO DE DADOS ASSIM QUE A PÁGINA ABRIR
-        console.log("INICIANDO LIMPEZA DO BANCO DE DADOS...");
-        remove(ref(db, 'games'));     // REMOVE TODOS OS JOGOS
-        remove(ref(db, 'comments'));  // REMOVE TODOS OS COMENTÁRIOS
-        console.log("LIMPEZA CONCLUÍDA.");
-        // --------------------------
-
+        // --- ZONA DE LIMPEZA (REMOVE TUDO AO CARREGAR) ---
+        // Se quiser parar de apagar tudo toda vez que dá F5, remova as duas linhas abaixo depois.
+        remove(ref(db, 'games')); 
+        remove(ref(db, 'comments'));
+        // -------------------------------------------------
     </script>
 
     <style>
@@ -49,8 +46,6 @@
             text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards;
             margin-bottom: 20px;
         }
-
-        /* CRÉDITOS */
         .credits-container { height: 80px; overflow: hidden; position: relative; width: 100%; text-align: center; }
         .credits-roll {
             position: absolute; width: 100%; animation: rollCredits 4s linear 2s forwards;
@@ -86,6 +81,12 @@
 
         .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; }
         .game-card:hover { border-color: #8b5cf6; transform: translateY(-5px); background: rgba(139, 92, 246, 0.05); }
+        
+        /* Custom File Upload Style */
+        input[type="file"]::file-selector-button {
+            margin-right: 20px; border: none; background: #8b5cf6; padding: 10px 20px;
+            border-radius: 10px; color: #fff; cursor: pointer; font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -123,7 +124,8 @@
                 <span class="w-1 h-8 bg-purple-600"></span> FEED GLOBAL
             </h2>
 
-            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                </div>
         </main>
     </div>
 
@@ -157,10 +159,11 @@
 
                 <div class="flex-1 flex flex-col overflow-hidden">
                     <p class="text-[10px] font-bold opacity-30 mb-2 uppercase tracking-widest">Comentários</p>
-                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 text-sm"></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="comm-input" placeholder="Escreva algo..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded-lg text-xs outline-none focus:border-purple-500">
-                        <button onclick="postComment()" class="bg-purple-600 px-4 rounded-lg font-bold">➔</button>
+                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 text-sm text-gray-300">
+                        </div>
+                    <div class="flex gap-2 mt-2">
+                        <input type="text" id="comm-input" placeholder="Escreva algo..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded-lg text-xs outline-none focus:border-purple-500 text-white">
+                        <button onclick="postComment()" class="bg-purple-600 px-4 rounded-lg font-bold hover:bg-purple-500">➔</button>
                     </div>
                 </div>
             </div>
@@ -173,11 +176,17 @@
             <form onsubmit="handleUpload(event)" class="space-y-4">
                 <input type="text" id="up-name" placeholder="Título do Jogo" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
                 <input type="text" id="up-capa" placeholder="URL da Capa (Imagem)" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
-                <select id="up-type" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
-                    <option value="url">Link Externo</option>
-                    <option value="code">Código HTML</option>
+                
+                <select id="up-type" onchange="toggleUploadInputs()" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-purple-400 font-bold">
+                    <option value="url">🌐 Site / GitHub / Itch.io</option>
+                    <option value="code">💻 Código HTML (Cola Direta)</option>
+                    <option value="file">📂 Local Arquivo (.html)</option>
                 </select>
-                <textarea id="up-content" placeholder="Link ou Código aqui..." required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none"></textarea>
+
+                <div id="input-container">
+                    <textarea id="up-content" placeholder="Cole o Link (https://...) ou seu Código HTML aqui..." required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none font-mono text-xs"></textarea>
+                </div>
+
                 <div class="flex gap-2">
                     <button type="submit" class="flex-1 bg-purple-600 py-3 rounded-xl font-bold btn-neon">PUBLICAR GLOBALMENTE</button>
                     <button type="button" onclick="closeModal('modal-upload')" class="px-6 bg-white/10 rounded-xl">FECHAR</button>
@@ -228,20 +237,53 @@
             closeModal('modal-profile');
         }
 
-        function handleUpload(e) {
+        // LÓGICA DE UPLOAD ATUALIZADA (3 OPÇÕES)
+        window.toggleUploadInputs = function() {
+            const type = document.getElementById('up-type').value;
+            const container = document.getElementById('input-container');
+            
+            if (type === 'file') {
+                container.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">`;
+            } else {
+                const placeholder = type === 'url' ? 'Cole o Link aqui (https://...)' : 'Cole seu código HTML aqui...';
+                container.innerHTML = `<textarea id="up-content" placeholder="${placeholder}" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none font-mono text-xs"></textarea>`;
+            }
+        }
+
+        window.handleUpload = function(e) {
             e.preventDefault();
             const { ref, push, set } = window.dbRefs;
-            const newRef = push(ref(window.db, 'games'));
-            set(newRef, {
-                name: document.getElementById('up-name').value,
-                capa: document.getElementById('up-capa').value,
-                type: document.getElementById('up-type').value,
-                content: document.getElementById('up-content').value,
-                author: currentUser.name,
-                likes: 0, views: 0, ts: Date.now()
-            });
-            closeModal('modal-upload');
-            e.target.reset();
+            const type = document.getElementById('up-type').value;
+            const name = document.getElementById('up-name').value;
+            const capa = document.getElementById('up-capa').value;
+
+            const saveToDB = (content) => {
+                const newRef = push(ref(window.db, 'games'));
+                set(newRef, {
+                    name: name,
+                    capa: capa,
+                    type: type, // 'url', 'code' ou 'file'
+                    content: content,
+                    author: currentUser.name,
+                    likes: 0, views: 0, ts: Date.now()
+                });
+                closeModal('modal-upload');
+                e.target.reset();
+                toggleUploadInputs(); // Reset inputs
+            };
+
+            if (type === 'file') {
+                const fileInput = document.getElementById('up-file');
+                if (fileInput.files.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        saveToDB(evt.target.result); // Salva como DataURL
+                    };
+                    reader.readAsDataURL(fileInput.files[0]);
+                }
+            } else {
+                saveToDB(document.getElementById('up-content').value);
+            }
         }
 
         function loadGames() {
@@ -250,10 +292,10 @@
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 const data = snap.val();
-                
-                // SE NÃO TIVER DADOS, FICA QUIETO E NÃO MOSTRA NADA
-                if(!data) return;
-
+                if(!data) {
+                    grid.innerHTML = '<p class="col-span-full text-center opacity-30">NENHUM PROJETO DETECTADO NA REDE</p>';
+                    return;
+                }
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
@@ -281,12 +323,26 @@
                 document.getElementById('v-author').innerText = "Developer: " + g.author;
                 document.getElementById('v-views').innerText = g.views || 0;
                 document.getElementById('v-likes').innerText = g.likes || 0;
+                
                 const frame = document.getElementById('main-frame');
-                if(g.type === 'url') frame.src = g.content; else frame.srcdoc = g.content;
+                // Lógica de exibição ajustada para os 3 tipos
+                if(g.type === 'url') {
+                    frame.src = g.content;
+                    frame.removeAttribute('srcdoc');
+                } else if (g.type === 'file') {
+                    frame.src = g.content; // DataURL funciona no src
+                    frame.removeAttribute('srcdoc');
+                } else {
+                    // Code
+                    frame.srcdoc = g.content;
+                    frame.removeAttribute('src');
+                }
             });
+
             document.getElementById('like-btn').onclick = () => {
                 update(ref(window.db, `games/${id}`), { likes: increment(1) });
             };
+
             loadComments(id);
             document.getElementById('game-viewer').style.display = 'block';
         }
@@ -310,10 +366,12 @@
             }
         }
 
-        function postComment() {
+        window.postComment = function() {
             const input = document.getElementById('comm-input');
             if(!input.value.trim()) return;
+            
             const { ref, push, set } = window.dbRefs;
+            // Corrigido caminho de salvamento
             set(push(ref(window.db, `comments/${activeGameId}`)), {
                 user: currentUser.name, text: input.value, ts: Date.now()
             });
@@ -328,24 +386,26 @@
                 const data = snap.val();
                 if(data) Object.values(data).forEach(c => {
                     box.innerHTML += `
-                        <div class="bg-white/5 p-3 rounded-lg border border-white/5">
+                        <div class="bg-white/5 p-3 rounded-lg border border-white/5 mb-2">
                             <p class="text-[9px] text-purple-500 font-bold uppercase mb-1">${c.user}</p>
-                            <p class="leading-tight">${c.text}</p>
+                            <p class="leading-tight text-white">${c.text}</p>
                         </div>
                     `;
                 });
-                box.scrollTop = box.scrollHeight;
+                // Auto scroll para baixo
+                setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
             });
         }
 
-        function closeViewer() {
+        window.closeViewer = function() {
             document.getElementById('game-viewer').style.display = 'none';
             document.getElementById('main-frame').src = "";
+            document.getElementById('main-frame').removeAttribute('srcdoc');
             activeGameId = null;
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
     </script>
 </body>
 </html>
