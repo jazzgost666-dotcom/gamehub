@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - CLEAN & FIXED</title>
+    <title>GameDev Space - Clean Slate</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -23,20 +23,16 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window.db = db; window.dbRefs = { ref, set, push, onValue, update, increment, remove };
+        window.db = db; 
+        window.dbRefs = { ref, set, push, onValue, update, increment, remove };
 
-        // --- ZONA DE LIMPEZA (REMOVE TUDO AO CARREGAR) ---
-        // Se quiser parar de apagar tudo toda vez que dá F5, remova as duas linhas abaixo depois.
-        remove(ref(db, 'games')); 
-        remove(ref(db, 'comments'));
-        // -------------------------------------------------
+        // A limpeza automática foi removida para que novos jogos salvos permaneçam no banco.
     </script>
 
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; overflow-x: hidden; }
         
-        /* INTRO ANIMATION */
         #intro-screen {
             position: fixed; inset: 0; background: #000; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -65,9 +61,8 @@
         }
 
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
-        
-        .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: linear-gradient(90deg, #1a1625, #2d2346); position: relative; border: 1px solid rgba(139, 92, 246, 0.2); }
-        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: linear-gradient(90deg, #1a1625, #2d2346); position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
+        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         
         #game-viewer { display: none; position: fixed; inset: 0; background: rgba(5, 4, 10, 0.98); z-index: 500; }
         .viewer-container { display: grid; grid-template-columns: 1fr 350px; height: 100vh; transition: 0.3s; }
@@ -76,13 +71,12 @@
         .is-fullscreen .viewer-container { grid-template-columns: 1fr 0px; }
         .is-fullscreen .side-panel { display: none; }
         
-        .btn-neon { background: #8b5cf6; color: white; font-weight: 900; text-transform: uppercase; transition: 0.3s; }
+        .btn-neon { background: #8b5cf6; color: white; font-weight: 900; text-transform: uppercase; transition: 0.3s; border: none; cursor: pointer; }
         .btn-neon:hover { box-shadow: 0 0 20px #8b5cf6; transform: scale(1.02); }
 
-        .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; }
+        .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; overflow: hidden; }
         .game-card:hover { border-color: #8b5cf6; transform: translateY(-5px); background: rgba(139, 92, 246, 0.05); }
         
-        /* Custom File Upload Style */
         input[type="file"]::file-selector-button {
             margin-right: 20px; border: none; background: #8b5cf6; padding: 10px 20px;
             border-radius: 10px; color: #fff; cursor: pointer; font-weight: bold;
@@ -133,9 +127,9 @@
         <div id="viewer-wrapper" class="viewer-container">
             <div class="iframe-area">
                 <div class="absolute top-4 left-4 z-50 flex gap-2">
-                    <button onclick="closeViewer()" class="bg-red-600 px-4 py-2 rounded-lg font-bold text-[10px]">SAIR</button>
-                    <button id="btn-fs" onclick="toggleFullscreen()" class="bg-purple-600 px-4 py-2 rounded-lg font-bold text-[10px]">TELA CHEIA</button>
-                    <button id="btn-minimize" onclick="toggleFullscreen()" class="hidden bg-gray-600 px-4 py-2 rounded-lg font-bold text-[10px]">MINIMIZAR</button>
+                    <button onclick="closeViewer()" class="bg-red-600 px-4 py-2 rounded-lg font-bold text-[10px] text-white">SAIR</button>
+                    <button id="btn-fs" onclick="toggleFullscreen()" class="bg-purple-600 px-4 py-2 rounded-lg font-bold text-[10px] text-white">TELA CHEIA</button>
+                    <button id="btn-minimize" onclick="toggleFullscreen()" class="hidden bg-gray-600 px-4 py-2 rounded-lg font-bold text-[10px] text-white">MINIMIZAR</button>
                 </div>
                 <iframe id="main-frame" class="w-[90%] h-[80%] rounded-xl shadow-2xl border border-white/10 transition-all duration-500"></iframe>
             </div>
@@ -151,7 +145,7 @@
                         <p class="text-[10px] opacity-50 uppercase">Views</p>
                         <p id="v-views" class="font-bold text-lg">0</p>
                     </div>
-                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-purple-600/20 transition">
+                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-purple-600/20 transition border-none cursor-pointer">
                         <p class="text-[10px] opacity-50 uppercase">Likes</p>
                         <p id="v-likes" class="font-bold text-lg text-red-500">0</p>
                     </button>
@@ -159,50 +153,49 @@
 
                 <div class="flex-1 flex flex-col overflow-hidden">
                     <p class="text-[10px] font-bold opacity-30 mb-2 uppercase tracking-widest">Comentários</p>
-                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 text-sm text-gray-300">
-                        </div>
+                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 text-sm text-gray-300"></div>
                     <div class="flex gap-2 mt-2">
                         <input type="text" id="comm-input" placeholder="Escreva algo..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded-lg text-xs outline-none focus:border-purple-500 text-white">
-                        <button onclick="postComment()" class="bg-purple-600 px-4 rounded-lg font-bold hover:bg-purple-500">➔</button>
+                        <button onclick="postComment()" class="bg-purple-600 px-4 rounded-lg font-bold hover:bg-purple-500 text-white">➔</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="modal-upload" class="modal hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
+    <div id="modal-upload" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-3xl w-full max-w-xl">
             <h3 class="font-orbitron text-xl font-bold mb-6 text-purple-500">PUBLICAR NA REDE</h3>
             <form onsubmit="handleUpload(event)" class="space-y-4">
-                <input type="text" id="up-name" placeholder="Título do Jogo" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
-                <input type="text" id="up-capa" placeholder="URL da Capa (Imagem)" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
+                <input type="text" id="up-name" placeholder="Título do Jogo" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
+                <input type="text" id="up-capa" placeholder="URL da Capa (Imagem)" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
                 
-                <select id="up-type" onchange="toggleUploadInputs()" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-purple-400 font-bold">
-                    <option value="url">🌐 Site / GitHub / Itch.io</option>
-                    <option value="code">💻 Código HTML (Cola Direta)</option>
-                    <option value="file">📂 Local Arquivo (.html)</option>
+                <select id="up-type" onchange="toggleUploadInputs()" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none text-purple-400 font-bold">
+                    <option value="url">🌐 Link Externo (URL)</option>
+                    <option value="code">💻 Código HTML</option>
+                    <option value="file">📂 Arquivo .html</option>
                 </select>
 
                 <div id="input-container">
-                    <textarea id="up-content" placeholder="Cole o Link (https://...) ou seu Código HTML aqui..." required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none font-mono text-xs"></textarea>
+                    <textarea id="up-content" placeholder="Cole o Link aqui (https://...)" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none font-mono text-xs text-white"></textarea>
                 </div>
 
                 <div class="flex gap-2">
                     <button type="submit" class="flex-1 bg-purple-600 py-3 rounded-xl font-bold btn-neon">PUBLICAR GLOBALMENTE</button>
-                    <button type="button" onclick="closeModal('modal-upload')" class="px-6 bg-white/10 rounded-xl">FECHAR</button>
+                    <button type="button" onclick="closeModal('modal-upload')" class="px-6 bg-white/10 rounded-xl text-white">FECHAR</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="modal-profile" class="modal hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
+    <div id="modal-profile" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-3xl w-full max-w-md">
             <h3 class="font-orbitron text-xl font-bold mb-6">MEU PERFIL</h3>
             <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Seu Apelido" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
-                <input type="text" id="p-avatar" placeholder="Link do Avatar" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
-                <input type="text" id="p-banner" placeholder="Link do Banner" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">
-                <button onclick="saveProfile()" class="w-full bg-purple-600 py-3 rounded-xl font-bold">SALVAR</button>
+                <input type="text" id="p-name" placeholder="Seu Apelido" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
+                <input type="text" id="p-avatar" placeholder="Link do Avatar" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
+                <input type="text" id="p-banner" placeholder="Link do Banner" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
+                <button onclick="saveProfile()" class="w-full bg-purple-600 py-3 rounded-xl font-bold text-white">SALVAR</button>
                 <button onclick="closeModal('modal-profile')" class="w-full text-xs text-gray-500 py-2">FECHAR</button>
             </div>
         </div>
@@ -218,13 +211,14 @@
                 document.getElementById('main-hub').classList.remove('hidden');
                 updateUI();
                 loadGames();
-            }, 6000); 
+            }, 3000); 
         };
 
         function updateUI() {
             document.getElementById('nav-username').innerText = currentUser.name;
-            document.getElementById('nav-avatar').style.backgroundImage = `url('${currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.name}')`;
-            document.getElementById('display-avatar').style.backgroundImage = `url('${currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.name}')`;
+            const avatarUrl = currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.name;
+            document.getElementById('nav-avatar').style.backgroundImage = `url('${avatarUrl}')`;
+            document.getElementById('display-avatar').style.backgroundImage = `url('${avatarUrl}')`;
             if(currentUser.banner) document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
         }
 
@@ -237,16 +231,14 @@
             closeModal('modal-profile');
         }
 
-        // LÓGICA DE UPLOAD ATUALIZADA (3 OPÇÕES)
         window.toggleUploadInputs = function() {
             const type = document.getElementById('up-type').value;
             const container = document.getElementById('input-container');
-            
             if (type === 'file') {
-                container.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none">`;
+                container.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">`;
             } else {
                 const placeholder = type === 'url' ? 'Cole o Link aqui (https://...)' : 'Cole seu código HTML aqui...';
-                container.innerHTML = `<textarea id="up-content" placeholder="${placeholder}" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none font-mono text-xs"></textarea>`;
+                container.innerHTML = `<textarea id="up-content" placeholder="${placeholder}" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none font-mono text-xs text-white"></textarea>`;
             }
         }
 
@@ -260,25 +252,19 @@
             const saveToDB = (content) => {
                 const newRef = push(ref(window.db, 'games'));
                 set(newRef, {
-                    name: name,
-                    capa: capa,
-                    type: type, // 'url', 'code' ou 'file'
-                    content: content,
-                    author: currentUser.name,
-                    likes: 0, views: 0, ts: Date.now()
+                    name: name, capa: capa, type: type, content: content,
+                    author: currentUser.name, likes: 0, views: 0, ts: Date.now()
                 });
                 closeModal('modal-upload');
                 e.target.reset();
-                toggleUploadInputs(); // Reset inputs
+                toggleUploadInputs();
             };
 
             if (type === 'file') {
                 const fileInput = document.getElementById('up-file');
                 if (fileInput.files.length > 0) {
                     const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        saveToDB(evt.target.result); // Salva como DataURL
-                    };
+                    reader.onload = (evt) => saveToDB(evt.target.result);
                     reader.readAsDataURL(fileInput.files[0]);
                 }
             } else {
@@ -306,8 +292,7 @@
                                 <span>BY ${g.author}</span>
                                 <span>❤️ ${g.likes || 0}</span>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
             });
         }
@@ -323,26 +308,14 @@
                 document.getElementById('v-author').innerText = "Developer: " + g.author;
                 document.getElementById('v-views').innerText = g.views || 0;
                 document.getElementById('v-likes').innerText = g.likes || 0;
-                
                 const frame = document.getElementById('main-frame');
-                // Lógica de exibição ajustada para os 3 tipos
-                if(g.type === 'url') {
-                    frame.src = g.content;
-                    frame.removeAttribute('srcdoc');
-                } else if (g.type === 'file') {
-                    frame.src = g.content; // DataURL funciona no src
-                    frame.removeAttribute('srcdoc');
+                if(g.type === 'url' || g.type === 'file') {
+                    frame.src = g.content; frame.removeAttribute('srcdoc');
                 } else {
-                    // Code
-                    frame.srcdoc = g.content;
-                    frame.removeAttribute('src');
+                    frame.srcdoc = g.content; frame.removeAttribute('src');
                 }
             });
-
-            document.getElementById('like-btn').onclick = () => {
-                update(ref(window.db, `games/${id}`), { likes: increment(1) });
-            };
-
+            document.getElementById('like-btn').onclick = () => update(ref(window.db, `games/${id}`), { likes: increment(1) });
             loadComments(id);
             document.getElementById('game-viewer').style.display = 'block';
         }
@@ -369,9 +342,7 @@
         window.postComment = function() {
             const input = document.getElementById('comm-input');
             if(!input.value.trim()) return;
-            
             const { ref, push, set } = window.dbRefs;
-            // Corrigido caminho de salvamento
             set(push(ref(window.db, `comments/${activeGameId}`)), {
                 user: currentUser.name, text: input.value, ts: Date.now()
             });
@@ -386,13 +357,11 @@
                 const data = snap.val();
                 if(data) Object.values(data).forEach(c => {
                     box.innerHTML += `
-                        <div class="bg-white/5 p-3 rounded-lg border border-white/5 mb-2">
+                        <div class="bg-white/5 p-3 rounded-lg border border-white/5 mb-2 text-white">
                             <p class="text-[9px] text-purple-500 font-bold uppercase mb-1">${c.user}</p>
-                            <p class="leading-tight text-white">${c.text}</p>
-                        </div>
-                    `;
+                            <p class="leading-tight">${c.text}</p>
+                        </div>`;
                 });
-                // Auto scroll para baixo
                 setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
             });
         }
