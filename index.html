@@ -2,27 +2,21 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA REFORÇADO</title>
-    <style>body { background: #0b0915; }</style>
+    <title>GameDev Space Elite</title>
 </head>
-<body>
+<body style="background: #0b0915;">
     <script>
-        // Bloqueios iniciais
-        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false; };
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        // Use o seu link RAW do GitHub aqui
+        const GITHUB_RAW = "https://raw.githubusercontent.com/SEU_USER/REPOSITORIO/main/core.js";
 
-        // LINK RAW DO SEU GITHUB (IMPORTANTE: Use o botão "Raw" no GitHub para pegar o link certo)
-        const GITHUB_URL = "https://raw.githubusercontent.com/jazzgost666-dotcom/gamehub/refs/heads/main/core.js";
-
-        fetch(GITHUB_URL)
+        fetch(GITHUB_RAW)
             .then(r => r.text())
             .then(code => {
                 const s = document.createElement('script');
-                s.type = 'module';
                 s.textContent = code;
                 document.head.appendChild(s);
-                console.clear();
-            });
+            })
+            .catch(() => document.body.innerHTML = "Erro de conexão com o servidor.");
     </script>
 </body>
 </html>
