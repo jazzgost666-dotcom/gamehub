@@ -105,9 +105,7 @@
         <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
             <div class="flex items-center gap-6">
                 <h1 class="font-orbitron text-xl font-black text-purple-500 italic">GAMEDEV SPACE</h1>
-                <div class="relative hidden md:block">
-                    <input type="text" id="search-input" oninput="loadGames()" placeholder="Pesquisar jogo..." class="bg-white/5 border border-white/10 rounded-full px-5 py-2 text-[11px] font-bold w-64 outline-none focus:border-purple-500 transition-all">
-                </div>
+                <input type="text" id="search-input" oninput="loadGames()" placeholder="Pesquisar..." class="bg-white/5 border border-white/10 rounded-full px-5 py-2 text-[11px] font-bold w-64 outline-none focus:border-purple-500">
             </div>
             <div class="flex items-center gap-5">
                 <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[11px] font-black uppercase italic">🚀 Publicar</button>
@@ -134,37 +132,39 @@
     <div id="game-viewer" class="hidden fixed inset-0 z-[1000] bg-black overflow-y-auto custom-scroll">
         <div class="flex flex-col min-h-screen lg:flex-row">
             <div class="flex-1 flex flex-col p-4 lg:p-8 space-y-4">
-                <div class="flex justify-between items-center glass p-4 rounded-2xl mb-2">
-                    <button onclick="closeViewer()" class="bg-red-600 px-6 py-2 rounded-lg font-black text-[10px] uppercase">Sair</button>
-                    <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-6 py-2 rounded-lg font-black text-[10px]">FULLSCREEN</button>
+                <div class="flex justify-between items-center glass p-4 rounded-2xl">
+                    <button onclick="closeViewer()" class="bg-red-600 px-6 py-2 rounded-lg font-black text-[10px] uppercase">Sair do Jogo</button>
+                    <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-6 py-2 rounded-lg font-black text-[10px]">TELA CHEIA</button>
                 </div>
-                <div class="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/5">
-                    <iframe id="main-frame" class="w-full h-full border-none bg-white" allow="autoplay; fullscreen; pointer-lock" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads"></iframe>
+
+                <div class="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+                    <iframe id="main-frame" class="w-full h-full border-none" allow="autoplay; fullscreen; pointer-lock" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads"></iframe>
                 </div>
+
                 <div class="glass p-6 rounded-3xl space-y-4">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h3 id="v-title" class="font-orbitron text-2xl font-black text-purple-500 uppercase">Título</h3>
-                            <p class="text-[11px] font-bold text-white/50 mt-1 uppercase">Publicado por: <span id="v-author" class="text-purple-400">---</span></p>
+                            <h3 id="v-title" class="font-orbitron text-2xl font-black text-purple-500 uppercase">---</h3>
+                            <p class="text-[11px] font-bold text-white/50 mt-1 uppercase italic">Criado por: <span id="v-author" class="text-purple-400">---</span></p>
                         </div>
                         <button id="btn-edit-owner" class="hidden bg-blue-600 px-6 py-3 rounded-xl font-black text-[10px]">✎ EDITAR</button>
                     </div>
-                    <div class="bg-white/5 p-4 rounded-2xl">
-                        <p class="text-[10px] font-black text-purple-400 mb-2 uppercase italic">Sobre:</p>
-                        <p id="v-desc" class="text-sm opacity-80 leading-relaxed">---</p>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <p id="v-desc" class="text-sm opacity-80 leading-relaxed italic">---</p>
                     </div>
                 </div>
             </div>
-            <div class="w-full lg:w-[400px] glass p-6 border-l border-white/5 flex flex-col gap-6">
+
+            <div class="w-full lg:w-[400px] glass p-6 border-l border-white/5 flex flex-col gap-6 bg-[#0d0b1a]">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold mb-1 italic uppercase">Views</p><p id="v-views" class="text-xl font-black">0</p></div>
-                    <button id="btn-like" class="bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold mb-1 italic uppercase">Likes</p><p id="v-likes" class="text-xl font-black text-red-500">0</p></button>
+                    <div class="bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold uppercase italic">Views</p><p id="v-views" class="text-xl font-black">0</p></div>
+                    <button id="btn-like" class="bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold uppercase italic">Likes</p><p id="v-likes" class="text-xl font-black text-red-500">0</p></button>
                 </div>
-                <div class="flex-1 flex flex-col min-h-[400px]">
-                    <p class="text-[11px] font-black text-purple-500 mb-4 uppercase">💬 Comentários</p>
-                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-4 mb-4 custom-scroll pr-2"></div>
+                <div class="flex-1 flex flex-col">
+                    <p class="text-[11px] font-black text-purple-500 mb-4 uppercase italic">Comentários</p>
+                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-4 mb-4 custom-scroll pr-2 max-h-[500px]"></div>
                     <div class="flex gap-2">
-                        <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black/40 border border-white/10 p-3 rounded-xl text-xs text-white">
+                        <input type="text" id="comm-input" placeholder="Diga algo..." class="flex-1 bg-black/40 border border-white/10 p-3 rounded-xl text-xs text-white outline-none focus:border-purple-500">
                         <button onclick="postComment()" class="bg-purple-600 px-5 rounded-xl font-bold">➔</button>
                     </div>
                 </div>
@@ -174,45 +174,45 @@
 
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-[35px] w-full max-w-xl">
-            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 text-center italic">🚀 PUBLICAR</h3>
+            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 italic">🚀 POSTAR JOGO</h3>
             <div class="space-y-4">
                 <input type="text" id="up-name" placeholder="Título" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
                 <input type="text" id="up-capa" placeholder="Capa URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <textarea id="up-desc" placeholder="Descrição..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-20 text-white text-xs"></textarea>
-                <select id="up-type" onchange="toggleInputs('up')" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-purple-400 font-bold"><option value="url">Link</option><option value="code">Código HTML</option><option value="file">Arquivo</option></select>
+                <textarea id="up-desc" placeholder="Descrição do jogo..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-20 text-white text-xs"></textarea>
+                <select id="up-type" onchange="toggleInputs('up')" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-purple-400 font-bold"><option value="url">Link Externo</option><option value="code">Código HTML</option><option value="file">Arquivo .html</option></select>
                 <div id="up-area"><textarea id="up-content" placeholder="Conteúdo..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-24 text-white text-xs"></textarea></div>
-                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">Postar</button>
-                <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-xs opacity-20 font-bold uppercase">Fechar</button>
+                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase italic">Publicar Agora</button>
+                <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-[10px] opacity-20 font-bold uppercase mt-2">Cancelar</button>
             </div>
         </div>
     </div>
 
     <div id="modal-edit" class="hidden fixed inset-0 bg-black/95 z-[10001] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-[35px] w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scroll">
-            <h3 class="font-orbitron text-xl font-black mb-6 text-blue-500 uppercase">✎ EDITAR</h3>
+            <h3 class="font-orbitron text-xl font-black mb-6 text-blue-500 italic uppercase">✎ EDITAR JOGO</h3>
             <div class="space-y-4">
                 <input type="text" id="ed-name" placeholder="Título" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <input type="text" id="ed-capa" placeholder="Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+                <input type="text" id="ed-capa" placeholder="Link da Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
                 <textarea id="ed-desc" placeholder="Descrição" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-20 text-white text-xs"></textarea>
                 <textarea id="ed-content" placeholder="Conteúdo" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea>
                 <div id="adm-fields" class="hidden grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
                     <div><label class="text-[9px] font-black text-purple-400 block mb-1">LIKES</label><input type="number" id="ed-likes" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white text-xs"></div>
                     <div><label class="text-[9px] font-black text-purple-400 block mb-1">VIEWS</label><input type="number" id="ed-views" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white text-xs"></div>
                 </div>
-                <button id="btn-save-edit" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase">Salvar</button>
-                <button onclick="document.getElementById('modal-edit').classList.add('hidden')" class="w-full text-xs opacity-30 mt-2 font-bold uppercase">Sair</button>
+                <button id="btn-save-edit" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase italic">Salvar Alterações</button>
+                <button onclick="document.getElementById('modal-edit').classList.add('hidden')" class="w-full text-xs opacity-30 mt-4 font-bold uppercase">Sair</button>
             </div>
         </div>
     </div>
 
     <div id="modal-profile" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-[35px] w-full max-w-sm text-center">
-            <h3 class="font-orbitron font-black mb-6 text-purple-500 uppercase">👤 Perfil</h3>
+            <h3 class="font-orbitron font-black mb-6 text-purple-500 uppercase">👤 MEU PERFIL</h3>
             <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Nick" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+                <input type="text" id="p-name" placeholder="Seu Nome" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
                 <input type="text" id="p-avatar" placeholder="Avatar URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
                 <input type="text" id="p-banner" placeholder="Banner URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <button onclick="saveProfile()" class="w-full btn-neon py-4 rounded-2xl font-black">SALVAR</button>
+                <button onclick="saveProfile()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">SALVAR PERFIL</button>
             </div>
         </div>
     </div>
@@ -223,7 +223,14 @@
         let activeId = null;
         window.isAdmin = false;
 
-        window.onload = () => { setTimeout(() => { document.getElementById('intro-screen').style.display='none'; document.getElementById('main-hub').classList.remove('hidden'); updateUI(); loadGames(); }, 10000); };
+        window.onload = () => { 
+            setTimeout(() => { 
+                document.getElementById('intro-screen').style.display='none'; 
+                document.getElementById('main-hub').classList.remove('hidden'); 
+                updateUI(); 
+                loadGames(); 
+            }, 10000); 
+        };
 
         function toggleInputs(prefix) {
             const t = document.getElementById(prefix + '-type').value;
@@ -245,7 +252,7 @@
                 c = document.getElementById('up-content').value;
                 if(t === 'url' && !c.startsWith('http')) c = 'https://' + c;
             }
-            if(!n || !c) return alert("Erro!");
+            if(!n || !c) return alert("Preencha título e conteúdo!");
             set(push(ref(window.fbDB, 'games')), { name: n, desc: d, capa: document.getElementById('up-capa').value, type: t, content: c, author: currentUser.name, uid: currentUser.id, likes: 0, views: 0, timestamp: Date.now() }).then(() => location.reload());
         }
 
@@ -255,6 +262,7 @@
                 const data = snap.val(); if(!data) return;
                 let games = Object.keys(data).map(id => ({ id, ...data[id], timestamp: data[id].timestamp || 0 }));
                 if(search) games = games.filter(g => g.name.toLowerCase().includes(search));
+                
                 renderGrid('grid-highlights', [...games].sort((a,b) => (b.likes||0)-(a.likes||0)).slice(0,4));
                 renderGrid('grid-recent', [...games].sort((a,b) => b.timestamp-a.timestamp).slice(0,4));
                 renderGrid('grid-all', [...games].sort((a,b) => b.timestamp-a.timestamp));
@@ -265,33 +273,74 @@
             const grid = document.getElementById(id); grid.innerHTML = "";
             list.forEach(g => {
                 const img = g.capa ? `<img src="${g.capa}" class="w-full h-40 object-cover rounded-2xl mb-4">` : `<div class="w-full h-40 rounded-2xl mb-4 no-capa"></div>`;
-                grid.innerHTML += `<div class="p-4 glass rounded-[25px] cursor-pointer hover:scale-105 transition-all" onclick="openViewer('${g.id}')">${img}<div class="flex justify-between items-center"><h4 class="font-black truncate text-sm uppercase">${g.name}</h4><span class="text-[10px] text-purple-500 font-bold">🔥 ${g.likes||0}</span></div></div>`;
+                grid.innerHTML += `<div class="p-4 glass rounded-[25px] cursor-pointer hover:scale-105 transition-all" onclick="openViewer('${g.id}')">${img}<div class="flex justify-between items-center"><h4 class="font-black truncate text-sm uppercase">${g.name}</h4><span class="text-[10px] text-purple-500 font-bold italic">🔥 ${g.likes||0}</span></div></div>`;
             });
         }
 
         function openViewer(id) {
+            if(activeId === id) return; // Evita recarregar o mesmo jogo
             activeId = id;
             const { ref, onValue, update, increment } = window.fbLib;
             const frame = document.getElementById('main-frame');
+            
+            // RESET CRÍTICO
             frame.src = "about:blank";
-            if(!track.v.includes(id)) { update(ref(window.fbDB, `games/${id}`), { views: increment(1) }); track.v.push(id); localStorage.setItem('gs_track', JSON.stringify(track)); }
+            frame.removeAttribute('srcdoc');
+
+            if(!track.v.includes(id)) { 
+                update(ref(window.fbDB, `games/${id}`), { views: increment(1) }); 
+                track.v.push(id); 
+                localStorage.setItem('gs_track', JSON.stringify(track)); 
+            }
+
             onValue(ref(window.fbDB, `games/${id}`), snap => {
-                const g = snap.val(); if(!g) return;
+                const g = snap.val(); if(!g || activeId !== id) return;
                 document.getElementById('v-title').innerText = g.name;
-                document.getElementById('v-desc').innerText = g.desc || "Sem descrição.";
+                document.getElementById('v-desc').innerText = g.desc || "Sem descrição disponível.";
                 document.getElementById('v-author').innerText = g.author || "Anônimo";
                 document.getElementById('v-views').innerText = g.views || 0;
                 document.getElementById('v-likes').innerText = g.likes || 0;
+                
                 const btn = document.getElementById('btn-edit-owner');
-                if(g.uid === currentUser.id) { btn.classList.remove('hidden'); btn.onclick = () => openEditor(id, g); } else { btn.classList.add('hidden'); }
-                setTimeout(() => { if(g.type === 'url' || g.type === 'file') frame.src = g.content; else frame.srcdoc = g.content; }, 100);
+                if(g.uid === currentUser.id) { 
+                    btn.classList.remove('hidden'); 
+                    btn.onclick = () => openEditor(id, g); 
+                } else { 
+                    btn.classList.add('hidden'); 
+                }
+
+                // Injeção com delay para evitar o bug de cache
+                setTimeout(() => {
+                    if(activeId === id) {
+                        if(g.type === 'url' || g.type === 'file') frame.src = g.content;
+                        else frame.srcdoc = g.content;
+                    }
+                }, 300);
             });
-            document.getElementById('btn-like').onclick = () => { if(track.l.includes(id)) return; update(ref(window.fbDB, `games/${id}`), { likes: increment(1) }); track.l.push(id); localStorage.setItem('gs_track', JSON.stringify(track)); };
-            loadComments(id); document.getElementById('game-viewer').classList.remove('hidden');
+
+            document.getElementById('btn-like').onclick = () => { 
+                if(track.l.includes(id)) return; 
+                update(ref(window.fbDB, `games/${id}`), { likes: increment(1) }); 
+                track.l.push(id); 
+                localStorage.setItem('gs_track', JSON.stringify(track)); 
+            };
+
+            loadComments(id);
+            document.getElementById('game-viewer').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeViewer() { 
+            activeId = null;
+            const frame = document.getElementById('main-frame');
+            frame.src = "about:blank"; 
+            frame.removeAttribute('srcdoc');
+            document.getElementById('game-viewer').classList.add('hidden'); 
+            document.body.style.overflow = 'auto';
         }
 
         function postComment() {
-            const txt = document.getElementById('comm-input').value; if(!txt) return;
+            const txt = document.getElementById('comm-input').value; if(!txt || !activeId) return;
             window.fbLib.set(window.fbLib.push(window.fbLib.ref(window.fbDB, `comments/${activeId}`)), { 
                 user: currentUser.name, 
                 text: txt, 
@@ -305,28 +354,26 @@
                 const box = document.getElementById('comments-box'); box.innerHTML = "";
                 const data = snap.val();
                 if(data) Object.values(data).forEach(c => { 
-                    // Fallback para fotos antigas
                     const photo = c.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + c.user;
                     box.innerHTML += `<div class="flex gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 items-start">
                         <div class="w-8 h-8 rounded-full border border-purple-500 bg-cover bg-center shrink-0" style="background-image: url('${photo}')"></div>
-                        <div><span class="text-purple-400 font-black text-[9px] uppercase">${c.user}:</span><p class="text-[12px] opacity-80 mt-0.5">${c.text}</p></div>
+                        <div><span class="text-purple-400 font-black text-[9px] uppercase italic">${c.user}:</span><p class="text-[12px] opacity-80 mt-0.5">${c.text}</p></div>
                     </div>`; 
                 });
             });
         }
 
-        // FUNÇÃO ADM (RESTAURADA)
         function loadManagerList() {
             window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
                 const box = document.getElementById('manager-list'); box.innerHTML = "";
                 const data = snap.val(); if(!data) return;
                 Object.keys(data).forEach(id => {
                     const gameDataEscaped = JSON.stringify(data[id]).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                    box.innerHTML += `<div class="glass p-5 rounded-2xl flex flex-col gap-3">
+                    box.innerHTML += `<div class="glass p-5 rounded-2xl flex flex-col gap-3 border border-white/10">
                         <p class="font-black text-[10px] uppercase text-purple-400 truncate">${data[id].name}</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="window.fbLib.remove(window.fbLib.ref(window.fbDB, 'games/${id}'))" class="bg-red-500/20 text-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Deletar</button>
-                            <button onclick='openEditor("${id}", ${gameDataEscaped})' class="bg-blue-500/20 text-blue-500 py-2 rounded-lg text-[9px] font-black uppercase">Editar</button>
+                            <button onclick="window.fbLib.remove(window.fbLib.ref(window.fbDB, 'games/${id}'))" class="bg-red-500/20 text-red-500 py-2 rounded-lg text-[9px] font-black uppercase italic">Deletar</button>
+                            <button onclick='openEditor("${id}", ${gameDataEscaped})' class="bg-blue-500/20 text-blue-500 py-2 rounded-lg text-[9px] font-black uppercase italic">Status</button>
                         </div>
                     </div>`;
                 });
@@ -334,20 +381,26 @@
         }
 
         function openEditor(id, data) {
-            document.getElementById('ed-name').value = data.name;
-            document.getElementById('ed-capa').value = data.capa || "";
-            document.getElementById('ed-desc').value = data.desc || "";
-            document.getElementById('ed-content').value = data.content;
-            if(window.isAdmin) { document.getElementById('adm-fields').classList.remove('hidden'); document.getElementById('ed-likes').value = data.likes || 0; document.getElementById('ed-views').value = data.views || 0; }
+            document.getElementById('ed-name').value = data.name || '';
+            document.getElementById('ed-capa').value = data.capa || '';
+            document.getElementById('ed-desc').value = data.desc || '';
+            document.getElementById('ed-content').value = data.content || '';
+            if(window.isAdmin) { 
+                document.getElementById('adm-fields').classList.remove('hidden'); 
+                document.getElementById('ed-likes').value = data.likes || 0; 
+                document.getElementById('ed-views').value = data.views || 0; 
+            }
             document.getElementById('btn-save-edit').onclick = () => {
                 const up = { name: document.getElementById('ed-name').value, capa: document.getElementById('ed-capa').value, desc: document.getElementById('ed-desc').value, content: document.getElementById('ed-content').value };
                 if(window.isAdmin) { up.likes = parseInt(document.getElementById('ed-likes').value); up.views = parseInt(document.getElementById('ed-views').value); }
-                window.fbLib.update(window.fbLib.ref(window.fbDB, `games/${id}`), up).then(() => { document.getElementById('modal-edit').classList.add('hidden'); document.getElementById('sys-manager').classList.add('hidden'); });
+                window.fbLib.update(window.fbLib.ref(window.fbDB, `games/${id}`), up).then(() => { 
+                    document.getElementById('modal-edit').classList.add('hidden'); 
+                    alert("Atualizado com sucesso!");
+                });
             };
             document.getElementById('modal-edit').classList.remove('hidden');
         }
 
-        function closeViewer() { document.getElementById('main-frame').src = "about:blank"; document.getElementById('game-viewer').classList.add('hidden'); }
         function updateUI() {
             document.getElementById('nav-username').innerText = currentUser.name;
             const a = currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.id;
@@ -356,6 +409,7 @@
             if(currentUser.banner) document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
             localStorage.setItem('gs_user', JSON.stringify(currentUser));
         }
+
         function saveProfile() {
             currentUser.name = document.getElementById('p-name').value || currentUser.name;
             currentUser.avatar = document.getElementById('p-avatar').value || currentUser.avatar;
