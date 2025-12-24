@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - Fixed & Fullscreen</title>
+    <title>GameDev Space - HUB Oficial</title>
     
     <script>
         document.addEventListener('keydown', e => {
@@ -17,7 +17,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, update, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
@@ -32,137 +32,167 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         window.db = db; 
-        window.dbRefs = { ref, set, push, onValue, update, increment };
-        
-        // O COMANDO DE REMOVE FOI ELIMINADO PARA NÃO APAGAR MAIS NADA!
+        window.dbRefs = { ref, set, push, onValue, update, increment, remove };
+        // LIMPEZA REMOVIDA - AGORA É PERMANENTE
     </script>
 
     <style>
         * { box-sizing: border-box; user-select: none; }
-        body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; overflow-x: hidden; margin: 0; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
+        body { font-family: 'Rajdhani', sans-serif; background: #08070b; color: white; margin: 0; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(139, 92, 246, 0.2); }
         
-        /* INTRO */
+        /* INTRO ÉPICA */
         #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .intro-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 20px #8b5cf6; animation: fall 2s ease-in forwards; }
-        @keyframes fall { 0% { transform: translateY(-500px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        .intro-g { font-family: 'Orbitron'; font-size: 120px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 30px #8b5cf6; animation: zoom 1.5s ease-out; }
+        @keyframes zoom { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* CARDS */
-        .game-card { border-radius: 20px; transition: 0.3s; cursor: pointer; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        .game-card:hover { border-color: #8b5cf6; transform: scale(1.05); background: rgba(139, 92, 246, 0.1); }
+        /* CARDS DA BIBLIOTECA */
+        .game-card { border-radius: 15px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.03); }
+        .game-card:hover { border-color: #8b5cf6; transform: translateY(-10px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2); }
         
-        /* VIEWER */
-        #game-viewer { display: none; position: fixed; inset: 0; background: #05040a; z-index: 500; }
-        .viewer-grid { display: grid; grid-template-columns: 1fr 350px; height: 100vh; }
-        
-        .btn-neon { background: #8b5cf6; color: white; font-weight: 900; transition: 0.3s; border: none; cursor: pointer; }
-        .btn-neon:hover { box-shadow: 0 0 15px #8b5cf6; }
+        #game-viewer { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
+        .btn-action { background: #8b5cf6; color: white; font-weight: bold; transition: 0.2s; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-action:hover { filter: brightness(1.2); transform: scale(1.05); }
     </style>
 </head>
 <body>
 
     <div id="intro-screen">
         <div class="intro-g">G</div>
-        <div class="text-white font-bold mt-4 tracking-widest animate-pulse">CARREGANDO HUB...</div>
+        <div class="mt-4 flex flex-col items-center">
+            <span class="text-purple-400 font-bold tracking-[10px] text-xs uppercase mb-1">Iniciando Hub</span>
+            <div class="w-32 h-1 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full bg-purple-600 animate-[loading_2s_ease-in-out_infinite]"></div>
+            </div>
+        </div>
     </div>
 
-    <div id="main-hub" class="hidden">
-        <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
-            <h1 class="font-orbitron text-xl font-black text-purple-500">GAMEDEV <span class="text-white">SPACE</span></h1>
-            <div class="flex items-center gap-4">
-                <button onclick="openModal('modal-upload')" class="btn-neon px-5 py-2 rounded-lg text-[10px]">PUBLICAR JOGO</button>
-                <div onclick="openModal('modal-profile')" class="w-10 h-10 rounded-full border-2 border-purple-600 bg-cover cursor-pointer" id="nav-avatar"></div>
+    <div id="main-hub" class="hidden min-h-screen">
+        <header class="p-6 flex justify-between items-center glass sticky top-0 z-[100]">
+            <h1 class="font-orbitron text-2xl font-black text-purple-500 tracking-tighter">GAMEDEV <span class="text-white">SPACE</span></h1>
+            <div class="flex items-center gap-6">
+                <button onclick="openModal('modal-upload')" class="btn-action px-6 py-2 rounded-full text-[11px]">LANÇAR PROJETO</button>
+                <div onclick="openModal('modal-profile')" class="flex items-center gap-3 cursor-pointer group">
+                    <span id="display-name" class="text-xs font-bold text-gray-400 group-hover:text-purple-400 transition">Player</span>
+                    <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center"></div>
+                </div>
             </div>
         </header>
 
-        <main class="container mx-auto p-8">
-            <h2 class="text-2xl font-orbitron font-black mb-8 italic text-purple-500">BIBLIOTECA DE PROJETOS</h2>
+        <main class="container mx-auto p-10">
+            <div class="flex items-center gap-4 mb-10">
+                <div class="h-10 w-2 bg-purple-600 rounded-full"></div>
+                <h2 class="text-3xl font-orbitron font-black uppercase italic">Biblioteca Global</h2>
+            </div>
             <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 </div>
         </main>
     </div>
 
     <div id="game-viewer">
-        <div class="viewer-grid">
-            <div class="relative flex flex-col bg-black">
-                <div class="p-3 glass flex justify-between items-center">
-                    <button onclick="closeViewer()" class="bg-red-600 px-4 py-1 rounded font-bold text-xs">SAIR</button>
-                    <button onclick="toggleFullscreen()" class="bg-purple-600 px-4 py-1 rounded font-bold text-xs text-white">TELA CHEIA ⛶</button>
+        <div class="flex flex-col h-full md:flex-row">
+            <div class="flex-1 relative bg-[#050505] flex flex-col">
+                <div class="p-4 glass flex justify-between items-center z-10">
+                    <div class="flex gap-2">
+                        <button onclick="closeViewer()" class="bg-white/10 px-4 py-2 rounded font-bold text-[10px] hover:bg-red-600 transition">VOLTAR</button>
+                        <button onclick="toggleFullscreen()" class="bg-purple-600 px-4 py-2 rounded font-bold text-[10px]">TELA CHEIA ⛶</button>
+                    </div>
+                    <div id="owner-controls" class="hidden">
+                        <button onclick="openEditModal()" class="bg-orange-500 px-4 py-2 rounded font-bold text-[10px]">EDITAR PROJETO</button>
+                    </div>
                 </div>
-                <div class="flex-1 flex items-center justify-center p-4">
-                    <iframe id="main-frame" class="w-full h-full rounded-lg border border-white/10" allowfullscreen></iframe>
+                <div class="flex-1 flex items-center justify-center p-2">
+                    <iframe id="main-frame" class="w-full h-full rounded-lg shadow-2xl bg-black" allow="autoplay; fullscreen" allowfullscreen></iframe>
                 </div>
             </div>
 
-            <div class="glass p-6 flex flex-col border-l border-white/10">
-                <h3 id="v-title" class="font-orbitron text-xl font-black text-purple-500 uppercase truncate">Nome</h3>
-                <p id="v-author" class="text-[10px] opacity-50 mb-6">DEV: ---</p>
+            <div class="w-full md:w-[380px] glass border-l border-white/10 p-8 flex flex-col h-full">
+                <h3 id="v-title" class="font-orbitron text-2xl font-black text-purple-500 uppercase leading-none mb-2">Jogo</h3>
+                <p id="v-author" class="text-xs font-bold text-gray-500 mb-8 tracking-widest uppercase">AUTOR: ---</p>
                 
-                <div class="flex gap-2 mb-6">
-                    <div class="flex-1 bg-white/5 p-3 rounded-xl text-center">
-                        <p class="text-[9px] opacity-50">VIEWS</p>
-                        <p id="v-views" class="font-bold">0</p>
+                <div class="grid grid-cols-2 gap-4 mb-10">
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
+                        <p class="text-[10px] text-gray-500 font-bold uppercase">Acessos</p>
+                        <p id="v-views" class="text-xl font-black">0</p>
                     </div>
-                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-red-500/20">
-                        <p class="text-[9px] opacity-50">LIKES</p>
-                        <p id="v-likes" class="font-bold text-red-500">0</p>
+                    <button id="like-btn" class="bg-white/5 p-4 rounded-2xl border border-white/5 text-center hover:bg-red-500/10 transition group">
+                        <p class="text-[10px] text-gray-500 font-bold uppercase group-hover:text-red-400">Likes</p>
+                        <p id="v-likes" class="text-xl font-black text-red-500">0</p>
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto space-y-2 mb-4 pr-2" id="comments-box"></div>
-                
-                <div class="flex gap-2">
-                    <input type="text" id="comm-input" placeholder="Diga algo..." class="flex-1 bg-black p-2 rounded border border-white/10 text-xs outline-none">
-                    <button onclick="postComment()" class="bg-purple-600 px-4 rounded text-white font-bold">➔</button>
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <p class="text-[10px] font-black text-gray-600 mb-4 uppercase tracking-[3px]">Chat do Projeto</p>
+                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2 custom-scroll"></div>
+                    <div class="flex gap-2 bg-black/40 p-1 rounded-xl border border-white/10">
+                        <input type="text" id="comm-input" placeholder="Comente algo..." class="flex-1 bg-transparent p-3 text-xs outline-none">
+                        <button onclick="postComment()" class="bg-purple-600 w-10 h-10 rounded-lg font-bold flex items-center justify-center transition-transform active:scale-90">➔</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-3xl w-full max-w-lg">
-            <h3 class="font-orbitron text-lg font-bold mb-4 text-purple-500">LANÇAR NOVO GAME</h3>
-            <form onsubmit="handleUpload(event)" class="space-y-4">
-                <input type="text" id="up-name" placeholder="Título do Jogo" required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
-                <input type="text" id="up-capa" placeholder="URL da Imagem (Ícone)" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
-                <select id="up-type" onchange="toggleUploadInputs()" class="w-full bg-black p-3 rounded-xl border border-white/10 text-purple-400 font-bold">
-                    <option value="url">Link (URL)</option>
-                    <option value="code">Código HTML</option>
+    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[500] flex items-center justify-center p-6">
+        <div class="glass p-10 rounded-[40px] w-full max-w-2xl border-purple-500/30">
+            <h3 id="modal-title" class="font-orbitron text-2xl font-black mb-8 text-purple-500 italic">LANÇAR NOVO GAME</h3>
+            <form onsubmit="handleUpload(event)" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="up-name" placeholder="Nome do Jogo" required class="bg-white/5 p-4 rounded-2xl border border-white/10 outline-none text-white focus:border-purple-500 transition">
+                    <input type="text" id="up-capa" placeholder="Link da Capa (Icone)" class="bg-white/5 p-4 rounded-2xl border border-white/10 outline-none text-white focus:border-purple-500 transition">
+                </div>
+                <select id="up-type" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-purple-400 font-bold">
+                    <option value="url">🌐 Link Direto (URL)</option>
+                    <option value="code">💻 Código HTML/JS</option>
                 </select>
-                <textarea id="up-content" placeholder="Link ou Código aqui..." required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none text-xs text-white"></textarea>
-                <div class="flex gap-2">
-                    <button type="submit" class="flex-1 bg-purple-600 py-3 rounded-xl font-bold btn-neon">PUBLICAR NO HUB</button>
-                    <button type="button" onclick="closeModal('modal-upload')" class="px-6 bg-white/10 rounded-xl">CANCELAR</button>
+                <textarea id="up-content" placeholder="Insira o link ou o código completo aqui..." required class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-40 outline-none text-xs font-mono text-white"></textarea>
+                
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" id="btn-submit" class="flex-1 btn-action py-4 rounded-2xl font-black">CONFIRMAR E POSTAR</button>
+                    <button type="button" onclick="closeModal('modal-upload')" class="px-8 bg-white/5 rounded-2xl font-bold hover:bg-white/10 transition">FECHAR</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="modal-profile" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center">
-        <div class="glass p-8 rounded-3xl w-80">
-            <h3 class="font-orbitron font-bold mb-4">CONFIG PERFIL</h3>
-            <input type="text" id="p-name" placeholder="Seu Nome" class="w-full bg-white/5 p-2 rounded mb-3 border border-white/10 text-white outline-none">
-            <input type="text" id="p-avatar" placeholder="URL Avatar" class="w-full bg-white/5 p-2 rounded mb-4 border border-white/10 text-white outline-none">
-            <button onclick="saveProfile()" class="w-full bg-purple-600 py-2 rounded font-bold">SALVAR</button>
-            <button onclick="closeModal('modal-profile')" class="w-full py-2 text-xs opacity-50">FECHAR</button>
+    <div id="modal-profile" class="hidden fixed inset-0 bg-black/90 z-[500] flex items-center justify-center">
+        <div class="glass p-10 rounded-[30px] w-full max-w-sm text-center">
+            <div id="p-preview" class="w-24 h-24 rounded-full border-4 border-purple-500 mx-auto mb-6 bg-cover bg-center"></div>
+            <h3 class="font-orbitron font-black text-xl mb-6">IDENTIDADE</h3>
+            <div class="space-y-4">
+                <input type="text" id="p-name" placeholder="Seu Apelido" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 outline-none">
+                <input type="text" id="p-avatar" placeholder="Link Foto de Perfil" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 outline-none">
+                <button onclick="saveProfile()" class="w-full btn-action py-4 rounded-xl font-black">SALVAR PERFIL</button>
+                <button onclick="closeModal('modal-profile')" class="w-full py-2 text-xs text-gray-600 uppercase font-bold tracking-widest">Sair</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { name: 'Player' + Math.floor(Math.random()*999), avatar: 'https://api.dicebear.com/7.x/pixel-art/svg' };
+        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { 
+            id: 'user_' + Math.random().toString(36).substr(2, 9),
+            name: 'Dev_' + Math.floor(Math.random()*999), 
+            avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + Math.random() 
+        };
         let activeGameId = null;
+        let isEditing = false;
 
         window.onload = () => {
             setTimeout(() => {
-                document.getElementById('intro-screen').style.display = 'none';
-                document.getElementById('main-hub').classList.remove('hidden');
+                document.getElementById('intro-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('intro-screen').style.display = 'none';
+                    document.getElementById('main-hub').classList.remove('hidden');
+                }, 500);
                 updateUI();
                 loadGames();
-            }, 3000); // 3 segundos de intro
+            }, 2500);
         };
 
         function updateUI() {
+            document.getElementById('display-name').innerText = currentUser.name;
             document.getElementById('nav-avatar').style.backgroundImage = `url('${currentUser.avatar}')`;
+            document.getElementById('p-preview').style.backgroundImage = `url('${currentUser.avatar}')`;
             localStorage.setItem('gs_user', JSON.stringify(currentUser));
         }
 
@@ -173,20 +203,31 @@
             closeModal('modal-profile');
         }
 
+        // --- SISTEMA DE POSTAGEM E EDIÇÃO ---
         function handleUpload(e) {
             e.preventDefault();
-            const { ref, push, set } = window.dbRefs;
-            const newRef = push(ref(window.db, 'games'));
-            set(newRef, {
+            const { ref, push, set, update } = window.dbRefs;
+            
+            const gameData = {
                 name: document.getElementById('up-name').value,
-                capa: document.getElementById('up-capa').value || 'https://via.placeholder.com/300x200/1a1625/8b5cf6?text=GAME',
+                capa: document.getElementById('up-capa').value || 'https://via.placeholder.com/400x250/111/8b5cf6?text=GAMEDEV+SPACE',
                 type: document.getElementById('up-type').value,
                 content: document.getElementById('up-content').value,
                 author: currentUser.name,
-                likes: 0, views: 0, ts: Date.now()
-            });
+                authorId: currentUser.id, // Chave para saber quem pode editar
+                ts: Date.now()
+            };
+
+            if (isEditing && activeGameId) {
+                update(ref(window.db, `games/${activeGameId}`), gameData);
+            } else {
+                const newRef = push(ref(window.db, 'games'));
+                set(newRef, { ...gameData, likes: 0, views: 0 });
+            }
+
             closeModal('modal-upload');
             e.target.reset();
+            isEditing = false;
         }
 
         function loadGames() {
@@ -195,14 +236,28 @@
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 const data = snap.val();
-                if(!data) return;
+                if(!data) {
+                    grid.innerHTML = `<div class="col-span-full py-20 text-center opacity-20 font-black text-2xl uppercase tracking-[10px]">Vazio</div>`;
+                    return;
+                }
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
-                        <div class="game-card glass p-3" onclick="openViewer('${id}')">
-                            <img src="${g.capa}" class="w-full h-40 object-cover rounded-lg mb-3">
-                            <h4 class="font-bold text-sm uppercase truncate">${g.name}</h4>
-                            <p class="text-[9px] text-purple-400 font-bold">POR: ${g.author}</p>
+                        <div class="game-card p-4" onclick="openViewer('${id}')">
+                            <div class="relative w-full h-44 mb-4 rounded-xl overflow-hidden">
+                                <img src="${g.capa}" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                <div class="absolute bottom-3 left-3">
+                                    <p class="text-[10px] font-black text-purple-500 uppercase">${g.type === 'url' ? 'Web' : 'Native'}</p>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-lg uppercase truncate">${g.name}</h4>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-[9px] font-bold text-gray-500 uppercase">Por: ${g.author}</span>
+                                <div class="flex items-center gap-2 text-[10px] font-bold">
+                                    <span class="text-red-500">❤️ ${g.likes || 0}</span>
+                                </div>
+                            </div>
                         </div>`;
                 });
             });
@@ -211,19 +266,32 @@
         function openViewer(id) {
             activeGameId = id;
             const { ref, onValue, update, increment } = window.dbRefs;
+            
             update(ref(window.db, `games/${id}`), { views: increment(1) });
             
             onValue(ref(window.db, `games/${id}`), (snap) => {
                 const g = snap.val();
                 if(!g) return;
+
                 document.getElementById('v-title').innerText = g.name;
                 document.getElementById('v-author').innerText = "DEVELOPER: " + g.author;
-                document.getElementById('v-views').innerText = g.views;
-                document.getElementById('v-likes').innerText = g.likes;
+                document.getElementById('v-views').innerText = g.views || 0;
+                document.getElementById('v-likes').innerText = g.likes || 0;
                 
+                // Mostrar controles de dono
+                const controls = document.getElementById('owner-controls');
+                if(g.authorId === currentUser.id) {
+                    controls.classList.remove('hidden');
+                } else {
+                    controls.classList.add('hidden');
+                }
+
                 const frame = document.getElementById('main-frame');
-                if(g.type === 'url') { frame.src = g.content; frame.srcdoc = ""; }
-                else { frame.srcdoc = g.content; frame.src = ""; }
+                if(g.type === 'url') {
+                    frame.src = g.content; frame.srcdoc = "";
+                } else {
+                    frame.srcdoc = g.content; frame.src = "";
+                }
             });
 
             document.getElementById('like-btn').onclick = () => update(ref(window.db, `games/${activeGameId}`), { likes: increment(1) });
@@ -231,11 +299,29 @@
             document.getElementById('game-viewer').style.display = 'block';
         }
 
+        // --- FUNÇÕES DE EDIÇÃO ---
+        function openEditModal() {
+            const { ref, onValue } = window.dbRefs;
+            onValue(ref(window.db, `games/${activeGameId}`), (snap) => {
+                const g = snap.val();
+                document.getElementById('up-name').value = g.name;
+                document.getElementById('up-capa').value = g.capa;
+                document.getElementById('up-type').value = g.type;
+                document.getElementById('up-content').value = g.content;
+                document.getElementById('modal-title').innerText = "EDITAR MEU PROJETO";
+                document.getElementById('btn-submit').innerText = "SALVAR ALTERAÇÕES";
+                isEditing = true;
+                openModal('modal-upload');
+            }, { onlyOnce: true });
+        }
+
         function postComment() {
             const input = document.getElementById('comm-input');
             if(!input.value.trim()) return;
             const { ref, push, set } = window.dbRefs;
-            set(push(ref(window.db, `comments/${activeGameId}`)), { user: currentUser.name, text: input.value });
+            set(push(ref(window.db, `comments/${activeGameId}`)), {
+                user: currentUser.name, text: input.value, avatar: currentUser.avatar
+            });
             input.value = "";
         }
 
@@ -246,23 +332,36 @@
                 box.innerHTML = "";
                 const data = snap.val();
                 if(data) Object.values(data).forEach(c => {
-                    box.innerHTML += `<div class="bg-white/5 p-2 rounded text-[10px]"><b>${c.user}:</b> ${c.text}</div>`;
+                    box.innerHTML += `
+                        <div class="bg-white/5 p-3 rounded-xl flex gap-3 items-center border border-white/5">
+                            <div class="w-6 h-6 rounded-full bg-cover" style="background-image:url('${c.avatar}')"></div>
+                            <div class="text-[11px]"><b class="text-purple-400">${c.user}:</b> <span class="text-gray-300">${c.text}</span></div>
+                        </div>`;
                 });
+                box.scrollTop = box.scrollHeight;
             });
         }
 
         function toggleFullscreen() {
-            const frame = document.getElementById('main-frame');
-            if (frame.requestFullscreen) frame.requestFullscreen();
-            else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+            const f = document.getElementById('main-frame');
+            if (f.requestFullscreen) f.requestFullscreen();
+            else if (f.webkitRequestFullscreen) f.webkitRequestFullscreen();
         }
 
         function closeViewer() {
             document.getElementById('game-viewer').style.display = 'none';
             document.getElementById('main-frame').src = "";
+            activeGameId = null;
         }
 
-        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.openModal = (id) => {
+            if(id === 'modal-upload' && !isEditing) {
+                document.getElementById('modal-title').innerText = "LANÇAR NOVO GAME";
+                document.getElementById('btn-submit').innerText = "CONFIRMAR E POSTAR";
+                document.querySelector('form').reset();
+            }
+            document.getElementById(id).classList.remove('hidden');
+        };
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
     </script>
 </body>
