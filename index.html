@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- FIREBASE MODULE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -29,10 +30,17 @@
             appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        window.db = db; 
-        window.dbRefs = { ref, set, push, onValue, update, increment, remove };
+        // Inicialização segura
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            window.db = db; 
+            window.dbRefs = { ref, set, push, onValue, update, increment, remove };
+            console.log("Firebase conectado com sucesso.");
+        } catch (error) {
+            console.error("Erro ao conectar Firebase:", error);
+            alert("Erro crítico: Não foi possível conectar ao servidor de jogos.");
+        }
     </script>
 
     <style>
@@ -56,6 +64,9 @@
         .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; overflow: hidden; background: rgba(255,255,255,0.02); }
         .game-card:hover { border-color: #8b5cf6; transform: translateY(-5px); }
         #game-viewer { display: none; position: fixed; inset: 0; background: #05040a; z-index: 500; }
+        
+        /* Loading Spinner Helper */
+        .loading-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 50; border-radius: 24px; }
     </style>
 </head>
 <body>
@@ -132,7 +143,7 @@
     </div>
 
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-3xl w-full max-w-xl">
+        <div class="glass p-8 rounded-3xl w-full max-w-xl relative">
             <h3 id="modal-title" class="font-orbitron text-xl font-bold mb-6 text-purple-500">PUBLICAR JOGO</h3>
             <form onsubmit="handleUpload(event)" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -211,41 +222,95 @@
 
         window.handleUpload = function(e) {
             e.preventDefault();
+            
+            // Verificação de segurança: Firebase carregou?
+            if (!window.dbRefs || !window.db) {
+                alert("Erro: O sistema ainda está carregando ou falhou. Tente recarregar a página.");
+                return;
+            }
+
             const { ref, push, set, update } = window.dbRefs;
             const type = document.getElementById('up-type').value;
             const name = document.getElementById('up-name').value;
             const capa = document.getElementById('up-capa').value;
+            const btn = document.getElementById('btn-submit');
+            
+            // Feedback visual
+            const originalBtnText = btn.innerText;
+            btn.innerText = "ENVIANDO...";
+            btn.disabled = true;
 
             const save = (content) => {
                 const data = { name, capa, type, content, author: currentUser.name, authorId: currentUser.id };
+                
+                let promise;
                 if(isEditing) {
-                    update(ref(window.db, `games/${activeGameId}`), data);
+                    promise = update(ref(window.db, `games/${activeGameId}`), data);
                 } else {
                     const newRef = push(ref(window.db, 'games'));
-                    set(newRef, { ...data, likes: 0, views: 0, ts: Date.now() });
+                    promise = set(newRef, { ...data, likes: 0, views: 0, ts: Date.now() });
                 }
-                closeModal('modal-upload');
-                e.target.reset();
-                isEditing = false;
+
+                promise.then(() => {
+                    alert("JOGO PUBLICADO COM SUCESSO!");
+                    closeModal('modal-upload');
+                    e.target.reset();
+                    isEditing = false;
+                    // Resetar input para padrão
+                    document.getElementById('up-type').value = 'url';
+                    toggleUploadInputs();
+                })
+                .catch((error) => {
+                    console.error(error);
+                    alert("ERRO AO PUBLICAR: " + error.message + "\n\nVerifique se as Regras do Firebase (Rules) estão permitindo escrita (write: true).");
+                })
+                .finally(() => {
+                    btn.innerText = originalBtnText;
+                    btn.disabled = false;
+                });
             };
 
             if (type === 'file') {
-                const file = document.getElementById('up-file').files[0];
-                const r = new FileReader();
-                r.onload = (evt) => save(evt.target.result);
-                r.readAsDataURL(file);
+                const fileInput = document.getElementById('up-file');
+                if(fileInput && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const r = new FileReader();
+                    r.onload = (evt) => save(evt.target.result);
+                    r.onerror = () => {
+                        alert("Erro ao ler o arquivo.");
+                        btn.innerText = originalBtnText;
+                        btn.disabled = false;
+                    };
+                    r.readAsDataURL(file);
+                } else {
+                    alert("Por favor, selecione um arquivo .html");
+                    btn.innerText = originalBtnText;
+                    btn.disabled = false;
+                }
             } else {
-                save(document.getElementById('up-content').value);
+                const contentInput = document.getElementById('up-content');
+                if(!contentInput || !contentInput.value.trim()) {
+                     alert("Por favor, preencha o conteúdo.");
+                     btn.innerText = originalBtnText;
+                     btn.disabled = false;
+                     return;
+                }
+                save(contentInput.value);
             }
         }
 
         function loadGames() {
+            if (!window.dbRefs) return setTimeout(loadGames, 500); // Tenta de novo se não carregou
             const { ref, onValue } = window.dbRefs;
+            
             onValue(ref(window.db, 'games'), (snap) => {
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 const data = snap.val();
-                if(!data) return;
+                if(!data) {
+                    grid.innerHTML = "<p class='text-white opacity-50'>Nenhum jogo encontrado.</p>";
+                    return;
+                }
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
@@ -255,6 +320,8 @@
                             <p class="text-[9px] text-purple-400 font-bold mt-2 uppercase">BY ${g.author}</p>
                         </div>`;
                 });
+            }, (error) => {
+                console.error("Erro ao carregar jogos:", error);
             });
         }
 
@@ -286,7 +353,15 @@
                 document.getElementById('up-capa').value = g.capa;
                 document.getElementById('up-type').value = g.type;
                 toggleUploadInputs();
-                if(g.type !== 'file') document.getElementById('up-content').value = g.content;
+                
+                // Pequeno delay para garantir que o DOM atualizou o input/textarea
+                setTimeout(() => {
+                    if(g.type !== 'file') {
+                        const contentEl = document.getElementById('up-content');
+                        if(contentEl) contentEl.value = g.content;
+                    }
+                }, 50);
+
                 document.getElementById('modal-title').innerText = "EDITAR JOGO";
                 document.getElementById('btn-submit').innerText = "SALVAR ALTERAÇÕES";
                 isEditing = true;
@@ -328,6 +403,9 @@
             if(id === 'modal-upload' && !isEditing) {
                 document.getElementById('modal-title').innerText = "PUBLICAR JOGO";
                 document.getElementById('btn-submit').innerText = "PUBLICAR NO HUB";
+                document.getElementById('up-type').value = 'url';
+                toggleUploadInputs();
+                document.querySelector('form').reset();
             }
             document.getElementById(id).classList.remove('hidden');
         };
