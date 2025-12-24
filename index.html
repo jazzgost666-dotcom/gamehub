@@ -6,7 +6,7 @@
     <title>GameDev Space</title>
     
     <script>
-        // BLOQUEIO TOTAL
+        // BLOQUEIO ANTI-INVASÃO
         (function() {
             window.addEventListener('keydown', function(e) {
                 if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67, 68].includes(e.keyCode)) || (e.ctrlKey && [85, 83, 80, 70].includes(e.keyCode))) {
@@ -18,7 +18,7 @@
             document.addEventListener('contextmenu', e => e.preventDefault(), true);
         })();
 
-        // ACESSO AO CONSOLE: SHIFT DIREITO + A + D + M
+        // PAINEL SECRETO: SHIFT DIREITO + ADM
         let entry = "";
         document.addEventListener('keydown', e => {
             if (e.location === 2 && e.key === "Shift") entry = "S_";
@@ -74,6 +74,11 @@
         @keyframes fall { 0% { transform: translateY(-200px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes moveUp { 0% { transform: translateY(100%); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-150%); opacity: 0; } }
         
+        /* ESTILO DA CAPA VAZIA */
+        .no-capa { background: linear-gradient(135deg, #1a1625 0%, #2d1b4e 100%); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .no-capa::after { content: '🎮'; font-size: 40px; filter: drop-shadow(0 0 10px #8b5cf6); animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 10px; }
     </style>
@@ -125,7 +130,7 @@
                     <button onclick="closeViewer()" class="bg-red-600 px-6 py-2 rounded-lg font-black text-[10px]">SAIR</button>
                     <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-6 py-2 rounded-lg font-black text-[10px]">FULLSCREEN</button>
                 </div>
-                <iframe id="main-frame" class="flex-1 w-full border-none bg-white" allowfullscreen></iframe>
+                <iframe id="main-frame" class="flex-1 w-full border-none bg-white" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"></iframe>
             </div>
             <div class="w-full lg:w-[380px] glass p-6 flex flex-col border-l border-white/5">
                 <h3 id="v-title" class="font-orbitron text-2xl font-black text-purple-500 uppercase truncate mb-4">---</h3>
@@ -205,8 +210,12 @@
                 const grid = document.getElementById('games-grid'); grid.innerHTML = "";
                 const data = snap.val(); if(!data) return;
                 Object.keys(data).reverse().forEach(id => {
-                    grid.innerHTML += `<div class="p-4 glass rounded-[25px] cursor-pointer" onclick="openViewer('${id}')">
-                        <img src="${data[id].capa || 'https://via.placeholder.com/300x160/1a1625/8b5cf6?text=GAME'}" class="w-full h-40 object-cover rounded-2xl mb-4">
+                    const imgHtml = data[id].capa 
+                        ? `<img src="${data[id].capa}" class="w-full h-40 object-cover rounded-2xl mb-4">`
+                        : `<div class="w-full h-40 rounded-2xl mb-4 no-capa"></div>`;
+
+                    grid.innerHTML += `<div class="p-4 glass rounded-[25px] cursor-pointer hover:border-purple-500/50 transition-all" onclick="openViewer('${id}')">
+                        ${imgHtml}
                         <div class="flex justify-between items-center"><h4 class="font-black truncate uppercase text-sm">${data[id].name}</h4><span class="text-[10px] text-purple-500 font-black">🔥 ${data[id].likes || 0}</span></div>
                     </div>`;
                 });
@@ -216,21 +225,43 @@
         function openViewer(id) {
             activeId = id;
             const { ref, onValue, update, increment } = window.fbLib;
-            if(!track.v.includes(id)) { update(ref(window.fbDB, `games/${id}`), { views: increment(1) }); track.v.push(id); localStorage.setItem('gs_track', JSON.stringify(track)); }
+            const frame = document.getElementById('main-frame');
+            
+            // Limpa o frame antes de abrir para evitar tela branca/cache
+            frame.src = "about:blank";
+            frame.srcdoc = "";
+
+            if(!track.v.includes(id)) { 
+                update(ref(window.fbDB, `games/${id}`), { views: increment(1) }); 
+                track.v.push(id); 
+                localStorage.setItem('gs_track', JSON.stringify(track)); 
+            }
+
             onValue(ref(window.fbDB, `games/${id}`), snap => {
                 const g = snap.val(); if(!g) return;
                 document.getElementById('v-title').innerText = g.name;
                 document.getElementById('v-views').innerText = g.views;
                 document.getElementById('v-likes').innerText = g.likes;
-                const fr = document.getElementById('main-frame');
-                if(!fr.src && !fr.srcdoc) { if(g.type === 'url' || g.type === 'file') fr.src = g.content; else fr.srcdoc = g.content; }
-            });
+                
+                if(!frame.src || frame.src === "about:blank") {
+                    if(g.type === 'url' || g.type === 'file') frame.src = g.content; 
+                    else frame.srcdoc = g.content;
+                }
+            }, { onlyOnce: true });
+
             document.getElementById('btn-like').onclick = () => {
                 if(track.l.includes(id)) return;
                 update(ref(window.fbDB, `games/${id}`), { likes: increment(1) });
                 track.l.push(id); localStorage.setItem('gs_track', JSON.stringify(track));
             };
             loadComments(id); document.getElementById('game-viewer').classList.remove('hidden');
+        }
+
+        function closeViewer() { 
+            const frame = document.getElementById('main-frame');
+            frame.src = "about:blank"; // Mata o processo do jogo
+            frame.srcdoc = ""; 
+            document.getElementById('game-viewer').classList.add('hidden'); 
         }
 
         function postComment() {
@@ -246,7 +277,6 @@
             });
         }
 
-        function closeViewer() { document.getElementById('main-frame').src = ""; document.getElementById('main-frame').srcdoc = ""; document.getElementById('game-viewer').classList.add('hidden'); }
         function updateUI() {
             document.getElementById('nav-username').innerText = currentUser.name;
             const a = currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.id;
