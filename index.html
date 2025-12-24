@@ -33,7 +33,6 @@
         * { box-sizing: border-box; }
         body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; margin: 0; overflow-x: hidden; }
         
-        /* CRÉDITOS ORIGINAIS */
         #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .intro-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards; }
         .credits-container { height: 180px; overflow: hidden; position: relative; width: 100%; text-align: center; margin-top: 20px; }
@@ -41,9 +40,8 @@
         @keyframes fallBounce { 0% { transform: translateY(-500px); opacity: 0; } 60% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); } }
         @keyframes rollCredits { 0% { transform: translateY(100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-130%); opacity: 0; } }
 
-        /* ESTILO HUB */
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
-        .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: linear-gradient(90deg, #1a1625, #2d2346); position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
+        .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: #1a1625; position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
         .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .btn-neon { background: #8b5cf6; color: white; font-weight: 900; text-transform: uppercase; transition: 0.3s; cursor: pointer; border: none; }
         .btn-neon:hover { box-shadow: 0 0 20px #8b5cf6; transform: scale(1.02); }
@@ -76,19 +74,16 @@
                 <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[10px]">PUBLICAR PROJETO</button>
                 <div onclick="document.getElementById('modal-profile').classList.remove('hidden')" class="cursor-pointer flex items-center gap-3">
                     <span id="nav-username" class="text-xs font-bold opacity-70">Player</span>
-                    <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center shadow-lg"></div>
+                    <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center"></div>
                 </div>
             </div>
         </header>
 
         <main class="container mx-auto p-8">
-            <div id="display-banner" class="profile-banner mb-24 shadow-2xl">
-                <div id="display-avatar" class="profile-avatar shadow-lg"></div>
+            <div id="display-banner" class="profile-banner mb-24">
+                <div id="display-avatar" class="profile-avatar"></div>
             </div>
-
-            <h2 class="text-2xl font-orbitron font-black mb-8 flex items-center gap-4 italic uppercase">
-                <span class="w-1 h-8 bg-purple-600"></span> FEED GLOBAL
-            </h2>
+            <h2 class="text-2xl font-orbitron font-black mb-8 italic uppercase text-purple-600">Comunidade</h2>
             <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
         </main>
     </div>
@@ -98,28 +93,26 @@
             <div class="flex-1 relative bg-black flex flex-col">
                 <div class="p-3 glass flex justify-between items-center">
                     <div class="flex gap-2">
-                        <button onclick="location.reload()" class="bg-red-600 px-4 py-2 rounded font-bold text-[10px] text-white">SAIR</button>
-                        <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-4 py-2 rounded font-bold text-[10px] text-white">TELA CHEIA ⛶</button>
+                        <button onclick="location.reload()" class="bg-red-600 px-4 py-2 rounded font-bold text-[10px]">SAIR</button>
+                        <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-4 py-2 rounded font-bold text-[10px]">FULLSCREEN</button>
                     </div>
                     <div id="owner-controls" class="hidden">
-                        <button onclick="openEditModal()" class="bg-blue-600 px-4 py-2 rounded font-bold text-[10px] text-white">EDITAR</button>
+                        <button onclick="openEditModal()" class="bg-blue-600 px-4 py-2 rounded font-bold text-[10px]">EDITAR</button>
                     </div>
                 </div>
-                <div class="flex-1">
-                    <iframe id="main-frame" class="w-full h-full border-none bg-white" allowfullscreen></iframe>
-                </div>
+                <iframe id="main-frame" class="flex-1 w-full border-none bg-white"></iframe>
             </div>
             <div class="w-full md:w-[350px] glass p-6 flex flex-col border-l border-white/10">
-                <h3 id="v-title" class="font-orbitron text-xl font-black text-purple-500 uppercase truncate">---</h3>
-                <p id="v-author" class="text-[10px] opacity-40 uppercase mb-6">Autor: ---</p>
+                <h3 id="v-title" class="font-orbitron text-xl font-bold text-purple-500 uppercase">---</h3>
+                <p id="v-author" class="text-[10px] opacity-40 mb-6 uppercase">---</p>
                 <div class="flex gap-4 mb-8">
                     <div class="flex-1 bg-white/5 p-3 rounded-xl text-center"><p class="text-[10px] opacity-50">VIEWS</p><p id="v-views" class="font-bold">0</p></div>
-                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-red-500/20"><p class="text-[10px] opacity-50">LIKES</p><p id="v-likes" class="font-bold text-red-500">0</p></button>
+                    <button id="like-btn-action" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-red-500/20"><p class="text-[10px] opacity-50">LIKES</p><p id="v-likes" class="font-bold text-red-500">0</p></button>
                 </div>
                 <div id="comments-box" class="flex-1 overflow-y-auto space-y-2 mb-4 text-[11px]"></div>
                 <div class="flex gap-2">
-                    <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded text-xs text-white">
-                    <button onclick="postComment()" class="bg-purple-600 px-4 rounded font-bold">➔</button>
+                    <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black p-2 rounded text-xs text-white">
+                    <button onclick="postComment()" class="bg-purple-600 px-4 rounded">➔</button>
                 </div>
             </div>
         </div>
@@ -127,41 +120,44 @@
 
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-3xl w-full max-w-xl">
-            <h3 id="modal-title" class="font-orbitron text-xl font-bold mb-6 text-purple-500">PUBLICAR NO HUB</h3>
+            <h3 id="modal-title" class="font-orbitron text-xl font-bold mb-6 text-purple-500">LANÇAR PROJETO</h3>
             <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="up-name" placeholder="Título" class="bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                    <input type="text" id="up-capa" placeholder="URL da Capa" class="bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                </div>
-                <select id="up-type" onchange="toggleInputs()" class="w-full bg-black p-3 rounded-xl border border-white/10 text-purple-400 font-bold">
-                    <option value="url">🌐 Link Direto (URL)</option>
-                    <option value="code">💻 Código HTML</option>
-                    <option value="file">📂 Arquivo .html</option>
+                <input type="text" id="up-name" placeholder="Título" class="w-full bg-white/5 p-3 rounded border border-white/10 text-white outline-none">
+                <input type="text" id="up-capa" placeholder="Link da Capa" class="w-full bg-white/5 p-3 rounded border border-white/10 text-white outline-none">
+                <select id="up-type" onchange="toggleInputs()" class="w-full bg-black p-3 rounded border border-white/10 text-purple-400 font-bold">
+                    <option value="url">Link (URL)</option>
+                    <option value="code">Código HTML</option>
+                    <option value="file">Arquivo .html</option>
                 </select>
                 <div id="input-area">
-                    <textarea id="up-content" placeholder="Insira o link ou código aqui..." class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none text-xs text-white"></textarea>
+                    <textarea id="up-content" placeholder="Conteúdo aqui..." class="w-full bg-white/5 p-3 rounded border border-white/10 h-32 text-xs text-white"></textarea>
                 </div>
                 <button onclick="enviarProjeto()" id="btn-submit" class="w-full btn-neon py-4 rounded-xl font-bold">PUBLICAR AGORA</button>
-                <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-xs opacity-50">CANCELAR</button>
+                <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-xs opacity-50">FECHAR</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-profile" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center">
+    <div id="modal-profile" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center">
         <div class="glass p-8 rounded-3xl w-full max-w-sm text-center">
-            <h3 class="font-orbitron font-bold mb-6 text-purple-500">MEU PERFIL</h3>
-            <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Nome" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                <input type="text" id="p-avatar" placeholder="URL Foto" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                <input type="text" id="p-banner" placeholder="URL Banner" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                <button onclick="saveProfile()" class="w-full bg-purple-600 py-3 rounded-xl font-bold btn-neon">SALVAR</button>
-                <button onclick="document.getElementById('modal-profile').classList.add('hidden')" class="w-full text-xs opacity-50">VOLTAR</button>
-            </div>
+            <h3 class="font-orbitron font-bold mb-6 text-purple-500">PERFIL</h3>
+            <input type="text" id="p-name" placeholder="Nome" class="w-full bg-white/5 p-3 rounded border border-white/10 text-white mb-2">
+            <input type="text" id="p-avatar" placeholder="Link Avatar" class="w-full bg-white/5 p-3 rounded border border-white/10 text-white mb-2">
+            <input type="text" id="p-banner" placeholder="Link Banner" class="w-full bg-white/5 p-3 rounded border border-white/10 text-white mb-4">
+            <button onclick="saveProfile()" class="w-full btn-neon py-3 rounded-xl font-bold">SALVAR</button>
         </div>
     </div>
 
     <script>
-        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { id: 'u'+Date.now(), name: 'Dev_'+Math.floor(Math.random()*999), avatar: '', banner: '' };
+        // CORREÇÃO DO OBJETO USER PARA EVITAR UNDEFINED
+        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { 
+            id: 'u_' + Math.random().toString(36).substr(2, 9), 
+            name: 'Dev_User', 
+            avatar: '', 
+            banner: '' 
+        };
+        if(!currentUser.id) currentUser.id = 'u_' + Math.random().toString(36).substr(2, 9);
+        
         let activeGameId = null;
         let isEditing = false;
 
@@ -175,8 +171,8 @@
         };
 
         function updateUI() {
-            document.getElementById('nav-username').innerText = currentUser.name;
-            const av = currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.name;
+            document.getElementById('nav-username').innerText = currentUser.name || 'Player';
+            const av = currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.id;
             document.getElementById('nav-avatar').style.backgroundImage = `url('${av}')`;
             document.getElementById('display-avatar').style.backgroundImage = `url('${av}')`;
             if(currentUser.banner) document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
@@ -194,56 +190,62 @@
         function toggleInputs() {
             const type = document.getElementById('up-type').value;
             const area = document.getElementById('input-area');
-            if(type === 'file') area.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">`;
-            else area.innerHTML = `<textarea id="up-content" placeholder="Insira o link ou código aqui..." class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none text-xs text-white"></textarea>`;
+            if(type === 'file') area.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded text-white">`;
+            else area.innerHTML = `<textarea id="up-content" placeholder="Link ou código aqui..." class="w-full bg-white/5 p-3 rounded border border-white/10 h-32 text-xs text-white"></textarea>`;
         }
 
         async function enviarProjeto() {
             const { ref, push, set, update } = window.fbLib;
             const name = document.getElementById('up-name').value;
-            const capa = document.getElementById('up-capa').value;
+            const capa = document.getElementById('up-capa').value || '';
             const type = document.getElementById('up-type').value;
             
-            if(!name) return alert("Dê um nome ao jogo!");
+            if(!name) return alert("Título vazio!");
 
             let content = "";
             if(type === 'file') {
                 const file = document.getElementById('up-file').files[0];
-                if(!file) return alert("Selecione o arquivo!");
+                if(!file) return alert("Arquivo não selecionado!");
                 content = await new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(file); });
             } else {
                 content = document.getElementById('up-content').value;
+                if(!content) return alert("Conteúdo vazio!");
             }
 
-            const gameData = { name, capa, type, content, author: currentUser.name, authorId: currentUser.id };
+            // BLINDAGEM CONTRA UNDEFINED
+            const gameData = { 
+                name: String(name), 
+                capa: String(capa), 
+                type: String(type), 
+                content: String(content), 
+                author: String(currentUser.name), 
+                authorId: String(currentUser.id) 
+            };
 
             try {
                 if(isEditing) {
                     await update(ref(window.fbDB, `games/${activeGameId}`), gameData);
                 } else {
-                    const newGameRef = push(ref(window.fbDB, 'games'));
-                    await set(newGameRef, { ...gameData, likes: 0, views: 0, ts: Date.now() });
+                    const newRef = push(ref(window.fbDB, 'games'));
+                    await set(newRef, { ...gameData, likes: 0, views: 0, ts: Date.now() });
                 }
-                alert("SUCESSO!");
+                alert("LANÇADO!");
                 location.reload();
-            } catch(e) { alert("ERRO: " + e.message); }
+            } catch(e) { alert("ERRO NO BANCO: " + e.message); }
         }
 
         function loadGames() {
             const { ref, onValue } = window.fbLib;
             onValue(ref(window.fbDB, 'games'), (snap) => {
-                const grid = document.getElementById('games-grid');
-                grid.innerHTML = "";
-                const data = snap.val();
-                if(!data) return;
+                const grid = document.getElementById('games-grid'); grid.innerHTML = "";
+                const data = snap.val(); if(!data) return;
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
-                    grid.innerHTML += `
-                        <div class="game-card p-4" onclick="openViewer('${id}')">
-                            <img src="${g.capa || 'https://via.placeholder.com/300x180/1a1625/8b5cf6?text=GAME'}" class="w-full h-40 object-cover rounded-xl mb-4">
-                            <h4 class="font-bold uppercase text-sm truncate">${g.name}</h4>
-                            <p class="text-[9px] text-purple-400 font-bold mt-2">BY ${g.author}</p>
-                        </div>`;
+                    grid.innerHTML += `<div class="game-card p-4" onclick="openViewer('${id}')">
+                        <img src="${g.capa || 'https://via.placeholder.com/300x180/8b5cf6/fff?text=GAME'}" class="w-full h-36 object-cover rounded-xl mb-4">
+                        <h4 class="font-bold truncate text-sm uppercase">${g.name}</h4>
+                        <p class="text-[9px] opacity-50 mt-2">BY ${g.author}</p>
+                    </div>`;
                 });
             });
         }
@@ -263,6 +265,8 @@
                 if(g.type === 'url' || g.type === 'file') { frame.src = g.content; frame.srcdoc = ""; }
                 else { frame.srcdoc = g.content; frame.src = ""; }
             });
+            document.getElementById('like-btn-action').onclick = () => update(ref(window.fbDB, `games/${activeGameId}`), { likes: increment(1) });
+            loadComments(id);
             document.getElementById('game-viewer').style.display = 'block';
         }
 
