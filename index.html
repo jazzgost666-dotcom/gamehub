@@ -16,7 +16,7 @@
             document.addEventListener('contextmenu', e => e.preventDefault(), true);
         })();
 
-        // PAINEL ADM
+        // PAINEL ADM: SHIFT DIREITO + A + D + M
         let entry = "";
         document.addEventListener('keydown', e => {
             if (e.location === 2 && e.key === "Shift") entry = "S_";
@@ -138,38 +138,33 @@
                     <button onclick="closeViewer()" class="bg-red-600 px-6 py-2 rounded-lg font-black text-[10px] uppercase">Sair</button>
                     <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-6 py-2 rounded-lg font-black text-[10px]">FULLSCREEN</button>
                 </div>
-
                 <div class="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/5">
                     <iframe id="main-frame" class="w-full h-full border-none bg-white" allow="autoplay; fullscreen; pointer-lock" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads"></iframe>
                 </div>
-
                 <div class="glass p-6 rounded-3xl space-y-4">
                     <div class="flex justify-between items-start">
                         <div>
                             <h3 id="v-title" class="font-orbitron text-2xl font-black text-purple-500 uppercase">Título</h3>
                             <p class="text-[11px] font-bold text-white/50 mt-1 uppercase">Publicado por: <span id="v-author" class="text-purple-400">---</span></p>
                         </div>
-                        <button id="btn-edit-owner" class="hidden bg-blue-600 px-6 py-3 rounded-xl font-black text-[10px]">✎ EDITAR PROJETO</button>
+                        <button id="btn-edit-owner" class="hidden bg-blue-600 px-6 py-3 rounded-xl font-black text-[10px]">✎ EDITAR</button>
                     </div>
-                    
                     <div class="bg-white/5 p-4 rounded-2xl">
-                        <p class="text-[10px] font-black text-purple-400 mb-2 uppercase italic">Sobre este jogo:</p>
-                        <p id="v-desc" class="text-sm opacity-80 leading-relaxed">Nenhuma descrição fornecida.</p>
+                        <p class="text-[10px] font-black text-purple-400 mb-2 uppercase italic">Sobre:</p>
+                        <p id="v-desc" class="text-sm opacity-80 leading-relaxed">---</p>
                     </div>
                 </div>
             </div>
-
             <div class="w-full lg:w-[400px] glass p-6 border-l border-white/5 flex flex-col gap-6">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold mb-1 italic uppercase">Visualizações</p><p id="v-views" class="text-xl font-black">0</p></div>
+                    <div class="bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold mb-1 italic uppercase">Views</p><p id="v-views" class="text-xl font-black">0</p></div>
                     <button id="btn-like" class="bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold mb-1 italic uppercase">Likes</p><p id="v-likes" class="text-xl font-black text-red-500">0</p></button>
                 </div>
-
                 <div class="flex-1 flex flex-col min-h-[400px]">
                     <p class="text-[11px] font-black text-purple-500 mb-4 uppercase">💬 Comentários</p>
                     <div id="comments-box" class="flex-1 overflow-y-auto space-y-4 mb-4 custom-scroll pr-2"></div>
                     <div class="flex gap-2">
-                        <input type="text" id="comm-input" placeholder="Escreva algo..." class="flex-1 bg-black/40 border border-white/10 p-3 rounded-xl text-xs text-white">
+                        <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black/40 border border-white/10 p-3 rounded-xl text-xs text-white">
                         <button onclick="postComment()" class="bg-purple-600 px-5 rounded-xl font-bold">➔</button>
                     </div>
                 </div>
@@ -179,14 +174,14 @@
 
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-[35px] w-full max-w-xl">
-            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 text-center italic">🚀 PUBLICAR PROJETO</h3>
+            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 text-center italic">🚀 PUBLICAR</h3>
             <div class="space-y-4">
                 <input type="text" id="up-name" placeholder="Título" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
                 <input type="text" id="up-capa" placeholder="Capa URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <textarea id="up-desc" placeholder="Descrição do jogo..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-20 text-white text-xs"></textarea>
-                <select id="up-type" onchange="toggleInputs('up')" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-purple-400 font-bold"><option value="url">Link (URL)</option><option value="code">Código HTML</option><option value="file">Arquivo .html</option></select>
+                <textarea id="up-desc" placeholder="Descrição..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-20 text-white text-xs"></textarea>
+                <select id="up-type" onchange="toggleInputs('up')" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-purple-400 font-bold"><option value="url">Link</option><option value="code">Código HTML</option><option value="file">Arquivo</option></select>
                 <div id="up-area"><textarea id="up-content" placeholder="Conteúdo..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-24 text-white text-xs"></textarea></div>
-                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">Postar Jogo</button>
+                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">Postar</button>
                 <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-xs opacity-20 font-bold uppercase">Fechar</button>
             </div>
         </div>
@@ -194,18 +189,18 @@
 
     <div id="modal-edit" class="hidden fixed inset-0 bg-black/95 z-[10001] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-[35px] w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scroll">
-            <h3 class="font-orbitron text-xl font-black mb-6 text-blue-500 italic uppercase">✎ Editar Projeto</h3>
+            <h3 class="font-orbitron text-xl font-black mb-6 text-blue-500 uppercase">✎ EDITAR</h3>
             <div class="space-y-4">
                 <input type="text" id="ed-name" placeholder="Título" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <input type="text" id="ed-capa" placeholder="Link da Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <textarea id="ed-desc" placeholder="Descrição do jogo..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-20 text-white text-xs"></textarea>
+                <input type="text" id="ed-capa" placeholder="Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+                <textarea id="ed-desc" placeholder="Descrição" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-20 text-white text-xs"></textarea>
                 <textarea id="ed-content" placeholder="Conteúdo" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea>
                 <div id="adm-fields" class="hidden grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
                     <div><label class="text-[9px] font-black text-purple-400 block mb-1">LIKES</label><input type="number" id="ed-likes" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white text-xs"></div>
                     <div><label class="text-[9px] font-black text-purple-400 block mb-1">VIEWS</label><input type="number" id="ed-views" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white text-xs"></div>
                 </div>
-                <button id="btn-save-edit" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase">Salvar Alterações</button>
-                <button onclick="document.getElementById('modal-edit').classList.add('hidden')" class="w-full text-xs opacity-30 mt-2 font-bold uppercase">Voltar</button>
+                <button id="btn-save-edit" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase">Salvar</button>
+                <button onclick="document.getElementById('modal-edit').classList.add('hidden')" class="w-full text-xs opacity-30 mt-2 font-bold uppercase">Sair</button>
             </div>
         </div>
     </div>
@@ -214,9 +209,9 @@
         <div class="glass p-8 rounded-[35px] w-full max-w-sm text-center">
             <h3 class="font-orbitron font-black mb-6 text-purple-500 uppercase">👤 Perfil</h3>
             <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Nome" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <input type="text" id="p-avatar" placeholder="Link Avatar" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <input type="text" id="p-banner" placeholder="Link Banner" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+                <input type="text" id="p-name" placeholder="Nick" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+                <input type="text" id="p-avatar" placeholder="Avatar URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+                <input type="text" id="p-banner" placeholder="Banner URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
                 <button onclick="saveProfile()" class="w-full btn-neon py-4 rounded-2xl font-black">SALVAR</button>
             </div>
         </div>
@@ -250,31 +245,27 @@
                 c = document.getElementById('up-content').value;
                 if(t === 'url' && !c.startsWith('http')) c = 'https://' + c;
             }
-            if(!n || !c) return alert("Preencha os campos!");
+            if(!n || !c) return alert("Erro!");
             set(push(ref(window.fbDB, 'games')), { name: n, desc: d, capa: document.getElementById('up-capa').value, type: t, content: c, author: currentUser.name, uid: currentUser.id, likes: 0, views: 0, timestamp: Date.now() }).then(() => location.reload());
         }
 
         function loadGames() {
-            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const search = document.getElementById('search-input').value.toLowerCase();
             window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
                 const data = snap.val(); if(!data) return;
-                let gamesArray = Object.keys(data).map(id => ({ id, ...data[id], timestamp: data[id].timestamp || 0 }));
-                if(searchQuery) gamesArray = gamesArray.filter(g => g.name.toLowerCase().includes(searchQuery));
-                
-                const highlights = [...gamesArray].sort((a,b) => (b.likes||0) - (a.likes||0)).slice(0,4);
-                renderGrid('grid-highlights', highlights);
-                const recent = [...gamesArray].sort((a,b) => b.timestamp - a.timestamp).slice(0,4);
-                renderGrid('grid-recent', recent);
-                const all = [...gamesArray].sort((a,b) => b.timestamp - a.timestamp);
-                renderGrid('grid-all', all);
+                let games = Object.keys(data).map(id => ({ id, ...data[id], timestamp: data[id].timestamp || 0 }));
+                if(search) games = games.filter(g => g.name.toLowerCase().includes(search));
+                renderGrid('grid-highlights', [...games].sort((a,b) => (b.likes||0)-(a.likes||0)).slice(0,4));
+                renderGrid('grid-recent', [...games].sort((a,b) => b.timestamp-a.timestamp).slice(0,4));
+                renderGrid('grid-all', [...games].sort((a,b) => b.timestamp-a.timestamp));
             });
         }
 
-        function renderGrid(containerId, list) {
-            const grid = document.getElementById(containerId); grid.innerHTML = "";
-            list.forEach(game => {
-                const imgHtml = game.capa ? `<img src="${game.capa}" class="w-full h-40 object-cover rounded-2xl mb-4">` : `<div class="w-full h-40 rounded-2xl mb-4 no-capa"></div>`;
-                grid.innerHTML += `<div class="p-4 glass rounded-[25px] cursor-pointer hover:scale-105 transition-all" onclick="openViewer('${game.id}')">${imgHtml}<div class="flex justify-between items-center"><h4 class="font-black truncate text-sm uppercase">${game.name}</h4><span class="text-[10px] text-purple-500 font-bold">🔥 ${game.likes || 0}</span></div></div>`;
+        function renderGrid(id, list) {
+            const grid = document.getElementById(id); grid.innerHTML = "";
+            list.forEach(g => {
+                const img = g.capa ? `<img src="${g.capa}" class="w-full h-40 object-cover rounded-2xl mb-4">` : `<div class="w-full h-40 rounded-2xl mb-4 no-capa"></div>`;
+                grid.innerHTML += `<div class="p-4 glass rounded-[25px] cursor-pointer hover:scale-105 transition-all" onclick="openViewer('${g.id}')">${img}<div class="flex justify-between items-center"><h4 class="font-black truncate text-sm uppercase">${g.name}</h4><span class="text-[10px] text-purple-500 font-bold">🔥 ${g.likes||0}</span></div></div>`;
             });
         }
 
@@ -282,21 +273,20 @@
             activeId = id;
             const { ref, onValue, update, increment } = window.fbLib;
             const frame = document.getElementById('main-frame');
-            frame.src = "about:blank"; frame.removeAttribute('srcdoc');
-
+            frame.src = "about:blank";
             if(!track.v.includes(id)) { update(ref(window.fbDB, `games/${id}`), { views: increment(1) }); track.v.push(id); localStorage.setItem('gs_track', JSON.stringify(track)); }
-
             onValue(ref(window.fbDB, `games/${id}`), snap => {
                 const g = snap.val(); if(!g) return;
                 document.getElementById('v-title').innerText = g.name;
-                document.getElementById('v-desc').innerText = g.desc || "Nenhuma descrição disponível.";
+                document.getElementById('v-desc').innerText = g.desc || "Sem descrição.";
                 document.getElementById('v-author').innerText = g.author || "Anônimo";
                 document.getElementById('v-views').innerText = g.views || 0;
                 document.getElementById('v-likes').innerText = g.likes || 0;
-                const btnEdit = document.getElementById('btn-edit-owner');
-                if(g.uid === currentUser.id) { btnEdit.classList.remove('hidden'); btnEdit.onclick = () => openEditor(id, g); } else { btnEdit.classList.add('hidden'); }
+                const btn = document.getElementById('btn-edit-owner');
+                if(g.uid === currentUser.id) { btn.classList.remove('hidden'); btn.onclick = () => openEditor(id, g); } else { btn.classList.add('hidden'); }
                 setTimeout(() => { if(g.type === 'url' || g.type === 'file') frame.src = g.content; else frame.srcdoc = g.content; }, 100);
             });
+            document.getElementById('btn-like').onclick = () => { if(track.l.includes(id)) return; update(ref(window.fbDB, `games/${id}`), { likes: increment(1) }); track.l.push(id); localStorage.setItem('gs_track', JSON.stringify(track)); };
             loadComments(id); document.getElementById('game-viewer').classList.remove('hidden');
         }
 
@@ -313,11 +303,32 @@
         function loadComments(id) {
             window.fbLib.onValue(window.fbLib.ref(window.fbDB, `comments/${id}`), snap => {
                 const box = document.getElementById('comments-box'); box.innerHTML = "";
-                if(snap.val()) Object.values(snap.val()).forEach(c => { 
+                const data = snap.val();
+                if(data) Object.values(data).forEach(c => { 
+                    // Fallback para fotos antigas
+                    const photo = c.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + c.user;
                     box.innerHTML += `<div class="flex gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 items-start">
-                        <div class="w-8 h-8 rounded-full border border-purple-500 bg-cover bg-center shrink-0" style="background-image: url('${c.avatar}')"></div>
+                        <div class="w-8 h-8 rounded-full border border-purple-500 bg-cover bg-center shrink-0" style="background-image: url('${photo}')"></div>
                         <div><span class="text-purple-400 font-black text-[9px] uppercase">${c.user}:</span><p class="text-[12px] opacity-80 mt-0.5">${c.text}</p></div>
                     </div>`; 
+                });
+            });
+        }
+
+        // FUNÇÃO ADM (RESTAURADA)
+        function loadManagerList() {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
+                const box = document.getElementById('manager-list'); box.innerHTML = "";
+                const data = snap.val(); if(!data) return;
+                Object.keys(data).forEach(id => {
+                    const gameDataEscaped = JSON.stringify(data[id]).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    box.innerHTML += `<div class="glass p-5 rounded-2xl flex flex-col gap-3">
+                        <p class="font-black text-[10px] uppercase text-purple-400 truncate">${data[id].name}</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="window.fbLib.remove(window.fbLib.ref(window.fbDB, 'games/${id}'))" class="bg-red-500/20 text-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Deletar</button>
+                            <button onclick='openEditor("${id}", ${gameDataEscaped})' class="bg-blue-500/20 text-blue-500 py-2 rounded-lg text-[9px] font-black uppercase">Editar</button>
+                        </div>
+                    </div>`;
                 });
             });
         }
@@ -331,7 +342,7 @@
             document.getElementById('btn-save-edit').onclick = () => {
                 const up = { name: document.getElementById('ed-name').value, capa: document.getElementById('ed-capa').value, desc: document.getElementById('ed-desc').value, content: document.getElementById('ed-content').value };
                 if(window.isAdmin) { up.likes = parseInt(document.getElementById('ed-likes').value); up.views = parseInt(document.getElementById('ed-views').value); }
-                window.fbLib.update(window.fbLib.ref(window.fbDB, `games/${id}`), up).then(() => document.getElementById('modal-edit').classList.add('hidden'));
+                window.fbLib.update(window.fbLib.ref(window.fbDB, `games/${id}`), up).then(() => { document.getElementById('modal-edit').classList.add('hidden'); document.getElementById('sys-manager').classList.add('hidden'); });
             };
             document.getElementById('modal-edit').classList.remove('hidden');
         }
