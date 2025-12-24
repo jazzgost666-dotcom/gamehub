@@ -1,32 +1,255 @@
-// SISTEMA DE ATIVAÇÃO POR SEQUÊNCIA (IGNORA ATALHOS DO GOOGLE)
-let sequence = "";
-document.addEventListener('keydown', e => {
-    // Usamos o Shift Direito como "Chave de Segurança"
-    if (e.location === 2 && e.key === "Shift") {
-        sequence = "SHIFT_HOLD_";
-    }
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameDev Space</title>
     
-    if (sequence.startsWith("SHIFT_HOLD_")) {
-        const key = e.key.toLowerCase();
-        if (["a", "d", "m"].includes(key) && !sequence.includes(key)) {
-            sequence += key;
-        }
-    }
+    <script>
+        // BLOQUEIO SILENCIOSO - INTERCEPTAÇÃO SEM ALERTAS
+        (function() {
+            window.addEventListener('keydown', function(e) {
+                if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67, 68].includes(e.keyCode)) || (e.ctrlKey && [85, 83, 80, 70].includes(e.keyCode))) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }, true);
+            document.addEventListener('contextmenu', e => e.preventDefault(), true);
+            document.addEventListener('dragstart', e => e.preventDefault(), true);
+        })();
 
-    // Se a sequência SHIFT + A + D + M for completada
-    if (sequence === "SHIFT_HOLD_adm") {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        
-        const pass = prompt("SISTEMA BLOQUEADO - CHAVE MESTRA:");
-        if(pass === "ExiledEChadLindoAdm89892014") {
-            document.getElementById('admin-panel').classList.remove('hidden');
-            loadAdminList();
-        }
-        sequence = ""; // Reseta
-    }
-});
+        // ATIVAÇÃO DISCRETA: SEGURE SHIFT DIREITO E DIGITE "ADM"
+        let entry = "";
+        document.addEventListener('keydown', e => {
+            if (e.location === 2 && e.key === "Shift") entry = "S_";
+            if (entry.startsWith("S_")) {
+                const k = e.key.toLowerCase();
+                if (["a", "d", "m"].includes(k) && !entry.includes(k)) entry += k;
+            }
+            if (entry === "S_adm") {
+                e.preventDefault();
+                const access = prompt("AUTENTICAÇÃO REQUERIDA:");
+                if(access === "ExiledEChadLindoAdm89892014") {
+                    document.getElementById('sys-manager').classList.remove('hidden');
+                    loadManagerList();
+                }
+                entry = "";
+            }
+        });
+        document.addEventListener('keyup', e => { if (e.key === "Shift") entry = ""; });
+    </script>
 
-document.addEventListener('keyup', e => {
-    if (e.key === "Shift") sequence = ""; 
-});
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, update, increment, off, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
+            authDomain: "game-dev-space.firebaseapp.com",
+            databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
+            projectId: "game-dev-space",
+            storageBucket: "game-dev-space.firebasestorage.app",
+            messagingSenderId: "1073185335190",
+            appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        window.fbDB = db;
+        window.fbLib = { ref, set, push, onValue, update, increment, off, remove };
+    </script>
+
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-user-drag: none; }
+        body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; margin: 0; overflow: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(139, 92, 246, 0.1); }
+        .btn-main { background: #8b5cf6; color: white; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-main:hover { box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); transform: scale(1.02); }
+        #intro { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .logo-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 20px #8b5cf6; animation: fall 1.2s ease-out forwards; }
+        @keyframes fall { 0% { transform: translateY(-100px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="intro">
+        <div class="logo-g">G</div>
+        <div class="mt-5 text-center opacity-0 animate-[fadeIn_1s_2s_forwards]">
+            <p class="text-[10px] tracking-[5px] text-purple-400 uppercase">Production</p>
+            <p class="text-lg font-bold">BYTEZT • JHOSSMINE2 • EXILED • CHAD</p>
+        </div>
+    </div>
+
+    <div id="sys-manager" class="hidden fixed inset-0 z-[10000] p-10 bg-[#08070d] overflow-y-auto">
+        <div class="flex justify-between items-center mb-10 border-b border-white/5 pb-5">
+            <h2 class="font-orbitron text-xl font-bold tracking-tighter">CONSOLE DE DADOS</h2>
+            <button onclick="document.getElementById('sys-manager').classList.add('hidden')" class="text-xs opacity-40 hover:opacity-100 transition-all uppercase">Desconectar</button>
+        </div>
+        <div id="manager-list" class="grid gap-4"></div>
+    </div>
+
+    <div id="main-content" class="hidden">
+        <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
+            <h1 class="font-orbitron text-xl font-black text-purple-500 tracking-tighter">GAMEDEV SPACE</h1>
+            <div class="flex items-center gap-6">
+                <button onclick="document.getElementById('modal-up').classList.remove('hidden')" class="btn-main px-6 py-2 rounded-full text-[10px] uppercase">Publicar</button>
+                <div onclick="document.getElementById('modal-p').classList.remove('hidden')" class="cursor-pointer flex items-center gap-3">
+                    <span id="u-name" class="text-[10px] font-bold uppercase opacity-50">User</span>
+                    <div id="u-av" class="w-10 h-10 rounded-full border border-purple-500/50 bg-cover bg-center"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-8">
+            <div id="h-banner" class="w-full h-[240px] rounded-[30px] bg-[#15121f] relative border border-white/5 bg-cover bg-center mb-24 shadow-2xl">
+                <div id="h-avatar" class="w-[120px] h-[120px] rounded-full border-4 border-purple-600 absolute bottom-[-60px] left-[40px] bg-cover bg-center bg-[#0b0915]"></div>
+            </div>
+            <div id="feed" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </main>
+    </div>
+
+    <div id="viewer" class="hidden fixed inset-0 z-[1000] bg-black">
+        <div class="flex flex-col h-full lg:flex-row">
+            <div class="flex-1 flex flex-col bg-black">
+                <div class="p-3 glass flex justify-between">
+                    <button onclick="exitGame()" class="bg-red-500/20 text-red-500 px-5 py-2 rounded text-[10px] font-bold uppercase">Sair</button>
+                    <button onclick="document.getElementById('f').requestFullscreen()" class="bg-white/5 px-5 py-2 rounded text-[10px] font-bold uppercase">Full</button>
+                </div>
+                <iframe id="f" class="flex-1 w-full border-none" allowfullscreen></iframe>
+            </div>
+            <div class="w-full lg:w-[350px] glass p-6 border-l border-white/5 flex flex-col">
+                <h3 id="v-t" class="font-orbitron text-xl font-bold uppercase mb-4">---</h3>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-white/5 p-3 rounded-xl text-center"><p class="text-[8px] opacity-30 mb-1">VIEWS</p><p id="v-v" class="font-bold">0</p></div>
+                    <button id="v-l-btn" class="bg-white/5 p-3 rounded-xl text-center"><p class="text-[8px] opacity-30 mb-1">LIKES</p><p id="v-l" class="font-bold text-red-500">0</p></button>
+                </div>
+                <div id="v-c" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
+                <div class="flex gap-2">
+                    <input id="v-i" type="text" placeholder="Comentar..." class="flex-1 bg-white/5 border border-white/10 p-3 rounded-xl text-xs outline-none focus:border-purple-500">
+                    <button onclick="sendC()" class="bg-purple-600 px-4 rounded-xl text-lg">➔</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-up" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[30px] w-full max-w-lg">
+            <h3 class="font-orbitron text-sm font-bold mb-6 opacity-60">NOVO PROJETO</h3>
+            <div class="space-y-4">
+                <input type="text" id="up-n" placeholder="Título" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-xs">
+                <input type="text" id="up-i" placeholder="URL da Capa" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-xs">
+                <select id="up-t" onchange="toggleUp()" class="w-full bg-black p-4 rounded-xl border border-white/10 text-xs font-bold">
+                    <option value="url">URL</option>
+                    <option value="code">HTML</option>
+                </select>
+                <div id="up-area"><textarea id="up-cont" placeholder="Conteúdo..." class="w-full bg-white/5 p-4 rounded-xl border border-white/10 h-32 text-xs"></textarea></div>
+                <button onclick="publish()" class="w-full btn-main py-4 rounded-xl text-xs font-bold uppercase">Lançar</button>
+                <button onclick="document.getElementById('modal-up').classList.add('hidden')" class="w-full text-[10px] opacity-20 mt-2 uppercase font-bold">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let user = JSON.parse(localStorage.getItem('gs_user')) || { id: 'p'+Date.now(), name: 'Player', avatar: '', banner: '' };
+        let track = JSON.parse(localStorage.getItem('gs_track')) || { l: [], v: [] };
+        let curr = null;
+        let listen = null;
+
+        window.onload = () => { setTimeout(() => { document.getElementById('intro').style.display='none'; document.getElementById('main-content').classList.remove('hidden'); updateU(); loadG(); }, 3000); };
+
+        function updateU() {
+            document.getElementById('u-name').innerText = user.name;
+            const a = user.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+user.id;
+            document.getElementById('u-av').style.backgroundImage = `url('${a}')`;
+            document.getElementById('h-avatar').style.backgroundImage = `url('${a}')`;
+            if(user.banner) document.getElementById('h-banner').style.backgroundImage = `url('${user.banner}')`;
+            localStorage.setItem('gs_user', JSON.stringify(user));
+        }
+
+        function toggleUp() {
+            const t = document.getElementById('up-t').value;
+            const area = document.getElementById('up-area');
+            area.innerHTML = `<textarea id="up-cont" placeholder="Conteúdo..." class="w-full bg-white/5 p-4 rounded-xl border border-white/10 h-32 text-xs"></textarea>`;
+        }
+
+        function publish() {
+            const { ref, push, set } = window.fbLib;
+            const n = document.getElementById('up-n').value;
+            const c = document.getElementById('up-cont').value;
+            if(!n || !c) return;
+            set(push(ref(window.fbDB, 'games')), { name: n, capa: document.getElementById('up-i').value, type: document.getElementById('up-t').value, content: c, author: user.name, likes: 0, views: 0 }).then(()=>location.reload());
+        }
+
+        function loadG() {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
+                const grid = document.getElementById('feed'); grid.innerHTML = "";
+                const data = snap.val(); if(!data) return;
+                Object.keys(data).reverse().forEach(id => {
+                    grid.innerHTML += `<div class="glass p-3 rounded-[20px] cursor-pointer" onclick="openG('${id}')">
+                        <img src="${data[id].capa || 'https://via.placeholder.com/300x160/1a1625/8b5cf6?text=GAME'}" class="w-full h-32 object-cover rounded-xl mb-3">
+                        <div class="flex justify-between items-center"><span class="font-bold text-xs uppercase truncate w-2/3">${data[id].name}</span><span class="text-[9px] text-purple-500 font-bold">${data[id].likes} LIKES</span></div>
+                    </div>`;
+                });
+            });
+        }
+
+        function openG(id) {
+            curr = id;
+            const { ref, onValue, update, increment } = window.fbLib;
+            if(!track.v.includes(id)) { update(ref(window.fbDB, `games/${id}`), { views: increment(1) }); track.v.push(id); localStorage.setItem('gs_track', JSON.stringify(track)); }
+            listen = onValue(ref(window.fbDB, `games/${id}`), snap => {
+                const g = snap.val(); if(!g) return;
+                document.getElementById('v-t').innerText = g.name;
+                document.getElementById('v-v').innerText = g.views;
+                document.getElementById('v-l').innerText = g.likes;
+                const fr = document.getElementById('f');
+                if(!fr.src && !fr.srcdoc) { if(g.type==='url') fr.src=g.content; else fr.srcdoc=g.content; }
+            });
+            document.getElementById('v-l-btn').onclick = () => {
+                if(track.l.includes(id)) return;
+                update(ref(window.fbDB, `games/${id}`), { likes: increment(1) });
+                track.l.push(id); localStorage.setItem('gs_track', JSON.stringify(track));
+            };
+            loadC(id); document.getElementById('viewer').classList.remove('hidden');
+        }
+
+        function exitGame() { window.fbLib.off(window.fbLib.ref(window.fbDB, `games/${curr}`)); document.getElementById('f').src=""; document.getElementById('f').srcdoc=""; document.getElementById('viewer').classList.add('hidden'); curr=null; }
+
+        function sendC() {
+            const t = document.getElementById('v-i').value; if(!t) return;
+            window.fbLib.set(window.fbLib.push(window.fbLib.ref(window.fbDB, `comments/${curr}`)), { u: user.name, t: t });
+            document.getElementById('v-i').value = "";
+        }
+
+        function loadC(id) {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, `comments/${id}`), snap => {
+                const box = document.getElementById('v-c'); box.innerHTML = "";
+                if(snap.val()) Object.values(snap.val()).forEach(c => { box.innerHTML += `<div class="bg-white/5 p-3 rounded-lg"><p class="text-[8px] text-purple-400 font-bold mb-1">${c.u}</p><p class="text-[10px] opacity-70">${c.t}</p></div>`; });
+            });
+        }
+
+        // MANAGER FUNCTIONS
+        function loadManagerList() {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
+                const list = document.getElementById('manager-list'); list.innerHTML = "";
+                const data = snap.val(); if(!data) return;
+                Object.keys(data).forEach(id => {
+                    list.innerHTML += `<div class="glass p-5 rounded-2xl flex justify-between items-center">
+                        <div><p class="font-bold text-sm">${data[id].name}</p><p class="text-[8px] opacity-20 uppercase tracking-[2px]">ID: ${id}</p></div>
+                        <div class="flex gap-4">
+                            <button onclick="copyData('${id}')" class="text-[9px] font-bold text-blue-400 hover:text-white transition-all uppercase">Source</button>
+                            <button onclick="remG('${id}')" class="text-[9px] font-bold text-red-500 hover:text-white transition-all uppercase">Remover</button>
+                        </div>
+                    </div>`;
+                });
+            });
+        }
+        function remG(id) { if(confirm("CONFIRMAR EXCLUSÃO?")) { window.fbLib.remove(window.fbLib.ref(window.fbDB, `games/${id}`)); window.fbLib.remove(window.fbLib.ref(window.fbDB, `comments/${id}`)); } }
+        function copyData(id) { window.fbLib.onValue(window.fbLib.ref(window.fbDB, `games/${id}`), snap => { navigator.clipboard.writeText(snap.val().content).then(() => alert("COPIADO.")); }, { onlyOnce: true }); }
+    </script>
+</body>
+</html>
