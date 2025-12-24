@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    <div id="sys-manager" class="hidden fixed inset-0 z-[10000] p-10 bg-[#05040a] overflow-y-auto">
+    <div id="sys-manager" class="hidden fixed inset-0 z-[10000] p-10 bg-[#05040a] overflow-y-auto custom-scroll">
         <div class="flex justify-between items-center mb-10 border-b border-purple-500/20 pb-4">
             <h2 class="font-orbitron text-2xl font-black text-purple-500 italic">SYSTEM TERMINAL</h2>
             <button onclick="document.getElementById('sys-manager').classList.add('hidden')" class="bg-red-600 px-6 py-2 rounded-full font-bold text-xs">FECHAR</button>
@@ -105,7 +105,7 @@
         <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
             <h1 class="font-orbitron text-xl font-black text-purple-500 tracking-tighter">GAMEDEV SPACE</h1>
             <div class="flex items-center gap-5">
-                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[11px] font-black uppercase">🚀 Publicar</button>
+                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[11px] font-black uppercase italic">🚀 Publicar</button>
                 <div onclick="document.getElementById('modal-profile').classList.remove('hidden')" class="cursor-pointer flex items-center gap-3">
                     <span id="nav-username" class="text-[10px] font-black uppercase opacity-60">User</span>
                     <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center"></div>
@@ -163,40 +163,45 @@
 
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-[35px] w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scroll">
-            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 uppercase italic text-center">🚀 Publicar Novo Projeto</h3>
+            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 uppercase italic text-center">🚀 Publicar Projeto</h3>
             <div class="space-y-4">
-                <input type="text" id="up-name" placeholder="🏷️ Título do Jogo" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <input type="text" id="up-capa" placeholder="🖼️ URL da Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+                <input type="text" id="up-name" placeholder="🏷️ Título do Jogo" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white text-sm">
+                <input type="text" id="up-capa" placeholder="🖼️ Link da Imagem de Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white text-sm">
                 <select id="up-type" onchange="toggleInputs('up')" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-purple-400 font-bold">
                     <option value="url">🔗 Link Direto (URL)</option>
                     <option value="code">💻 Código HTML</option>
                     <option value="file">📁 Arquivo .html</option>
                 </select>
-                <div id="up-area"><textarea id="up-content" placeholder="Link ou Código..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea></div>
-                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">⚡ LANÇAR NO HUB</button>
+                <div id="up-area"><textarea id="up-content" placeholder="Link ou Código aqui..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea></div>
+                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">⚡ ENVIAR PRO HUB</button>
                 <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-xs opacity-20 mt-2 font-bold uppercase">Fechar</button>
             </div>
         </div>
     </div>
 
     <div id="modal-profile" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[35px] w-full max-w-sm text-center shadow-2xl">
+        <div class="glass p-8 rounded-[35px] w-full max-w-sm text-center">
             <h3 class="font-orbitron font-black mb-6 text-purple-500">👤 MEU PERFIL</h3>
             <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Nome de Exibição" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white outline-none">
+                <input type="text" id="p-name" placeholder="Seu Nome" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white outline-none">
                 <input type="text" id="p-avatar" placeholder="Avatar URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
                 <input type="text" id="p-banner" placeholder="Banner URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
-                <button onclick="saveProfile()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">Atualizar Dados</button>
+                <button onclick="saveProfile()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase">Salvar Dados</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { id: 'u'+Date.now(), name: 'Player', avatar: '', banner: '' };
+        // CRIAÇÃO DE IDENTIDADE ÚNICA (SEM LOGIN)
+        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { id: 'u'+Date.now()+Math.floor(Math.random()*1000), name: 'Player', avatar: '', banner: '' };
         let track = JSON.parse(localStorage.getItem('gs_track')) || { l: [], v: [] };
         let activeId = null;
 
-        window.onload = () => { setTimeout(() => { document.getElementById('intro-screen').style.display='none'; document.getElementById('main-hub').classList.remove('hidden'); updateUI(); loadGames(); }, 10000); };
+        window.onload = () => { setTimeout(() => { 
+            document.getElementById('intro-screen').style.display='none'; 
+            document.getElementById('main-hub').classList.remove('hidden'); 
+            updateUI(); loadGames(); 
+        }, 10000); };
 
         function toggleInputs(prefix) {
             const t = document.getElementById(prefix + '-type').value;
@@ -215,7 +220,13 @@
                 c = await new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(f); });
             } else c = document.getElementById('up-content').value;
             if(!n || !c) return alert("Faltam dados!");
-            set(push(ref(window.fbDB, 'games')), { name: n, capa: document.getElementById('up-capa').value, type: t, content: c, author: currentUser.name, likes: 0, views: 0 }).then(() => location.reload());
+            
+            // SALVA COM O ID ÚNICO DO NAVEGADOR (UID)
+            set(push(ref(window.fbDB, 'games')), { 
+                name: n, capa: document.getElementById('up-capa').value, 
+                type: t, content: c, author: currentUser.name, 
+                uid: currentUser.id, likes: 0, views: 0 
+            }).then(() => location.reload());
         }
 
         function loadGames() {
@@ -248,9 +259,9 @@
                 document.getElementById('v-views').innerText = g.views;
                 document.getElementById('v-likes').innerText = g.likes;
                 
-                // MOSTRAR BOTÃO EDITAR SE FOR O DONO
+                // SEGURANÇA POR ID: SÓ MOSTRA EDITAR SE O ID BATER
                 const btnEdit = document.getElementById('btn-edit-owner');
-                if(g.author === currentUser.name) {
+                if(g.uid === currentUser.id) {
                     btnEdit.classList.remove('hidden');
                     btnEdit.onclick = () => openEditor(id, g);
                 } else { btnEdit.classList.add('hidden'); }
@@ -294,11 +305,12 @@
                 const box = document.getElementById('manager-list'); box.innerHTML = "";
                 const data = snap.val(); if(!data) return;
                 Object.keys(data).forEach(id => {
+                    const gameDataEscaped = JSON.stringify(data[id]).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                     box.innerHTML += `<div class="glass p-5 rounded-2xl">
-                        <p class="font-black text-xs uppercase mb-3">${data[id].name}</p>
+                        <p class="font-black text-xs uppercase mb-3 text-purple-400">${data[id].name}</p>
                         <div class="flex gap-2">
                             <button onclick="window.fbLib.remove(window.fbLib.ref(window.fbDB, 'games/${id}'))" class="bg-red-500/20 text-red-500 px-4 py-2 rounded-lg text-[10px] font-bold">DELETAR</button>
-                            <button onclick='openEditor("${id}", ${JSON.stringify(data[id]).replace(/'/g, "&apos;")})' class="bg-blue-500/20 text-blue-500 px-4 py-2 rounded-lg text-[10px] font-bold">EDITAR</button>
+                            <button onclick='openEditor("${id}", ${gameDataEscaped})' class="bg-blue-500/20 text-blue-500 px-4 py-2 rounded-lg text-[10px] font-bold">EDITAR</button>
                         </div>
                     </div>`;
                 });
@@ -323,13 +335,13 @@
             document.getElementById('nav-avatar').style.backgroundImage = `url('${a}')`;
             document.getElementById('display-avatar').style.backgroundImage = `url('${a}')`;
             if(currentUser.banner) document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
+            localStorage.setItem('gs_user', JSON.stringify(currentUser));
         }
         function saveProfile() {
             currentUser.name = document.getElementById('p-name').value || currentUser.name;
             currentUser.avatar = document.getElementById('p-avatar').value || currentUser.avatar;
             currentUser.banner = document.getElementById('p-banner').value || currentUser.banner;
-            updateUI(); localStorage.setItem('gs_user', JSON.stringify(currentUser));
-            document.getElementById('modal-profile').classList.add('hidden');
+            updateUI(); document.getElementById('modal-profile').classList.add('hidden');
         }
     </script>
 </body>
