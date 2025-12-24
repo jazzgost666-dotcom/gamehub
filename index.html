@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - THE ORIGINAL HUB</title>
+    <title>GameDev Space - OFFICIAL HUB</title>
     
     <script>
-        // Bloqueio de inspeção básico
         document.addEventListener('keydown', e => {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key)) || (e.ctrlKey && ["U","S"].includes(e.key))) e.preventDefault();
         });
@@ -30,41 +29,35 @@
             appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
         };
 
-        try {
-            const app = initializeApp(firebaseConfig);
-            const db = getDatabase(app);
-            window.db = db; 
-            window.dbRefs = { ref, set, push, onValue, update, increment, remove };
-            console.log("Firebase conectado.");
-        } catch (error) {
-            console.error("Erro Firebase:", error);
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // Expondo para o escopo global de forma segura
+        window.db = db;
+        window.dbFunctions = { ref, set, push, onValue, update, increment, remove };
+        console.log("Firebase Pronto!");
     </script>
 
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; overflow-x: hidden; margin: 0; }
+        body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; margin: 0; overflow-x: hidden; }
         
+        /* INTRO E CRÉDITOS */
         #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .intro-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards; }
-        
         .credits-container { height: 180px; overflow: hidden; position: relative; width: 100%; text-align: center; margin-top: 20px; }
         .credits-roll { position: absolute; width: 100%; animation: rollCredits 8s linear 2s forwards; transform: translateY(100%); opacity: 0; }
-        
         @keyframes fallBounce { 0% { transform: translateY(-500px); opacity: 0; } 60% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); } }
         @keyframes rollCredits { 0% { transform: translateY(100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-130%); opacity: 0; } }
 
+        /* INTERFACE HUB */
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
         .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: linear-gradient(90deg, #1a1625, #2d2346); position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
-        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; }
-        
+        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .btn-neon { background: #8b5cf6; color: white; font-weight: 900; text-transform: uppercase; transition: 0.3s; border: none; cursor: pointer; }
         .btn-neon:hover { box-shadow: 0 0 20px #8b5cf6; transform: scale(1.02); }
-        .btn-neon:disabled { background: #4b3d6d; cursor: not-allowed; box-shadow: none; }
-
         .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; overflow: hidden; background: rgba(255,255,255,0.02); }
         .game-card:hover { border-color: #8b5cf6; transform: translateY(-5px); }
-        
         #game-viewer { display: none; position: fixed; inset: 0; background: #05040a; z-index: 500; }
     </style>
 </head>
@@ -101,9 +94,8 @@
             <div id="display-banner" class="profile-banner mb-24 shadow-2xl">
                 <div id="display-avatar" class="profile-avatar shadow-lg"></div>
             </div>
-
             <h2 class="text-2xl font-orbitron font-black mb-8 flex items-center gap-4 italic uppercase">
-                <span class="w-1 h-8 bg-purple-600"></span> FEED GLOBAL
+                <span class="w-1 h-8 bg-purple-600"></span> Feed Global
             </h2>
             <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
         </main>
@@ -115,14 +107,14 @@
                 <div class="p-3 glass flex justify-between items-center">
                     <div class="flex gap-2">
                         <button onclick="closeViewer()" class="bg-red-600 px-4 py-2 rounded font-bold text-[10px]">SAIR</button>
-                        <button onclick="toggleFullscreen()" class="bg-purple-600 px-4 py-2 rounded font-bold text-[10px]">TELA CHEIA ⛶</button>
+                        <button onclick="toggleFullscreen()" class="bg-purple-600 px-4 py-2 rounded font-bold text-[10px]">TELA CHEIA</button>
                     </div>
                     <div id="owner-controls" class="hidden">
                         <button onclick="openEditModal()" class="bg-blue-600 px-4 py-2 rounded font-bold text-[10px]">EDITAR</button>
                     </div>
                 </div>
-                <div class="flex-1">
-                    <iframe id="main-frame" class="w-full h-full border-none" allowfullscreen></iframe>
+                <div class="flex-1 overflow-hidden">
+                    <iframe id="main-frame" class="w-full h-full border-none" allow="autoplay; fullscreen" allowfullscreen></iframe>
                 </div>
             </div>
             <div class="w-full md:w-[350px] glass p-6 flex flex-col border-l border-white/10">
@@ -130,11 +122,11 @@
                 <p id="v-author" class="text-[10px] opacity-40 uppercase mb-6">Autor: ---</p>
                 <div class="flex gap-4 mb-8">
                     <div class="flex-1 bg-white/5 p-3 rounded-xl text-center"><p class="text-[10px] opacity-50">VIEWS</p><p id="v-views" class="font-bold">0</p></div>
-                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-red-500/20"><p class="text-[10px] opacity-50">LIKES</p><p id="v-likes" class="font-bold text-red-500">0</p></button>
+                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center"><p class="text-[10px] opacity-50">LIKES</p><p id="v-likes" class="font-bold text-red-500">0</p></button>
                 </div>
                 <div id="comments-box" class="flex-1 overflow-y-auto space-y-2 mb-4 text-[11px]"></div>
                 <div class="flex gap-2">
-                    <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded text-xs text-white">
+                    <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded text-xs text-white outline-none">
                     <button onclick="postComment()" class="bg-purple-600 px-4 rounded text-white font-bold">➔</button>
                 </div>
             </div>
@@ -142,12 +134,12 @@
     </div>
 
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-3xl w-full max-w-xl relative">
+        <div class="glass p-8 rounded-3xl w-full max-w-xl">
             <h3 id="modal-title" class="font-orbitron text-xl font-bold mb-6 text-purple-500">PUBLICAR JOGO</h3>
-            <form onsubmit="handleUpload(event)" id="form-upload" class="space-y-4">
+            <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="up-name" placeholder="Título" required class="bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
-                    <input type="text" id="up-capa" placeholder="URL da Capa" class="bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
+                    <input type="text" id="up-name" placeholder="Título do Jogo" class="bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
+                    <input type="text" id="up-capa" placeholder="URL da Capa" class="bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
                 </div>
                 <select id="up-type" onchange="toggleUploadInputs()" class="w-full bg-black p-3 rounded-xl border border-white/10 text-purple-400 font-bold">
                     <option value="url">🌐 Link (URL)</option>
@@ -155,31 +147,36 @@
                     <option value="file">📂 Arquivo .html</option>
                 </select>
                 <div id="input-container">
-                    <textarea id="up-content" placeholder="Insira o link ou código aqui..." required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none text-xs text-white"></textarea>
+                    <textarea id="up-content" placeholder="Link ou código aqui..." class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none text-xs text-white"></textarea>
                 </div>
                 <div class="flex gap-2">
-                    <button type="submit" id="btn-submit" class="flex-1 bg-purple-600 py-3 rounded-xl font-bold btn-neon">PUBLICAR NO HUB</button>
-                    <button type="button" onclick="closeModal('modal-upload')" class="px-6 bg-white/10 rounded-xl">FECHAR</button>
+                    <button onclick="handleUploadSubmit()" id="btn-submit" class="flex-1 bg-purple-600 py-3 rounded-xl font-bold btn-neon">PUBLICAR NO HUB</button>
+                    <button onclick="closeModal('modal-upload')" class="px-6 bg-white/10 rounded-xl">CANCELAR</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <div id="modal-profile" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center">
+    <div id="modal-profile" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-3xl w-full max-w-sm text-center">
-            <h3 class="font-orbitron font-bold mb-6 text-purple-500">PERFIL</h3>
-            <div class="space-y-4">
+            <h3 class="font-orbitron font-bold mb-6 text-purple-500 uppercase">Configurar Perfil</h3>
+            <div class="space-y-4 text-left">
                 <input type="text" id="p-name" placeholder="Apelido" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                <input type="text" id="p-avatar" placeholder="URL Foto" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                <input type="text" id="p-banner" placeholder="URL Banner" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
-                <button onclick="saveProfile()" class="w-full bg-purple-600 py-3 rounded-xl font-bold">SALVAR</button>
-                <button onclick="closeModal('modal-profile')" class="w-full text-xs opacity-50 py-2">CANCELAR</button>
+                <input type="text" id="p-avatar" placeholder="URL da Foto" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
+                <input type="text" id="p-banner" placeholder="URL do Banner" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 text-white outline-none">
+                <button onclick="saveProfile()" class="w-full bg-purple-600 py-3 rounded-xl font-bold btn-neon">SALVAR</button>
+                <button onclick="closeModal('modal-profile')" class="w-full text-xs opacity-50 py-2">FECHAR</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { id: 'u'+Math.random().toString(36).substr(2,9), name: 'Dev_'+Math.floor(Math.random()*999), avatar: '', banner: '' };
+        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { 
+            id: 'u'+Math.random().toString(36).substr(2,9), 
+            name: 'Dev_'+Math.floor(Math.random()*999), 
+            avatar: '', 
+            banner: '' 
+        };
         let activeGameId = null;
         let isEditing = false;
 
@@ -189,7 +186,7 @@
                 document.getElementById('main-hub').classList.remove('hidden');
                 updateUI();
                 loadGames();
-            }, 5000); // Reduzi para 5s para ser mais ágil
+            }, 10000); 
         };
 
         function updateUI() {
@@ -209,106 +206,65 @@
             closeModal('modal-profile');
         }
 
-        window.toggleUploadInputs = function() {
+        function toggleUploadInputs() {
             const type = document.getElementById('up-type').value;
             const container = document.getElementById('input-container');
             if (type === 'file') {
                 container.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">`;
             } else {
-                container.innerHTML = `<textarea id="up-content" placeholder="Insira o link ou código aqui..." required class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none text-xs text-white"></textarea>`;
+                container.innerHTML = `<textarea id="up-content" placeholder="Link ou código aqui..." class="w-full bg-white/5 p-3 rounded-xl border border-white/10 h-32 outline-none text-xs text-white"></textarea>`;
             }
         }
 
-        window.handleUpload = function(e) {
-            e.preventDefault();
-            
-            if (!window.dbRefs) {
-                alert("Erro: Firebase ainda não carregou.");
-                return;
-            }
-
-            const { ref, push, set, update } = window.dbRefs;
+        function handleUploadSubmit() {
+            const { ref, push, set, update } = window.dbFunctions;
             const type = document.getElementById('up-type').value;
             const name = document.getElementById('up-name').value;
             const capa = document.getElementById('up-capa').value;
-            const btn = document.getElementById('btn-submit');
-            
-            btn.innerText = "ENVIANDO...";
-            btn.disabled = true;
 
-            const finalizeSave = (contentData) => {
-                const gameObj = { 
-                    name, 
-                    capa, 
-                    type, 
-                    content: contentData, 
-                    author: currentUser.name, 
-                    authorId: currentUser.id,
-                    ts: Date.now()
-                };
+            if(!name) { alert("Dê um título ao jogo!"); return; }
 
-                let action;
+            const finalize = (content) => {
+                const data = { name, capa, type, content, author: currentUser.name, authorId: currentUser.id };
                 if(isEditing && activeGameId) {
-                    action = update(ref(window.db, `games/${activeGameId}`), gameObj);
+                    update(ref(window.db, `games/${activeGameId}`), data).then(() => {
+                        alert("Jogo Atualizado!");
+                        location.reload();
+                    });
                 } else {
-                    const newListRef = push(ref(window.db, 'games'));
-                    action = set(newListRef, { ...gameObj, likes: 0, views: 0 });
+                    const newRef = push(ref(window.db, 'games'));
+                    set(newRef, { ...data, likes: 0, views: 0, ts: Date.now() }).then(() => {
+                        alert("Jogo Publicado!");
+                        location.reload();
+                    });
                 }
-
-                action.then(() => {
-                    alert("PROJETO PUBLICADO COM SUCESSO!");
-                    closeModal('modal-upload');
-                    document.getElementById('form-upload').reset();
-                    isEditing = false;
-                    toggleUploadInputs();
-                }).catch(err => {
-                    alert("ERRO: " + err.message);
-                }).finally(() => {
-                    btn.innerText = "PUBLICAR NO HUB";
-                    btn.disabled = false;
-                });
             };
 
             if (type === 'file') {
-                const fileInput = document.getElementById('up-file');
-                if(fileInput?.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => finalizeSave(ev.target.result);
-                    reader.readAsDataURL(fileInput.files[0]);
-                } else {
-                    alert("Selecione um arquivo .html");
-                    btn.disabled = false;
-                    btn.innerText = "PUBLICAR NO HUB";
-                }
+                const file = document.getElementById('up-file').files[0];
+                if(!file) { alert("Selecione um arquivo!"); return; }
+                const r = new FileReader();
+                r.onload = (evt) => finalize(evt.target.result);
+                r.readAsDataURL(file);
             } else {
-                const contentText = document.getElementById('up-content')?.value;
-                if(contentText) {
-                    finalizeSave(contentText);
-                } else {
-                    alert("Preencha o conteúdo!");
-                    btn.disabled = false;
-                    btn.innerText = "PUBLICAR NO HUB";
-                }
+                const content = document.getElementById('up-content').value;
+                if(!content) { alert("Insira o conteúdo!"); return; }
+                finalize(content);
             }
         }
 
         function loadGames() {
-            if (!window.dbRefs) return setTimeout(loadGames, 1000);
-            const { ref, onValue } = window.dbRefs;
-            
+            const { ref, onValue } = window.dbFunctions;
             onValue(ref(window.db, 'games'), (snap) => {
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 const data = snap.val();
-                if(!data) {
-                    grid.innerHTML = "<p class='opacity-30'>Nenhum projeto no hub...</p>";
-                    return;
-                }
+                if(!data) return;
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
                         <div class="game-card p-4" onclick="openViewer('${id}')">
-                            <img src="${g.capa || 'https://via.placeholder.com/300x180/1a1625/8b5cf6?text=GDev'}" class="w-full h-40 object-cover rounded-xl mb-4">
+                            <img src="${g.capa || 'https://via.placeholder.com/300x180/1a1625/8b5cf6?text=GAMEDEV+SPACE'}" class="w-full h-40 object-cover rounded-xl mb-4">
                             <h4 class="font-bold uppercase text-sm truncate">${g.name}</h4>
                             <p class="text-[9px] text-purple-400 font-bold mt-2 uppercase">BY ${g.author}</p>
                         </div>`;
@@ -318,9 +274,8 @@
 
         function openViewer(id) {
             activeGameId = id;
-            const { ref, onValue, update, increment } = window.dbRefs;
+            const { ref, onValue, update, increment } = window.dbFunctions;
             update(ref(window.db, `games/${id}`), { views: increment(1) });
-            
             onValue(ref(window.db, `games/${id}`), (snap) => {
                 const g = snap.val(); if(!g) return;
                 document.getElementById('v-title').innerText = g.name;
@@ -328,41 +283,27 @@
                 document.getElementById('v-views').innerText = g.views;
                 document.getElementById('v-likes').innerText = g.likes;
                 document.getElementById('owner-controls').classList.toggle('hidden', g.authorId !== currentUser.id);
-                
                 const frame = document.getElementById('main-frame');
-                if(g.type === 'url' || g.type === 'file') { 
-                    frame.src = g.content; 
-                    frame.srcdoc = ""; 
-                } else { 
-                    frame.srcdoc = g.content; 
-                    frame.src = ""; 
-                }
-            }, { onlyOnce: true });
-
+                if(g.type === 'url' || g.type === 'file') { frame.src = g.content; frame.srcdoc = ""; }
+                else { frame.srcdoc = g.content; frame.src = ""; }
+            });
             document.getElementById('like-btn').onclick = () => update(ref(window.db, `games/${activeGameId}`), { likes: increment(1) });
             loadComments(id);
             document.getElementById('game-viewer').style.display = 'block';
         }
 
         function openEditModal() {
-            const { ref, onValue } = window.dbRefs;
+            const { ref, onValue } = window.dbFunctions;
             onValue(ref(window.db, `games/${activeGameId}`), (snap) => {
                 const g = snap.val();
-                isEditing = true;
                 document.getElementById('up-name').value = g.name;
                 document.getElementById('up-capa').value = g.capa;
                 document.getElementById('up-type').value = g.type;
                 toggleUploadInputs();
-                
-                setTimeout(() => {
-                    if(g.type !== 'file') {
-                        const contentEl = document.getElementById('up-content');
-                        if(contentEl) contentEl.value = g.content;
-                    }
-                }, 100);
-
-                document.getElementById('modal-title').innerText = "EDITAR PROJETO";
+                if(g.type !== 'file') document.getElementById('up-content').value = g.content;
+                document.getElementById('modal-title').innerText = "EDITAR JOGO";
                 document.getElementById('btn-submit').innerText = "SALVAR ALTERAÇÕES";
+                isEditing = true;
                 openModal('modal-upload');
             }, { onlyOnce: true });
         }
@@ -370,18 +311,18 @@
         function postComment() {
             const input = document.getElementById('comm-input');
             if(!input.value.trim()) return;
-            const { ref, push, set } = window.dbRefs;
+            const { ref, push, set } = window.dbFunctions;
             set(push(ref(window.db, `comments/${activeGameId}`)), { user: currentUser.name, text: input.value });
             input.value = "";
         }
 
         function loadComments(id) {
-            const { ref, onValue } = window.dbRefs;
+            const { ref, onValue } = window.dbFunctions;
             onValue(ref(window.db, `comments/${id}`), (snap) => {
                 const box = document.getElementById('comments-box'); box.innerHTML = "";
                 const data = snap.val();
                 if(data) Object.values(data).forEach(c => {
-                    box.innerHTML += `<div class="bg-white/5 p-2 rounded"><b>${c.user}:</b> ${c.text}</div>`;
+                    box.innerHTML += `<div class="bg-white/5 p-2 rounded mb-2"><b>${c.user}:</b> ${c.text}</div>`;
                 });
             });
         }
@@ -395,21 +336,18 @@
         function closeViewer() {
             document.getElementById('game-viewer').style.display = 'none';
             document.getElementById('main-frame').src = "";
-            document.getElementById('main-frame').srcdoc = "";
         }
 
         window.openModal = (id) => {
             if(id === 'modal-upload' && !isEditing) {
                 document.getElementById('modal-title').innerText = "PUBLICAR JOGO";
                 document.getElementById('btn-submit').innerText = "PUBLICAR NO HUB";
-                document.getElementById('up-type').value = 'url';
-                toggleUploadInputs();
             }
             document.getElementById(id).classList.remove('hidden');
         };
         window.closeModal = (id) => {
             document.getElementById(id).classList.add('hidden');
-            if(id === 'modal-upload') isEditing = false;
+            isEditing = false;
         };
     </script>
 </body>
