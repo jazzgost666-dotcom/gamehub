@@ -25,8 +25,6 @@
         const db = getDatabase(app);
         window.db = db; 
         window.dbRefs = { ref, set, push, onValue, update, increment, remove };
-
-        // A limpeza automática foi removida para que novos jogos salvos permaneçam no banco.
     </script>
 
     <style>
@@ -42,9 +40,9 @@
             text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards;
             margin-bottom: 20px;
         }
-        .credits-container { height: 80px; overflow: hidden; position: relative; width: 100%; text-align: center; }
+        .credits-container { height: 120px; overflow: hidden; position: relative; width: 100%; text-align: center; }
         .credits-roll {
-            position: absolute; width: 100%; animation: rollCredits 4s linear 2s forwards;
+            position: absolute; width: 100%; animation: rollCredits 6s linear 2s forwards;
             transform: translateY(100%); opacity: 0;
         }
 
@@ -55,8 +53,8 @@
         }
         @keyframes rollCredits {
             0% { transform: translateY(100%); opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
             100% { transform: translateY(-100%); opacity: 0; }
         }
 
@@ -89,8 +87,9 @@
         <div class="intro-g">G</div>
         <div class="credits-container">
             <div class="credits-roll">
-                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold">Lead Developer</p>
-                <p class="text-2xl font-black mb-4">CHAD HELPER</p>
+                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold">Developers</p>
+                <p class="text-xl font-black mb-1">BYTEZT</p>
+                <p class="text-xl font-black mb-4">JHOSSMINE2</p>
                 <p class="text-purple-400 text-xs uppercase tracking-widest font-bold">Executive Producer</p>
                 <p class="text-2xl font-black">EXILED OWNER</p>
             </div>
@@ -211,7 +210,7 @@
                 document.getElementById('main-hub').classList.remove('hidden');
                 updateUI();
                 loadGames();
-            }, 3000); 
+            }, 5500); 
         };
 
         function updateUI() {
