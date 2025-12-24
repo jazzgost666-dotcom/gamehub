@@ -2,30 +2,70 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carregando...</title>
+    <title>Sistema</title>
     <style>
-        body { background: #0b0915; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; color: white; font-family: sans-serif; }
+        body { background: #0b0915; margin: 0; overflow: hidden; }
     </style>
 </head>
 <body>
-
     <script>
-        // O seu código Base64 (Plataforma Completa)
+        /**
+         * BLOQUEIO TOTAL DE INSPEÇÃO
+         */
+        document.addEventListener('keydown', function(e) {
+            // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S
+            if (
+                e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+                (e.ctrlKey && (e.key === "U" || e.key === "S"))
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Bloqueia clique direito
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        /**
+         * CARREGAMENTO DA PLATAFORMA
+         */
         const _0xData = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9InB0LUJSIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+R2FtZURldiBTcGFjZSAtIFJlc2V0ICYgRml4ZWQ8L3RpdGxlPgogICAgPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9ucG0vQHRhaWx3aW5kY3NzL2Jyb3dzZXJANCI+PC9zY3JpcHQ+CiAgICA8bGluayBocmVmPSJodHRwczovL2ZvbnRzLmdvb2dsZWFwaXMuY29tL2NzczI/ZmFtaWx5PU9yYml0cm9uOndnaHRANDAwOzcwMDs5MDAmZmFtaWx5PVJhamRoYW5pOndnaHRANDAwOzUwMDs3MDAmZGlzcGxheT1zd2FwIiByZWw9InN0eWxlc2hlZXQiPgogICAgCiAgICA8c2NyaXB0IHR5cGU9Im1vZHVsZSI+CiAgICAgICAgaW1wb3J0IHsgaW5pdGlhbGl6ZUFwcCB9IGZyb20gImh0dHBzOi8vd3d3LmdzdGF0aWMuY29tL2ZpcmViYXNlanMvMTAuNy4xL2ZpcmViYXNlLWFwcC5qcyI7CiAgICAgICAgaW1wb3J0IHsgZ2V0RGF0YWJhc2UsIHJlZiwgc2V0LCBwdXNoLCBvblZhbHVlLCB1cGRhdGUsIGluY3JlbWVudCwgcmVtb3ZlIH0gZnJvbSAiaHR0cHM6Ly93d3cuZ3N0YXRpYy5jb20vZmlyZWJhc2Vqcy8xMC43LjEvZmlyZWJhc2UtZGF0YWJhc2UuanMiOwoKICAgICAgICBjb25zdCBmaXJlYmFzZUNvbmZpZyA9IHsKICAgICAgICAgICAgYXBpS2V5OiAiQUl6YVN5QU1IQUtWb3QwNDRwc1I0MjFCX3QtSHQ1RW1zdWVWUzhBIiwKICAgICAgICAgICAgYXV0aERvbWFpbjogImdhbWUtZGV2LXNwYWNlLmZpcmViYXNlYXBwLmNvbSIsCiAgICAgICAgICAgIGRhdGFiYXNlVVJMOiAiaHR0cHM6Ly9nYW1lLWRldi1zcGFjZS1kZWZhdWx0LXJ0ZGIuZmlyZWJhc2Vpby5jb20iLAogICAgICAgICAgICBwcm9qZWN0SWQ6ICJnYW1lLWRldi1zcGFjZSIsCiAgICAgICAgICAgIHN0b3JhZ2VCdWNrZXQ6ICJnYW1lLWRldi1zcGFjZS5maXJlYmFzZXN0b3JhZ2UuYXBwIiwKICAgICAgICAgICAgbWVzc2FnaW5nU2VuZGVySWQ6ICIxMDczMTg1MzM1MTkwIiwKICAgICAgICAgICAgYXBwSWQ6ICIxOjEwNzMxODUzMzUxOTA6d2ViOmFlOWZmZDg4Y2RmODlmNTNjYmRmYjciCiAgICAgICAgfTsKCiAgICAgICAgY29uc3QgYXBwID0gaW5pdGlhbGl6ZUFwcChmaXJlYmFzZUNvbmZpZyk7CiAgICAgICAgY29uc3QgZGIgPSBnZXREYXRhYmFzZShhcHApOwogICAgICAgIHdpbmRvdy5kYiA9IGRiOyAKICAgICAgICB3aW5kb3cuZGJSZWZzID0geyByZWYsIHNldCwgcHVzaCwgb25WYWx1ZSwgdXBkYXRlLCBpbmNyZW1lbnQsIHJlbW92ZSB9OwoKICAgICAgICAvLyAtLS0gQ09NQU5ETyBERSBMSU1QRVpBIFRPVEFMIChaRVJBIFRVRE8gQU8gQUJSSVIpIC0tLQogICAgICAgIHJlbW92ZShyZWYoZGIsICdnYW1lcycpKTsKICAgICAgICByZW1vdmUocmVmKGRiLCAnY29tbWVudHMnKSk7CiAgICAgICAgLy8gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICAgPC9zY3JpcHQ+CgogICAgPHN0eWxlPgogICAgICAgICogeyBib3gtc2l6aW5nOiBib3JkZXItYm94OyB9CiAgICAgICAgYm9keSB7IGZvbnQtZmFtaWx5OiAnUmFqZGhhbmknLCBzYW5zLXNlcmlmOyBiYWNrZ3JvdW5kOiAjMGIwOTE1OyBjb2xvcjogd2hpdGU7IG92ZXJmbG93LXg6IGhpZGRlbjsgfQogICAgICAgIAogICAgICAgIC8qIElOVFJPIENPTSBDUsOJRElUT1MgQ09SUklHSURPUyAqLwogICAgICAgICNpbnRyby1zY3JlZW4gewogICAgICAgICAgICBwb3NpdGlvbjogZml4ZWQ7IGluc2V0OiAwOyBiYWNrZ3JvdW5kOiAjMDAwOyB6LWluZGV4OiA5OTk5OwogICAgICAgICAgICBkaXNwbGF5OiBmbGV4OyBmbGV4LWRpcmVjdGlvbjogY29sdW1uOyBhbGlnbi1pdGVtczogY2VudGVyOyBqdXN0aWZ5LWNvbnRlbnQ6IGNlbnRlcjsKICAgICAgICB9CiAgICAgICAgLmludHJvLWcgewogICAgICAgICAgICBmb250LWZhbWlseTogJ09yYml0cm9uJzsgZm9udC1zaXplOiAxNTBweDsgZm9udC13ZWlnaHQ6IDkwMDsgY29sb3I6ICM4YjVjZjY7CiAgICAgICAgICAgIHRleHQtc2hhZG93OiAwIDAgMjBweCAjOGI1Y2Y2OyBhbmltYXRpb246IGZhbGxCb3VuY2UgMnMgZWFzZS1pbiBmb3J3YXJkczsKICAgICAgICB9CiAgICAgICAgLmNyZWRpdHMtY29udGFpbmVyIHsgCiAgICAgICAgICAgIGhlaWdodDogMTgwcHg7IC8qIEF1bWVudGFkbyBwYXJhIG7Do28gY29ydGFyICovCiAgICAgICAgICAgIG92ZXJmbG93OiBoaWRkZW47IAogICAgICAgICAgICBwb3NpdGlvbjogcmVsYXRpdmU7IAogICAgICAgICAgICB3aWR0aDogMTAwJTsgCiAgICAgICAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICAgICAgICAgICAgbWFyZ2luLXRvcDogMjBweDsKICAgICAgICB9CiAgICAgICAgLmNyZWRpdHMtcm9sbCB7CiAgICAgICAgICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTsgd2lkdGg6IDEwMCU7IAogICAgICAgICAgICBhbmltYXRpb246IHJvbGxDcmVkaXRzIDdzIGxpbmVhciAycyBmb3J3YXJkczsgLyogVGVtcG8gYXVtZW50YWRvICovCiAgICAgICAgICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWSgxMDAlKTsgb3BhY2l0eTogMDsKICAgICAgICB9CgogICAgICAgIEBrZXlmcmFtZXMgZmFsbEJvdW5jZSB7CiAgICAgICAgICAgIDAlIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC01MDBweCk7IG9wYWNpdHk6IDA7IH0KICAgICAgICAgICAgNjAlIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDApOyBvcGFjaXR5OiAxOyB9CiAgICAgICAgICAgIDEwMCUgeyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMCk7IH0KICAgICAgICB9CiAgICAgICAgQGtleWZyYW1lcyByb2xsQ3JlZGl0cyB7CiAgICAgICAgICAgIDAlIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDEwMCUpOyBvcGFjaXR5OiAwOyB9CiAgICAgICAgICAgIDE1JSB7IG9wYWNpdHk6IDE7IH0KICAgICAgICAgICAgODUlIHsgb3BhY2l0eTogMTsgfQogICAgICAgICAgICAxMDAlIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0xMjAlKTsgb3BhY2l0eTogMDsgfQogICAgICAgIH0KCiAgICAgICAgLmdsYXNzIHsgYmFja2dyb3VuZDogcmdiYSgyNTUsIDI1NSwgMjU1LCAwLjAzKTsgYmFja2Ryb3AtZmlsdGVyOiBibHVyKDEwcHgpOyBib3JkZXI6IDFweCBzb2xpZCByZ2JhKDEzOSwgOTIsIDI0NiwgMC4yKTsgfQogICAgICAgIC5wcm9maWxlLWJhbm5lciB7IHdpZHRoOiAxMDAlOyBoZWlnaHQ6IDIyMHB4OyBib3JkZXItcmFkaXVzOiAyNHB4OyBiYWNrZ3JvdW5kOiBsaW5lYXItZ3JhZGllbnQoOTBkZWcsICMxYTE2MjUsICMyZDIzNDYpOyBwb3NpdGlvbjogcmVsYXRpdmU7IGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMTM5LCA5MiwgMjQ2LCAwLjIpOyBiYWNrZ3JvdW5kLXNpemU6IGNvdmVyOyBiYWNrZ3JvdW5kLXBvc2l0aW9uOiBjZW50ZXI7IH0KICAgICAgICAucHJvZmlsZS1hdmF0YXIgeyB3aWR0aDogMTEwcHg7IGhlaWdodDogMTEwcHg7IGJvcmRlci1yYWRpdXM6IDUwJTsgYm9yZGVyOiA0cHggc29saWQgIzhiNWNmNjsgcG9zaXRpb246IGFic29sdXRlOyBib3R0b206IC01NXB4OyBsZWZ0OiA0MHB4OyBiYWNrZ3JvdW5kLXNpemU6IGNvdmVyOyBiYWNrZ3JvdW5kLXBvc2l0aW9uOiBjZW50ZXI7IGJhY2tncm91bmQtY29sb3I6ICMwYjA5MTU7IGJveC1zaGFkb3c6IDAgMTBweCAyMHB4IHJnYmEoMCwwLDAsMC41KTsgfQogICAgICAgIAogICAgICAgICNnYW1lLXZpZXdlciB7IGRpc3BsYXk6IG5vbmU7IHBvc2l0aW9uOiBmaXhlZDsgaW5zZXQ6IDA7IGJhY2tncm91bmQ6IHJnYmEoNSwgNCwgMTAsIDAuOTgpOyB6LWluZGV4OiA1MDA7IH0KICAgICAgICAudmlld2VyLWNvbnRhaW5lciB7IGRpc3BsYXk6IGdyaWQ7IGdyaWQtdGVtcGxhdGUtY29sdW1uczogMWZyIDM1MHB4OyBoZWlnaHQ6IDEwMHZoOyB9CiAgICAgICAgLmlmcmFtZS1hcmVhIHsgcG9zaXRpb246IHJlbGF0aXZlOyBiYWNrZ3JvdW5kOiAjMDAwOyBkaXNwbGF5OiBmbGV4OyBhbGlnbi1pdGVtczogY2VudGVyOyBqdXN0aWZ5LWNvbnRlbnQ6IGNlbnRlcjsgYm9yZGVyLXJpZ2h0OiAxcHggc29saWQgcmdiYSgyNTUsMjU1LDI1NSwwLjA1KTsgfQogICAgICAgIAogICAgICAgIC5idG4tbmVvbiB7IGJhY2tncm91bmQ6ICM4YjVjZjY7IGNvbG9yOiB3aGl0ZTsgZm9udC13ZWlnaHQ6IDkwMDsgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsgdHJhbnNpdGlvbjogMC4zczsgYm9yZGVyOiBub25lOyBjdXJzb3I6IHBvaW50ZXI7IH0KICAgICAgICAuYnRuLW5lb246aG92ZXIgeyBib3boxo";
 
-        try {
-            // Decodifica o código Base64
-            const decodedCode = atob(_0xData);
-            
-            // SUBSTITUIÇÃO TOTAL: Limpa a página atual e escreve o novo código
-            document.open();
-            document.write(decodedCode);
-            document.close();
-        } catch (e) {
-            document.body.innerHTML = "Erro ao iniciar plataforma. Verifique o Base64.";
-            console.error(e);
+        function loadApp() {
+            try {
+                const rawHTML = atob(_0xData);
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(rawHTML, 'text/html');
+
+                // 1. Limpa o body atual
+                document.body.innerHTML = '';
+                
+                // 2. Injeta os elementos do Body
+                Array.from(newDoc.body.childNodes).forEach(node => {
+                    document.body.appendChild(node);
+                });
+
+                // 3. Injeta scripts e estilos no Head de forma segura
+                Array.from(newDoc.head.childNodes).forEach(node => {
+                    if (node.tagName === 'SCRIPT') {
+                        const s = document.createElement('script');
+                        if (node.type) s.type = node.type;
+                        if (node.src) s.src = node.src;
+                        s.textContent = node.textContent;
+                        document.head.appendChild(s);
+                    } else {
+                        document.head.appendChild(node);
+                    }
+                });
+
+                console.clear();
+            } catch (err) {
+                console.error("Erro crítico na carga.");
+            }
         }
+
+        window.onload = loadApp;
     </script>
 </body>
 </html>
