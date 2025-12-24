@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - Credits & Protection</title>
+    <title>GameDev Space - Fixed</title>
     
     <script>
         document.addEventListener('keydown', function(e) {
@@ -37,16 +37,13 @@
         window.db = db; 
         window.dbRefs = { ref, set, push, onValue, update, increment, remove };
 
-        // Limpeza inicial
-        remove(ref(db, 'games'));
-        remove(ref(db, 'comments'));
+        // AQUI ESTAVA O ERRO: AS LINHAS DE REMOVE FORAM RETIRADAS!
     </script>
 
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; overflow-x: hidden; margin: 0; }
         
-        /* TELA DE INTRO E CRÉDITOS */
         #intro-screen {
             position: fixed; inset: 0; background: #000; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -79,11 +76,14 @@
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
         .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: linear-gradient(90deg, #1a1625, #2d2346); position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
         .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        
         #game-viewer { display: none; position: fixed; inset: 0; background: rgba(5, 4, 10, 0.98); z-index: 500; }
         .viewer-container { display: grid; grid-template-columns: 1fr 350px; height: 100vh; }
         .iframe-area { position: relative; background: #000; display: flex; align-items: center; justify-content: center; border-right: 1px solid rgba(255,255,255,0.05); }
+        
         .btn-neon { background: #8b5cf6; color: white; font-weight: 900; text-transform: uppercase; transition: 0.3s; border: none; cursor: pointer; }
         .btn-neon:hover { box-shadow: 0 0 20px #8b5cf6; transform: scale(1.02); }
+
         .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; overflow: hidden; }
         .game-card:hover { border-color: #8b5cf6; transform: translateY(-5px); background: rgba(139, 92, 246, 0.05); }
     </style>
@@ -129,33 +129,30 @@
     </div>
 
     <div id="game-viewer">
-        <div id="viewer-wrapper" class="viewer-container">
+        <div class="viewer-container">
             <div class="iframe-area">
                 <button onclick="closeViewer()" class="absolute top-4 left-4 z-50 bg-red-600 px-4 py-2 rounded-lg font-bold text-[10px] text-white">SAIR</button>
-                <iframe id="main-frame" class="w-[90%] h-[80%] rounded-xl shadow-2xl border border-white/10 transition-all duration-500"></iframe>
+                <iframe id="main-frame" class="w-[90%] h-[80%] rounded-xl shadow-2xl border border-white/10"></iframe>
             </div>
-            <div class="side-panel glass flex flex-col p-6 overflow-hidden">
+            <div class="side-panel glass p-6 overflow-hidden flex flex-col">
                 <div class="mb-6">
-                    <h3 id="v-title" class="font-orbitron text-lg font-black text-purple-500 uppercase">Nome do Jogo</h3>
-                    <p id="v-author" class="text-[10px] opacity-40 uppercase tracking-widest">por: Desconhecido</p>
+                    <h3 id="v-title" class="font-orbitron text-lg font-black text-purple-500 uppercase">Nome</h3>
+                    <p id="v-author" class="text-[10px] opacity-40 uppercase">Autor</p>
                 </div>
                 <div class="flex gap-4 mb-8">
                     <div class="flex-1 bg-white/5 p-3 rounded-xl text-center">
-                        <p class="text-[10px] opacity-50 uppercase">Views</p>
-                        <p id="v-views" class="font-bold text-lg">0</p>
+                        <p class="text-[10px] opacity-50">Views</p>
+                        <p id="v-views" class="font-bold">0</p>
                     </div>
-                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-purple-600/20 transition cursor-pointer">
-                        <p class="text-[10px] opacity-50 uppercase">Likes</p>
-                        <p id="v-likes" class="font-bold text-lg text-red-500">0</p>
+                    <button id="like-btn" class="flex-1 bg-white/5 p-3 rounded-xl text-center">
+                        <p class="text-[10px] opacity-50">Likes</p>
+                        <p id="v-likes" class="font-bold text-red-500">0</p>
                     </button>
                 </div>
-                <div class="flex-1 flex flex-col overflow-hidden">
-                    <p class="text-[10px] font-bold opacity-30 mb-2 uppercase tracking-widest">Comentários</p>
-                    <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 text-sm text-gray-300"></div>
-                    <div class="flex gap-2 mt-2">
-                        <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded-lg text-xs outline-none text-white">
-                        <button onclick="postComment()" class="bg-purple-600 px-4 rounded-lg font-bold text-white">➔</button>
-                    </div>
+                <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black/50 border border-white/10 p-2 rounded-lg text-xs outline-none text-white">
+                    <button onclick="postComment()" class="bg-purple-600 px-4 rounded-lg">➔</button>
                 </div>
             </div>
         </div>
@@ -198,9 +195,9 @@
 
     <script>
         let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { name: 'Dev_' + Math.floor(Math.random()*999), avatar: '', banner: '' };
-        
+        let activeGameId = null;
+
         window.onload = () => {
-            // Sincroniza a saída da tela de intro com os créditos (9 segundos)
             setTimeout(() => {
                 document.getElementById('intro-screen').style.display = 'none';
                 document.getElementById('main-hub').classList.remove('hidden');
@@ -266,7 +263,7 @@
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 const data = snap.val();
-                if(!data) { grid.innerHTML = '<p class="col-span-full text-center opacity-30 mt-10">Lista Limpa</p>'; return; }
+                if(!data) { grid.innerHTML = '<p class="col-span-full text-center opacity-30 mt-10">Nenhum projeto encontrado</p>'; return; }
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
@@ -281,6 +278,7 @@
 
         function openViewer(id) {
             const { ref, onValue, update, increment } = window.dbRefs;
+            activeGameId = id;
             update(ref(window.db, `games/${id}`), { views: increment(1) });
             onValue(ref(window.db, `games/${id}`), (snap) => {
                 const g = snap.val(); if(!g) return;
@@ -295,7 +293,32 @@
                     frame.srcdoc = g.content; frame.removeAttribute('src');
                 }
             });
+            document.getElementById('like-btn').onclick = () => update(ref(window.db, `games/${id}`), { likes: increment(1) });
+            loadComments(id);
             document.getElementById('game-viewer').style.display = 'block';
+        }
+
+        window.postComment = function() {
+            const input = document.getElementById('comm-input');
+            if(!input.value.trim()) return;
+            const { ref, push, set } = window.dbRefs;
+            set(push(ref(window.db, `comments/${activeGameId}`)), {
+                user: currentUser.name, text: input.value, ts: Date.now()
+            });
+            input.value = "";
+        }
+
+        function loadComments(id) {
+            const { ref, onValue } = window.dbRefs;
+            onValue(ref(window.db, `comments/${id}`), (snap) => {
+                const box = document.getElementById('comments-box');
+                box.innerHTML = "";
+                const data = snap.val();
+                if(data) Object.values(data).forEach(c => {
+                    box.innerHTML += `<div class="bg-white/5 p-2 rounded text-[11px]"><b class="text-purple-400">${c.user}:</b> ${c.text}</div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
         }
 
         window.closeViewer = function() {
