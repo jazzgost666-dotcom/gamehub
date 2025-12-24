@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameDev Space - THE ORIGINAL HUB</title>
     
+    <script>
+        document.addEventListener('keydown', function(e) {
+            // Bloqueia F12
+            if (e.keyCode == 123) { e.preventDefault(); return false; }
+            // Bloqueia Ctrl+Shift+I, J, C
+            if (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) { e.preventDefault(); return false; }
+            // Bloqueia Ctrl+U (Ver código fonte)
+            if (e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
+            // Bloqueia Ctrl+S (Salvar)
+            if (e.ctrlKey && e.keyCode == 83) { e.preventDefault(); return false; }
+        });
+        // Bloqueia Clique Direito
+        document.addEventListener('contextmenu', e => e.preventDefault());
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -30,19 +45,18 @@
     </script>
 
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; user-select: none; }
         body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; margin: 0; overflow-x: hidden; }
         
         #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .intro-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards; }
-        .credits-container { height: 180px; overflow: hidden; position: relative; width: 100%; text-align: center; margin-top: 20px; }
-        .credits-roll { position: absolute; width: 100%; animation: rollCredits 8s linear 2s forwards; transform: translateY(100%); opacity: 0; }
+        .credits-roll { position: absolute; width: 100%; animation: rollCredits 8s linear 2s forwards; transform: translateY(100%); opacity: 0; text-align: center; }
         @keyframes fallBounce { 0% { transform: translateY(-500px); opacity: 0; } 60% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); } }
         @keyframes rollCredits { 0% { transform: translateY(100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-130%); opacity: 0; } }
 
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
         .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: #1a1625; position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
-        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; }
         .btn-neon { background: #8b5cf6; color: white; font-weight: 900; text-transform: uppercase; transition: 0.3s; cursor: pointer; border: none; }
         .btn-neon:hover { box-shadow: 0 0 20px #8b5cf6; transform: scale(1.02); }
         .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; overflow: hidden; background: rgba(255,255,255,0.02); }
@@ -54,26 +68,21 @@
 
     <div id="intro-screen">
         <div class="intro-g">G</div>
-        <div class="credits-container">
-            <div class="credits-roll">
-                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold mb-2">Developers</p>
-                <p class="text-2xl font-black text-white">BYTEZT</p>
-                <p class="text-2xl font-black text-white mb-6">JHOSSMINE2</p>
-                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold mb-2">Executive Producer</p>
-                <p class="text-3xl font-black text-white">EXILED OWNER</p>
-                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold mb-2">Principal Producer</p>
-                <p class="text-3xl font-black text-white">CHAD SUB-OWNER</p>
-            </div>
+        <div class="credits-roll">
+            <p class="text-purple-400 text-xs font-bold mb-2">Developers</p>
+            <p class="text-2xl font-black text-white">BYTEZT & JHOSSMINE2</p>
+            <p class="text-purple-400 text-xs font-bold mt-4">Producers</p>
+            <p class="text-2xl font-black text-white">EXILED OWNER & CHAD</p>
         </div>
     </div>
 
     <div id="main-hub" class="hidden">
         <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
-            <h1 class="font-orbitron text-xl font-black text-purple-500 tracking-tighter">GAMEDEV <span class="text-white">SPACE</span></h1>
+            <h1 class="font-orbitron text-xl font-black text-purple-500">GAMEDEV SPACE</h1>
             <div class="flex items-center gap-6">
-                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[10px]">PUBLICAR PROJETO</button>
+                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[10px]">PUBLICAR</button>
                 <div onclick="document.getElementById('modal-profile').classList.remove('hidden')" class="cursor-pointer flex items-center gap-3">
-                    <span id="nav-username" class="text-xs font-bold opacity-70">Player</span>
+                    <span id="nav-username" class="text-xs font-bold">Player</span>
                     <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center"></div>
                 </div>
             </div>
@@ -83,7 +92,6 @@
             <div id="display-banner" class="profile-banner mb-24">
                 <div id="display-avatar" class="profile-avatar"></div>
             </div>
-            <h2 class="text-2xl font-orbitron font-black mb-8 italic uppercase text-purple-600">Comunidade</h2>
             <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
         </main>
     </div>
@@ -92,24 +100,17 @@
         <div class="flex flex-col h-full md:flex-row">
             <div class="flex-1 relative bg-black flex flex-col">
                 <div class="p-3 glass flex justify-between items-center">
-                    <div class="flex gap-2">
-                        <button onclick="location.reload()" class="bg-red-600 px-4 py-2 rounded font-bold text-[10px]">SAIR</button>
-                        <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-4 py-2 rounded font-bold text-[10px]">FULLSCREEN</button>
-                    </div>
-                    <div id="owner-controls" class="hidden">
-                        <button onclick="openEditModal()" class="bg-blue-600 px-4 py-2 rounded font-bold text-[10px]">EDITAR</button>
-                    </div>
+                    <button onclick="location.reload()" class="bg-red-600 px-4 py-2 rounded font-bold text-[10px]">SAIR</button>
+                    <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-4 py-2 rounded font-bold text-[10px]">FULLSCREEN</button>
                 </div>
-                <iframe id="main-frame" class="flex-1 w-full border-none bg-white"></iframe>
+                <iframe id="main-frame" class="flex-1 w-full border-none bg-white" 
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-modals" 
+                        allow="autoplay; fullscreen; keyboard" allowfullscreen></iframe>
             </div>
             <div class="w-full md:w-[350px] glass p-6 flex flex-col border-l border-white/10">
                 <h3 id="v-title" class="font-orbitron text-xl font-bold text-purple-500 uppercase">---</h3>
-                <p id="v-author" class="text-[10px] opacity-40 mb-6 uppercase">---</p>
-                <div class="flex gap-4 mb-8">
-                    <div class="flex-1 bg-white/5 p-3 rounded-xl text-center"><p class="text-[10px] opacity-50">VIEWS</p><p id="v-views" class="font-bold">0</p></div>
-                    <button id="like-btn-action" class="flex-1 bg-white/5 p-3 rounded-xl text-center hover:bg-red-500/20"><p class="text-[10px] opacity-50">LIKES</p><p id="v-likes" class="font-bold text-red-500">0</p></button>
-                </div>
-                <div id="comments-box" class="flex-1 overflow-y-auto space-y-2 mb-4 text-[11px]"></div>
+                <p id="v-author" class="text-[10px] opacity-40 mb-6">Autor: ---</p>
+                <div id="comments-box" class="flex-1 overflow-y-auto mb-4 text-[11px] space-y-2"></div>
                 <div class="flex gap-2">
                     <input type="text" id="comm-input" placeholder="Comentar..." class="flex-1 bg-black p-2 rounded text-xs text-white">
                     <button onclick="postComment()" class="bg-purple-600 px-4 rounded">➔</button>
@@ -119,21 +120,21 @@
     </div>
 
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-3xl w-full max-w-xl">
-            <h3 id="modal-title" class="font-orbitron text-xl font-bold mb-6 text-purple-500">LANÇAR PROJETO</h3>
+        <div class="glass p-8 rounded-3xl w-full max-w-xl text-white">
+            <h3 class="font-orbitron text-xl font-bold mb-6 text-purple-500">PUBLICAR JOGO</h3>
             <div class="space-y-4">
-                <input type="text" id="up-name" placeholder="Título" class="w-full bg-white/5 p-3 rounded border border-white/10 text-white outline-none">
-                <input type="text" id="up-capa" placeholder="Link da Capa" class="w-full bg-white/5 p-3 rounded border border-white/10 text-white outline-none">
-                <select id="up-type" onchange="toggleInputs()" class="w-full bg-black p-3 rounded border border-white/10 text-purple-400 font-bold">
+                <input type="text" id="up-name" placeholder="Título" class="w-full bg-white/5 p-3 rounded border border-white/10">
+                <input type="text" id="up-capa" placeholder="Link da Capa" class="w-full bg-white/5 p-3 rounded border border-white/10">
+                <select id="up-type" onchange="toggleInputs()" class="w-full bg-black p-3 rounded border border-white/10 text-purple-400">
                     <option value="url">Link (URL)</option>
                     <option value="code">Código HTML</option>
                     <option value="file">Arquivo .html</option>
                 </select>
                 <div id="input-area">
-                    <textarea id="up-content" placeholder="Conteúdo aqui..." class="w-full bg-white/5 p-3 rounded border border-white/10 h-32 text-xs text-white"></textarea>
+                    <textarea id="up-content" placeholder="Link ou código aqui..." class="w-full bg-white/5 p-3 rounded border border-white/10 h-32"></textarea>
                 </div>
-                <button onclick="enviarProjeto()" id="btn-submit" class="w-full btn-neon py-4 rounded-xl font-bold">PUBLICAR AGORA</button>
-                <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-xs opacity-50">FECHAR</button>
+                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-xl font-bold">PUBLICAR AGORA</button>
+                <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-xs opacity-50 mt-2">CANCELAR</button>
             </div>
         </div>
     </div>
@@ -149,17 +150,8 @@
     </div>
 
     <script>
-        // CORREÇÃO DO OBJETO USER PARA EVITAR UNDEFINED
-        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { 
-            id: 'u_' + Math.random().toString(36).substr(2, 9), 
-            name: 'Dev_User', 
-            avatar: '', 
-            banner: '' 
-        };
-        if(!currentUser.id) currentUser.id = 'u_' + Math.random().toString(36).substr(2, 9);
-        
+        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { id: 'u'+Date.now(), name: 'Dev', avatar: '', banner: '' };
         let activeGameId = null;
-        let isEditing = false;
 
         window.onload = () => {
             setTimeout(() => {
@@ -171,7 +163,7 @@
         };
 
         function updateUI() {
-            document.getElementById('nav-username').innerText = currentUser.name || 'Player';
+            document.getElementById('nav-username').innerText = currentUser.name;
             const av = currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed='+currentUser.id;
             document.getElementById('nav-avatar').style.backgroundImage = `url('${av}')`;
             document.getElementById('display-avatar').style.backgroundImage = `url('${av}')`;
@@ -190,53 +182,35 @@
         function toggleInputs() {
             const type = document.getElementById('up-type').value;
             const area = document.getElementById('input-area');
-            if(type === 'file') area.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded text-white">`;
-            else area.innerHTML = `<textarea id="up-content" placeholder="Link ou código aqui..." class="w-full bg-white/5 p-3 rounded border border-white/10 h-32 text-xs text-white"></textarea>`;
+            if(type === 'file') area.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-3 rounded">`;
+            else area.innerHTML = `<textarea id="up-content" placeholder="Link ou código aqui..." class="w-full bg-white/5 p-3 rounded border border-white/10 h-32"></textarea>`;
         }
 
         async function enviarProjeto() {
-            const { ref, push, set, update } = window.fbLib;
+            const { ref, push, set } = window.fbLib;
             const name = document.getElementById('up-name').value;
-            const capa = document.getElementById('up-capa').value || '';
             const type = document.getElementById('up-type').value;
-            
-            if(!name) return alert("Título vazio!");
-
             let content = "";
+
             if(type === 'file') {
                 const file = document.getElementById('up-file').files[0];
-                if(!file) return alert("Arquivo não selecionado!");
+                if(!file) return alert("Escolha o arquivo!");
                 content = await new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(file); });
             } else {
                 content = document.getElementById('up-content').value;
-                if(!content) return alert("Conteúdo vazio!");
             }
 
-            // BLINDAGEM CONTRA UNDEFINED
-            const gameData = { 
-                name: String(name), 
-                capa: String(capa), 
-                type: String(type), 
-                content: String(content), 
-                author: String(currentUser.name), 
-                authorId: String(currentUser.id) 
-            };
+            if(!name || !content) return alert("Preencha tudo!");
 
-            try {
-                if(isEditing) {
-                    await update(ref(window.fbDB, `games/${activeGameId}`), gameData);
-                } else {
-                    const newRef = push(ref(window.fbDB, 'games'));
-                    await set(newRef, { ...gameData, likes: 0, views: 0, ts: Date.now() });
-                }
-                alert("LANÇADO!");
+            const gameData = { name, capa: document.getElementById('up-capa').value, type, content, author: currentUser.name, authorId: currentUser.id };
+            set(push(ref(window.fbDB, 'games')), { ...gameData, likes: 0, views: 0, ts: Date.now() }).then(() => {
+                alert("LANÇADO COM SUCESSO!");
                 location.reload();
-            } catch(e) { alert("ERRO NO BANCO: " + e.message); }
+            });
         }
 
         function loadGames() {
-            const { ref, onValue } = window.fbLib;
-            onValue(ref(window.fbDB, 'games'), (snap) => {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), (snap) => {
                 const grid = document.getElementById('games-grid'); grid.innerHTML = "";
                 const data = snap.val(); if(!data) return;
                 Object.keys(data).reverse().forEach(id => {
@@ -252,56 +226,25 @@
 
         function openViewer(id) {
             activeGameId = id;
-            const { ref, onValue, update, increment } = window.fbLib;
-            update(ref(window.fbDB, `games/${id}`), { views: increment(1) });
-            onValue(ref(window.fbDB, `games/${id}`), (snap) => {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, `games/${id}`), (snap) => {
                 const g = snap.val(); if(!g) return;
                 document.getElementById('v-title').innerText = g.name;
-                document.getElementById('v-author').innerText = "Developer: " + g.author;
-                document.getElementById('v-views').innerText = g.views;
-                document.getElementById('v-likes').innerText = g.likes;
-                document.getElementById('owner-controls').classList.toggle('hidden', g.authorId !== currentUser.id);
+                document.getElementById('v-author').innerText = "Dev: " + g.author;
                 const frame = document.getElementById('main-frame');
-                if(g.type === 'url' || g.type === 'file') { frame.src = g.content; frame.srcdoc = ""; }
-                else { frame.srcdoc = g.content; frame.src = ""; }
-            });
-            document.getElementById('like-btn-action').onclick = () => update(ref(window.fbDB, `games/${activeGameId}`), { likes: increment(1) });
-            loadComments(id);
-            document.getElementById('game-viewer').style.display = 'block';
-        }
-
-        function openEditModal() {
-            const { ref, onValue } = window.fbLib;
-            onValue(ref(window.fbDB, `games/${activeGameId}`), (snap) => {
-                const g = snap.val();
-                document.getElementById('up-name').value = g.name;
-                document.getElementById('up-capa').value = g.capa;
-                document.getElementById('up-type').value = g.type;
-                toggleInputs();
-                if(g.type !== 'file') document.getElementById('up-content').value = g.content;
-                document.getElementById('modal-title').innerText = "EDITAR JOGO";
-                isEditing = true;
-                document.getElementById('modal-upload').classList.remove('hidden');
+                
+                // AJUSTE PARA RODAR O JOGO
+                if(g.type === 'url') {
+                    frame.src = g.content;
+                    frame.removeAttribute('srcdoc');
+                } else if(g.type === 'file') {
+                    // Decodifica DataURL se for arquivo
+                    frame.src = g.content;
+                } else {
+                    frame.srcdoc = g.g.content || g.content;
+                    frame.removeAttribute('src');
+                }
             }, { onlyOnce: true });
-        }
-
-        function postComment() {
-            const val = document.getElementById('comm-input').value;
-            if(!val) return;
-            const { ref, push, set } = window.fbLib;
-            set(push(ref(window.fbDB, `comments/${activeGameId}`)), { user: currentUser.name, text: val });
-            document.getElementById('comm-input').value = "";
-        }
-
-        function loadComments(id) {
-            const { ref, onValue } = window.fbLib;
-            onValue(ref(window.fbDB, `comments/${id}`), (snap) => {
-                const box = document.getElementById('comments-box'); box.innerHTML = "";
-                const data = snap.val();
-                if(data) Object.values(data).forEach(c => {
-                    box.innerHTML += `<div class="bg-white/5 p-2 rounded mb-1"><b>${c.user}:</b> ${c.text}</div>`;
-                });
-            });
+            document.getElementById('game-viewer').style.display = 'block';
         }
     </script>
 </body>
