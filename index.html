@@ -3,43 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - Protected</title>
+    <title>GameDev Space - Credits & Protection</title>
     
     <script>
-        // Bloqueia F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S
         document.addEventListener('keydown', function(e) {
-            if (
-                e.key === "F12" ||
-                (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
-                (e.ctrlKey && (e.key === "U" || e.key === "S"))
-            ) {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) || (e.ctrlKey && (e.key === "U" || e.key === "S"))) {
                 e.preventDefault();
                 return false;
             }
         });
-
-        // Bloqueia Clique Direito
         document.addEventListener('contextmenu', e => e.preventDefault());
-
-        // Anti-Debugger (Pausa o console se tentarem forçar a abertura)
-        setInterval(function() {
-            (function() {
-                (function a() {
-                    try {
-                        (function b(i) {
-                            if (('' + (i / i)).length !== 1 || i % 20 === 0) {
-                                (function() {}).constructor('debugger')();
-                            } else {
-                                debugger;
-                            }
-                            b(++i);
-                        })(0);
-                    } catch (e) {
-                        setTimeout(a, 5000);
-                    }
-                })();
-            })();
-        }, 1000);
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -64,14 +37,45 @@
         window.db = db; 
         window.dbRefs = { ref, set, push, onValue, update, increment, remove };
 
-        // Limpeza total ao abrir
+        // Limpeza inicial
         remove(ref(db, 'games'));
         remove(ref(db, 'comments'));
     </script>
 
     <style>
-        * { box-sizing: border-box; user-select: none; }
+        * { box-sizing: border-box; }
         body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; overflow-x: hidden; margin: 0; }
+        
+        /* TELA DE INTRO E CRÉDITOS */
+        #intro-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .intro-g {
+            font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6;
+            text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards;
+        }
+        .credits-container { 
+            height: 180px; overflow: hidden; position: relative; width: 100%; text-align: center; margin-top: 20px;
+        }
+        .credits-roll {
+            position: absolute; width: 100%; 
+            animation: rollCredits 7s linear 2s forwards;
+            transform: translateY(100%); opacity: 0;
+        }
+
+        @keyframes fallBounce {
+            0% { transform: translateY(-500px); opacity: 0; }
+            60% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(0); }
+        }
+        @keyframes rollCredits {
+            0% { transform: translateY(100%); opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { transform: translateY(-120%); opacity: 0; }
+        }
+
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
         .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: linear-gradient(90deg, #1a1625, #2d2346); position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
         .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
@@ -86,7 +90,22 @@
 </head>
 <body>
 
-    <div id="main-hub">
+    <div id="intro-screen">
+        <div class="intro-g">G</div>
+        <div class="credits-container">
+            <div class="credits-roll">
+                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold mb-2">Developers</p>
+                <p class="text-2xl font-black text-white">BYTEZT</p>
+                <p class="text-2xl font-black text-white mb-6">JHOSSMINE2</p>
+                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold mb-2">Executive Producer</p>
+                <p class="text-3xl font-black text-white">EXILED OWNER</p>
+                <p class="text-purple-400 text-xs uppercase tracking-widest font-bold mb-2">Principal Producer</p>
+                <p class="text-3xl font-black text-white">CHAD SUB-OWNER</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-hub" class="hidden">
         <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
             <h1 class="font-orbitron text-xl font-black text-purple-500 tracking-tighter">GAMEDEV <span class="text-white">SPACE</span></h1>
             <div class="flex items-center gap-6">
@@ -102,11 +121,9 @@
             <div id="display-banner" class="profile-banner mb-24 shadow-2xl">
                 <div id="display-avatar" class="profile-avatar shadow-lg"></div>
             </div>
-
             <h2 class="text-2xl font-orbitron font-black mb-8 flex items-center gap-4 italic">
                 <span class="w-1 h-8 bg-purple-600"></span> FEED GLOBAL
             </h2>
-
             <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
         </main>
     </div>
@@ -181,12 +198,15 @@
 
     <script>
         let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { name: 'Dev_' + Math.floor(Math.random()*999), avatar: '', banner: '' };
-        let activeGameId = null;
-
+        
         window.onload = () => {
-            // Entra direto no Hub sem espera
-            updateUI();
-            loadGames();
+            // Sincroniza a saída da tela de intro com os créditos (9 segundos)
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.display = 'none';
+                document.getElementById('main-hub').classList.remove('hidden');
+                updateUI();
+                loadGames();
+            }, 9000);
         };
 
         function updateUI() {
@@ -225,10 +245,7 @@
 
             const saveToDB = (content) => {
                 const newRef = push(ref(window.db, 'games'));
-                set(newRef, {
-                    name, capa, type, content, author: currentUser.name, 
-                    likes: 0, views: 0, ts: Date.now()
-                });
+                set(newRef, { name, capa, type, content, author: currentUser.name, likes: 0, views: 0, ts: Date.now() });
                 closeModal('modal-upload');
                 e.target.reset();
             };
@@ -249,10 +266,7 @@
                 const grid = document.getElementById('games-grid');
                 grid.innerHTML = "";
                 const data = snap.val();
-                if(!data) {
-                    grid.innerHTML = '<p class="col-span-full text-center opacity-30 mt-10">Lista Limpa</p>';
-                    return;
-                }
+                if(!data) { grid.innerHTML = '<p class="col-span-full text-center opacity-30 mt-10">Lista Limpa</p>'; return; }
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
@@ -267,11 +281,9 @@
 
         function openViewer(id) {
             const { ref, onValue, update, increment } = window.dbRefs;
-            activeGameId = id;
             update(ref(window.db, `games/${id}`), { views: increment(1) });
             onValue(ref(window.db, `games/${id}`), (snap) => {
-                const g = snap.val();
-                if(!g) return;
+                const g = snap.val(); if(!g) return;
                 document.getElementById('v-title').innerText = g.name;
                 document.getElementById('v-author').innerText = "Developer: " + g.author;
                 document.getElementById('v-views').innerText = g.views || 0;
@@ -283,42 +295,12 @@
                     frame.srcdoc = g.content; frame.removeAttribute('src');
                 }
             });
-            document.getElementById('like-btn').onclick = () => update(ref(window.db, `games/${id}`), { likes: increment(1) });
-            loadComments(id);
             document.getElementById('game-viewer').style.display = 'block';
-        }
-
-        window.postComment = function() {
-            const input = document.getElementById('comm-input');
-            if(!input.value.trim()) return;
-            const { ref, push, set } = window.dbRefs;
-            set(push(ref(window.db, `comments/${activeGameId}`)), {
-                user: currentUser.name, text: input.value, ts: Date.now()
-            });
-            input.value = "";
-        }
-
-        function loadComments(id) {
-            const { ref, onValue } = window.dbRefs;
-            onValue(ref(window.db, `comments/${id}`), (snap) => {
-                const box = document.getElementById('comments-box');
-                box.innerHTML = "";
-                const data = snap.val();
-                if(data) Object.values(data).forEach(c => {
-                    box.innerHTML += `
-                        <div class="bg-white/5 p-3 rounded-lg border border-white/5 text-white">
-                            <p class="text-[9px] text-purple-500 font-bold uppercase">${c.user}</p>
-                            <p class="leading-tight">${c.text}</p>
-                        </div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
         }
 
         window.closeViewer = function() {
             document.getElementById('game-viewer').style.display = 'none';
             document.getElementById('main-frame').src = "";
-            document.getElementById('main-frame').removeAttribute('srcdoc');
         }
 
         window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
