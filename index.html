@@ -1,299 +1,32 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameDev Space - ULTRA SECURE</title>
+// SISTEMA DE ATIVAÇÃO POR SEQUÊNCIA (IGNORA ATALHOS DO GOOGLE)
+let sequence = "";
+document.addEventListener('keydown', e => {
+    // Usamos o Shift Direito como "Chave de Segurança"
+    if (e.location === 2 && e.key === "Shift") {
+        sequence = "SHIFT_HOLD_";
+    }
     
-    <script>
-        // BLOQUEIO DE SISTEMA - INTERCEPTAÇÃO TOTAL
-        (function() {
-            window.addEventListener('keydown', function(e) {
-                // Bloqueia F12, Ctrl+U, Ctrl+Shift+I/J/C/D, Ctrl+S, Ctrl+P
-                if (
-                    e.keyCode === 123 || 
-                    (e.ctrlKey && e.shiftKey && [73, 74, 67, 68].includes(e.keyCode)) || 
-                    (e.ctrlKey && [85, 83, 80, 70].includes(e.keyCode))
-                ) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    return false;
-                }
-            }, true);
+    if (sequence.startsWith("SHIFT_HOLD_")) {
+        const key = e.key.toLowerCase();
+        if (["a", "d", "m"].includes(key) && !sequence.includes(key)) {
+            sequence += key;
+        }
+    }
 
-            document.addEventListener('contextmenu', e => e.preventDefault(), true);
-            document.addEventListener('dragstart', e => e.preventDefault(), true);
-        })();
-
-        // NOVO COMBO: Ctrl + Shift Esq + A + M + K (Tirei o D para não abrir favoritos)
-        let adminKeys = {};
-        document.addEventListener('keydown', e => {
-            adminKeys[e.key.toLowerCase()] = true;
-            adminKeys['shift'] = e.shiftKey;
-            adminKeys['ctrl'] = e.ctrlKey;
-            
-            // Verifica se as teclas estão pressionadas (Ctrl + Shift + A + M + K)
-            if(adminKeys['ctrl'] && adminKeys['shift'] && adminKeys['a'] && adminKeys['m'] && adminKeys['k']) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                
-                const pass = prompt("SISTEMA PROTEGIDO - CHAVE DE ACESSO:");
-                if(pass === "ExiledEChadLindoAdm89892014") {
-                    document.getElementById('admin-panel').classList.remove('hidden');
-                    loadAdminList();
-                } else {
-                    alert("ACESSO NEGADO.");
-                }
-                adminKeys = {}; // Reseta o combo
-            }
-        }, true);
+    // Se a sequência SHIFT + A + D + M for completada
+    if (sequence === "SHIFT_HOLD_adm") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
         
-        document.addEventListener('keyup', e => { adminKeys[e.key.toLowerCase()] = false; });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, update, increment, off, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
-            authDomain: "game-dev-space.firebaseapp.com",
-            databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
-            projectId: "game-dev-space",
-            storageBucket: "game-dev-space.firebasestorage.app",
-            messagingSenderId: "1073185335190",
-            appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        window.fbDB = db;
-        window.fbLib = { ref, set, push, onValue, update, increment, off, remove };
-    </script>
-
-    <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-drag: none; }
-        body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; margin: 0; overflow: hidden; }
-        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(139, 92, 246, 0.2); }
-        .btn-neon { background: #8b5cf6; color: white; font-weight: 900; transition: 0.3s; cursor: pointer; border: none; }
-        .btn-neon:hover { box-shadow: 0 0 25px #8b5cf6; transform: translateY(-2px); }
-        #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .intro-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 20px #8b5cf6; animation: fall 1.5s ease-out forwards; }
-        @keyframes fall { 0% { transform: translateY(-200px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-        @keyframes moveUp { 0% { transform: translateY(100%); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-150%); opacity: 0; } }
-    </style>
-</head>
-<body>
-
-    <div id="intro-screen">
-        <div class="intro-g">G</div>
-        <div style="height:150px; overflow:hidden; margin-top:20px; position:relative; width:300px;">
-            <div style="position: absolute; width: 100%; animation: moveUp 7s linear 2s forwards; transform: translateY(100%); opacity: 0; text-align: center;">
-                <p class="text-purple-400 text-xs font-bold uppercase text-[10px]">Developers</p>
-                <p class="text-xl font-black mb-4">BYTEZT & JHOSSMINE2</p>
-                <p class="text-purple-400 text-xs font-bold uppercase text-[10px]">Producers</p>
-                <p class="text-xl font-black">EXILED OWNER & CHAD</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="admin-panel" class="hidden fixed inset-0 z-[10000] p-10 overflow-y-auto bg-[#05040a]">
-        <div class="flex justify-between items-center mb-8 border-b border-purple-500/30 pb-4">
-            <h2 class="font-orbitron text-2xl font-black text-purple-500 italic">ADMIN TERMINAL</h2>
-            <button onclick="document.getElementById('admin-panel').classList.add('hidden')" class="bg-red-600/20 text-red-500 border border-red-600/50 px-6 py-2 rounded-full text-xs font-bold">DESLOGAR</button>
-        </div>
-        <div id="admin-list" class="grid gap-4"></div>
-    </div>
-
-    <div id="main-hub" class="hidden">
-        <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
-            <h1 class="font-orbitron text-xl font-black text-purple-500">GAMEDEV SPACE</h1>
-            <div class="flex items-center gap-5">
-                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[10px] font-bold">PUBLICAR</button>
-                <div onclick="document.getElementById('modal-profile').classList.remove('hidden')" class="cursor-pointer flex items-center gap-3">
-                    <span id="nav-username" class="text-xs font-bold uppercase opacity-60">Player</span>
-                    <div id="nav-avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 bg-cover bg-center"></div>
-                </div>
-            </div>
-        </header>
-
-        <main class="container mx-auto p-8">
-            <div id="display-banner" class="w-full h-[240px] rounded-[40px] bg-[#1a1625] relative border border-white/5 bg-cover bg-center mb-24 shadow-2xl">
-                <div id="display-avatar" class="w-[130px] h-[130px] rounded-full border-4 border-purple-500 absolute bottom-[-65px] left-[50px] bg-cover bg-center bg-[#0b0915]"></div>
-            </div>
-            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
-        </main>
-    </div>
-
-    <div id="game-viewer" class="hidden fixed inset-0 z-[1000] bg-black">
-        <div class="flex flex-col h-full lg:flex-row">
-            <div class="flex-1 relative bg-black flex flex-col">
-                <div class="p-4 glass flex justify-between items-center">
-                    <button onclick="closeViewer()" class="bg-red-600 px-6 py-2 rounded-lg font-bold text-xs uppercase">Sair</button>
-                    <button onclick="document.getElementById('main-frame').requestFullscreen()" class="bg-purple-600 px-6 py-2 rounded-lg font-bold text-xs uppercase">Tela Cheia</button>
-                </div>
-                <iframe id="main-frame" class="flex-1 w-full border-none bg-white" sandbox="allow-scripts allow-same-origin allow-forms" allowfullscreen></iframe>
-            </div>
-            <div class="w-full lg:w-[380px] glass p-6 flex flex-col border-l border-white/5">
-                <h3 id="v-title" class="font-orbitron text-2xl font-black text-purple-500 uppercase truncate">---</h3>
-                <div class="flex gap-4 my-6">
-                    <div class="flex-1 bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold mb-1 uppercase">Views</p><p id="v-views" class="text-lg font-black">0</p></div>
-                    <button id="btn-like" class="flex-1 bg-white/5 p-4 rounded-2xl text-center"><p class="text-[9px] opacity-40 font-bold mb-1 uppercase">Likes</p><p id="v-likes" class="text-lg font-black text-red-500">0</p></button>
-                </div>
-                <div id="comments-box" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2"></div>
-                <div class="flex gap-2">
-                    <input type="text" id="comm-input" placeholder="Diga algo..." class="flex-1 bg-black/40 border border-white/10 p-3 rounded-xl text-xs outline-none focus:border-purple-500">
-                    <button onclick="postComment()" class="bg-purple-600 px-5 rounded-xl font-bold">➔</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[35px] w-full max-w-xl">
-            <h3 class="font-orbitron text-xl font-bold mb-6 text-purple-500 uppercase">Publicar Jogo</h3>
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="up-name" placeholder="Título" class="bg-white/5 p-4 rounded-2xl border border-white/10 outline-none text-white text-sm">
-                    <input type="text" id="up-capa" placeholder="Link da Capa" class="bg-white/5 p-4 rounded-2xl border border-white/10 outline-none text-white text-sm">
-                </div>
-                <select id="up-type" onchange="toggleInputs()" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-purple-400 font-bold outline-none">
-                    <option value="url">Link (URL)</option>
-                    <option value="code">Código HTML</option>
-                    <option value="file">Arquivo .html</option>
-                </select>
-                <div id="input-area"><textarea id="up-content" placeholder="Conteúdo..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea></div>
-                <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black">LANÇAR PROJETO</button>
-                <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full text-[10px] opacity-30 mt-2 uppercase font-bold">Fechar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-profile" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[35px] w-full max-w-sm text-center">
-            <h3 class="font-orbitron font-bold mb-6 text-purple-500">MEU PERFIL</h3>
-            <div class="space-y-4">
-                <input type="text" id="p-name" placeholder="Nome" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white outline-none">
-                <input type="text" id="p-avatar" placeholder="Avatar URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white outline-none">
-                <input type="text" id="p-banner" placeholder="Banner URL" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white outline-none">
-                <button onclick="saveProfile()" class="w-full btn-neon py-4 rounded-2xl font-bold">SALVAR</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let currentUser = JSON.parse(localStorage.getItem('gs_user')) || { id: 'u' + Date.now(), name: 'Dev', avatar: '', banner: '' };
-        let interactions = JSON.parse(localStorage.getItem('gs_interact')) || { liked: [], viewed: [] };
-        let activeId = null;
-        let gameListener = null;
-
-        window.onload = () => { setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; document.getElementById('main-hub').classList.remove('hidden'); updateUI(); loadGames(); }, 10000); };
-
-        function updateUI() {
-            document.getElementById('nav-username').innerText = currentUser.name;
-            const av = currentUser.avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + currentUser.id;
-            document.getElementById('nav-avatar').style.backgroundImage = `url('${av}')`;
-            document.getElementById('display-avatar').style.backgroundImage = `url('${av}')`;
-            if(currentUser.banner) document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
-            localStorage.setItem('gs_user', JSON.stringify(currentUser));
+        const pass = prompt("SISTEMA BLOQUEADO - CHAVE MESTRA:");
+        if(pass === "ExiledEChadLindoAdm89892014") {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadAdminList();
         }
+        sequence = ""; // Reseta
+    }
+});
 
-        function saveProfile() {
-            currentUser.name = document.getElementById('p-name').value || currentUser.name;
-            currentUser.avatar = document.getElementById('p-avatar').value || currentUser.avatar;
-            currentUser.banner = document.getElementById('p-banner').value || currentUser.banner;
-            updateUI(); document.getElementById('modal-profile').classList.add('hidden');
-        }
-
-        function toggleInputs() {
-            const type = document.getElementById('up-type').value;
-            const area = document.getElementById('input-area');
-            if(type === 'file') area.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-4 rounded-2xl text-white">`;
-            else area.innerHTML = `<textarea id="up-content" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea>`;
-        }
-
-        async function enviarProjeto() {
-            const { ref, push, set } = window.fbLib;
-            const name = document.getElementById('up-name').value;
-            const type = document.getElementById('up-type').value;
-            let content = "";
-            if(type === 'file') {
-                const file = document.getElementById('up-file').files[0];
-                if(!file) return;
-                content = await new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(file); });
-            } else content = document.getElementById('up-content').value;
-            if(!name || !content) return;
-            set(push(ref(window.fbDB, 'games')), { name, capa: document.getElementById('up-capa').value, type, content, author: currentUser.name, authorId: currentUser.id, likes: 0, views: 0, ts: Date.now() }).then(() => location.reload());
-        }
-
-        function loadGames() {
-            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
-                const grid = document.getElementById('games-grid'); grid.innerHTML = "";
-                const data = snap.val(); if(!data) return;
-                Object.keys(data).reverse().forEach(id => {
-                    grid.innerHTML += `<div class="game-card p-4 rounded-[25px] border border-white/5 bg-white/5 cursor-pointer" onclick="openViewer('${id}')">
-                        <img src="${data[id].capa || 'https://via.placeholder.com/300x160/1a1625/8b5cf6?text=GAME'}" class="w-full h-40 object-cover rounded-2xl mb-4">
-                        <div class="flex justify-between items-center"><h4 class="font-black truncate uppercase text-sm">${data[id].name}</h4><span class="text-[10px] text-purple-500 font-bold">${data[id].likes || 0} LIKES</span></div>
-                    </div>`;
-                });
-            });
-        }
-
-        function openViewer(id) {
-            activeId = id;
-            const { ref, onValue, update, increment } = window.fbLib;
-            if(!interactions.viewed.includes(id)) { update(ref(window.fbDB, `games/${id}`), { views: increment(1) }); interactions.viewed.push(id); localStorage.setItem('gs_interact', JSON.stringify(interactions)); }
-            gameListener = onValue(ref(window.fbDB, `games/${id}`), snap => {
-                const g = snap.val(); if(!g) return;
-                document.getElementById('v-title').innerText = g.name;
-                document.getElementById('v-views').innerText = g.views;
-                document.getElementById('v-likes').innerText = g.likes;
-                const frame = document.getElementById('main-frame');
-                if(!frame.src && !frame.srcdoc) { if(g.type === 'url' || g.type === 'file') frame.src = g.content; else frame.srcdoc = g.content; }
-            });
-            document.getElementById('btn-like').onclick = () => {
-                if(interactions.liked.includes(id)) return;
-                update(ref(window.fbDB, `games/${id}`), { likes: increment(1) });
-                interactions.liked.push(id); localStorage.setItem('gs_interact', JSON.stringify(interactions));
-            };
-            loadComments(id); document.getElementById('game-viewer').classList.remove('hidden');
-        }
-
-        function closeViewer() { window.fbLib.off(window.fbLib.ref(window.fbDB, `games/${activeId}`)); document.getElementById('main-frame').src = ""; document.getElementById('main-frame').srcdoc = ""; document.getElementById('game-viewer').classList.add('hidden'); activeId = null; }
-
-        function postComment() {
-            const txt = document.getElementById('comm-input').value; if(!txt) return;
-            window.fbLib.set(window.fbLib.push(window.fbLib.ref(window.fbDB, `comments/${activeId}`)), { user: currentUser.name, text: txt });
-            document.getElementById('comm-input').value = "";
-        }
-
-        function loadComments(id) {
-            window.fbLib.onValue(window.fbLib.ref(window.fbDB, `comments/${id}`), snap => {
-                const box = document.getElementById('comments-box'); box.innerHTML = "";
-                if(snap.val()) Object.values(snap.val()).forEach(c => { box.innerHTML += `<div class="bg-white/5 p-3 rounded-xl border border-white/5 mb-2"><span class="text-purple-400 font-bold text-[9px] uppercase">${c.user}:</span><p class="text-[11px] opacity-80 mt-1">${c.text}</p></div>`; });
-            });
-        }
-
-        function loadAdminList() {
-            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
-                const box = document.getElementById('admin-list'); box.innerHTML = "";
-                const data = snap.val(); if(!data) return;
-                Object.keys(data).forEach(id => {
-                    box.innerHTML += `<div class="glass p-5 rounded-2xl flex justify-between items-center border border-white/10">
-                        <div><p class="text-purple-500 font-black uppercase text-lg">${data[id].name}</p><p class="text-[10px] opacity-30">UID: ${id}</p></div>
-                        <div class="flex gap-3">
-                            <button onclick="copyHTML('${id}')" class="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg text-[10px] font-bold uppercase">Código</button>
-                            <button onclick="deleteGame('${id}')" class="bg-red-600/20 text-red-400 px-4 py-2 rounded-lg text-[10px] font-bold uppercase">Deletar</button>
-                        </div>
-                    </div>`;
-                });
-            });
-        }
-        function deleteGame(id) { if(confirm("EXTERMINAR JOGO?")) { window.fbLib.remove(window.fbLib.ref(window.fbDB, `games/${id}`)); window.fbLib.remove(window.fbLib.ref(window.fbDB, `comments/${id}`)); } }
-        function copyHTML(id) { window.fbLib.onValue(window.fbLib.ref(window.fbDB, `games/${id}`), snap => { navigator.clipboard.writeText(snap.val().content).then(() => alert("CÓDIGO COPIADO.")); }, { onlyOnce: true }); }
-    </script>
-</body>
-</html>
+document.addEventListener('keyup', e => {
+    if (e.key === "Shift") sequence = ""; 
+});
