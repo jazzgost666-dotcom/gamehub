@@ -6,6 +6,7 @@
     <title>GameDev Space - THE ORIGINAL HUB</title>
     
     <script>
+        // Bloqueio de inspeção básico
         document.addEventListener('keydown', e => {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key)) || (e.ctrlKey && ["U","S"].includes(e.key))) e.preventDefault();
         });
@@ -15,7 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- FIREBASE MODULE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -30,16 +30,14 @@
             appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
         };
 
-        // Inicialização segura
         try {
             const app = initializeApp(firebaseConfig);
             const db = getDatabase(app);
             window.db = db; 
             window.dbRefs = { ref, set, push, onValue, update, increment, remove };
-            console.log("Firebase conectado com sucesso.");
+            console.log("Firebase conectado.");
         } catch (error) {
-            console.error("Erro ao conectar Firebase:", error);
-            alert("Erro crítico: Não foi possível conectar ao servidor de jogos.");
+            console.error("Erro Firebase:", error);
         }
     </script>
 
@@ -47,26 +45,27 @@
         * { box-sizing: border-box; }
         body { font-family: 'Rajdhani', sans-serif; background: #0b0915; color: white; overflow-x: hidden; margin: 0; }
         
-        /* INTRO E CRÉDITOS */
         #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .intro-g { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #8b5cf6; text-shadow: 0 0 20px #8b5cf6; animation: fallBounce 2s ease-in forwards; }
+        
         .credits-container { height: 180px; overflow: hidden; position: relative; width: 100%; text-align: center; margin-top: 20px; }
         .credits-roll { position: absolute; width: 100%; animation: rollCredits 8s linear 2s forwards; transform: translateY(100%); opacity: 0; }
+        
         @keyframes fallBounce { 0% { transform: translateY(-500px); opacity: 0; } 60% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); } }
         @keyframes rollCredits { 0% { transform: translateY(100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-130%); opacity: 0; } }
 
-        /* INTERFACE */
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); }
         .profile-banner { width: 100%; height: 220px; border-radius: 24px; background: linear-gradient(90deg, #1a1625, #2d2346); position: relative; border: 1px solid rgba(139, 92, 246, 0.2); background-size: cover; background-position: center; }
-        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #8b5cf6; position: absolute; bottom: -55px; left: 40px; background-size: cover; background-position: center; background-color: #0b0915; }
+        
         .btn-neon { background: #8b5cf6; color: white; font-weight: 900; text-transform: uppercase; transition: 0.3s; border: none; cursor: pointer; }
         .btn-neon:hover { box-shadow: 0 0 20px #8b5cf6; transform: scale(1.02); }
+        .btn-neon:disabled { background: #4b3d6d; cursor: not-allowed; box-shadow: none; }
+
         .game-card { border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer; overflow: hidden; background: rgba(255,255,255,0.02); }
         .game-card:hover { border-color: #8b5cf6; transform: translateY(-5px); }
-        #game-viewer { display: none; position: fixed; inset: 0; background: #05040a; z-index: 500; }
         
-        /* Loading Spinner Helper */
-        .loading-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 50; border-radius: 24px; }
+        #game-viewer { display: none; position: fixed; inset: 0; background: #05040a; z-index: 500; }
     </style>
 </head>
 <body>
@@ -145,7 +144,7 @@
     <div id="modal-upload" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
         <div class="glass p-8 rounded-3xl w-full max-w-xl relative">
             <h3 id="modal-title" class="font-orbitron text-xl font-bold mb-6 text-purple-500">PUBLICAR JOGO</h3>
-            <form onsubmit="handleUpload(event)" class="space-y-4">
+            <form onsubmit="handleUpload(event)" id="form-upload" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <input type="text" id="up-name" placeholder="Título" required class="bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
                     <input type="text" id="up-capa" placeholder="URL da Capa" class="bg-white/5 p-3 rounded-xl border border-white/10 outline-none text-white">
@@ -190,7 +189,7 @@
                 document.getElementById('main-hub').classList.remove('hidden');
                 updateUI();
                 loadGames();
-            }, 10000); 
+            }, 5000); // Reduzi para 5s para ser mais ágil
         };
 
         function updateUI() {
@@ -223,9 +222,8 @@
         window.handleUpload = function(e) {
             e.preventDefault();
             
-            // Verificação de segurança: Firebase carregou?
-            if (!window.dbRefs || !window.db) {
-                alert("Erro: O sistema ainda está carregando ou falhou. Tente recarregar a página.");
+            if (!window.dbRefs) {
+                alert("Erro: Firebase ainda não carregou.");
                 return;
             }
 
@@ -235,72 +233,67 @@
             const capa = document.getElementById('up-capa').value;
             const btn = document.getElementById('btn-submit');
             
-            // Feedback visual
-            const originalBtnText = btn.innerText;
             btn.innerText = "ENVIANDO...";
             btn.disabled = true;
 
-            const save = (content) => {
-                const data = { name, capa, type, content, author: currentUser.name, authorId: currentUser.id };
-                
-                let promise;
-                if(isEditing) {
-                    promise = update(ref(window.db, `games/${activeGameId}`), data);
+            const finalizeSave = (contentData) => {
+                const gameObj = { 
+                    name, 
+                    capa, 
+                    type, 
+                    content: contentData, 
+                    author: currentUser.name, 
+                    authorId: currentUser.id,
+                    ts: Date.now()
+                };
+
+                let action;
+                if(isEditing && activeGameId) {
+                    action = update(ref(window.db, `games/${activeGameId}`), gameObj);
                 } else {
-                    const newRef = push(ref(window.db, 'games'));
-                    promise = set(newRef, { ...data, likes: 0, views: 0, ts: Date.now() });
+                    const newListRef = push(ref(window.db, 'games'));
+                    action = set(newListRef, { ...gameObj, likes: 0, views: 0 });
                 }
 
-                promise.then(() => {
-                    alert("JOGO PUBLICADO COM SUCESSO!");
+                action.then(() => {
+                    alert("PROJETO PUBLICADO COM SUCESSO!");
                     closeModal('modal-upload');
-                    e.target.reset();
+                    document.getElementById('form-upload').reset();
                     isEditing = false;
-                    // Resetar input para padrão
-                    document.getElementById('up-type').value = 'url';
                     toggleUploadInputs();
-                })
-                .catch((error) => {
-                    console.error(error);
-                    alert("ERRO AO PUBLICAR: " + error.message + "\n\nVerifique se as Regras do Firebase (Rules) estão permitindo escrita (write: true).");
-                })
-                .finally(() => {
-                    btn.innerText = originalBtnText;
+                }).catch(err => {
+                    alert("ERRO: " + err.message);
+                }).finally(() => {
+                    btn.innerText = "PUBLICAR NO HUB";
                     btn.disabled = false;
                 });
             };
 
             if (type === 'file') {
                 const fileInput = document.getElementById('up-file');
-                if(fileInput && fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    const r = new FileReader();
-                    r.onload = (evt) => save(evt.target.result);
-                    r.onerror = () => {
-                        alert("Erro ao ler o arquivo.");
-                        btn.innerText = originalBtnText;
-                        btn.disabled = false;
-                    };
-                    r.readAsDataURL(file);
+                if(fileInput?.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => finalizeSave(ev.target.result);
+                    reader.readAsDataURL(fileInput.files[0]);
                 } else {
-                    alert("Por favor, selecione um arquivo .html");
-                    btn.innerText = originalBtnText;
+                    alert("Selecione um arquivo .html");
                     btn.disabled = false;
+                    btn.innerText = "PUBLICAR NO HUB";
                 }
             } else {
-                const contentInput = document.getElementById('up-content');
-                if(!contentInput || !contentInput.value.trim()) {
-                     alert("Por favor, preencha o conteúdo.");
-                     btn.innerText = originalBtnText;
-                     btn.disabled = false;
-                     return;
+                const contentText = document.getElementById('up-content')?.value;
+                if(contentText) {
+                    finalizeSave(contentText);
+                } else {
+                    alert("Preencha o conteúdo!");
+                    btn.disabled = false;
+                    btn.innerText = "PUBLICAR NO HUB";
                 }
-                save(contentInput.value);
             }
         }
 
         function loadGames() {
-            if (!window.dbRefs) return setTimeout(loadGames, 500); // Tenta de novo se não carregou
+            if (!window.dbRefs) return setTimeout(loadGames, 1000);
             const { ref, onValue } = window.dbRefs;
             
             onValue(ref(window.db, 'games'), (snap) => {
@@ -308,20 +301,18 @@
                 grid.innerHTML = "";
                 const data = snap.val();
                 if(!data) {
-                    grid.innerHTML = "<p class='text-white opacity-50'>Nenhum jogo encontrado.</p>";
+                    grid.innerHTML = "<p class='opacity-30'>Nenhum projeto no hub...</p>";
                     return;
                 }
                 Object.keys(data).reverse().forEach(id => {
                     const g = data[id];
                     grid.innerHTML += `
                         <div class="game-card p-4" onclick="openViewer('${id}')">
-                            <img src="${g.capa || 'https://via.placeholder.com/300x180/1a1625/8b5cf6?text=GAME'}" class="w-full h-40 object-cover rounded-xl mb-4">
+                            <img src="${g.capa || 'https://via.placeholder.com/300x180/1a1625/8b5cf6?text=GDev'}" class="w-full h-40 object-cover rounded-xl mb-4">
                             <h4 class="font-bold uppercase text-sm truncate">${g.name}</h4>
                             <p class="text-[9px] text-purple-400 font-bold mt-2 uppercase">BY ${g.author}</p>
                         </div>`;
                 });
-            }, (error) => {
-                console.error("Erro ao carregar jogos:", error);
             });
         }
 
@@ -329,6 +320,7 @@
             activeGameId = id;
             const { ref, onValue, update, increment } = window.dbRefs;
             update(ref(window.db, `games/${id}`), { views: increment(1) });
+            
             onValue(ref(window.db, `games/${id}`), (snap) => {
                 const g = snap.val(); if(!g) return;
                 document.getElementById('v-title').innerText = g.name;
@@ -336,10 +328,17 @@
                 document.getElementById('v-views').innerText = g.views;
                 document.getElementById('v-likes').innerText = g.likes;
                 document.getElementById('owner-controls').classList.toggle('hidden', g.authorId !== currentUser.id);
+                
                 const frame = document.getElementById('main-frame');
-                if(g.type === 'url' || g.type === 'file') { frame.src = g.content; frame.srcdoc = ""; }
-                else { frame.srcdoc = g.content; frame.src = ""; }
-            });
+                if(g.type === 'url' || g.type === 'file') { 
+                    frame.src = g.content; 
+                    frame.srcdoc = ""; 
+                } else { 
+                    frame.srcdoc = g.content; 
+                    frame.src = ""; 
+                }
+            }, { onlyOnce: true });
+
             document.getElementById('like-btn').onclick = () => update(ref(window.db, `games/${activeGameId}`), { likes: increment(1) });
             loadComments(id);
             document.getElementById('game-viewer').style.display = 'block';
@@ -349,22 +348,21 @@
             const { ref, onValue } = window.dbRefs;
             onValue(ref(window.db, `games/${activeGameId}`), (snap) => {
                 const g = snap.val();
+                isEditing = true;
                 document.getElementById('up-name').value = g.name;
                 document.getElementById('up-capa').value = g.capa;
                 document.getElementById('up-type').value = g.type;
                 toggleUploadInputs();
                 
-                // Pequeno delay para garantir que o DOM atualizou o input/textarea
                 setTimeout(() => {
                     if(g.type !== 'file') {
                         const contentEl = document.getElementById('up-content');
                         if(contentEl) contentEl.value = g.content;
                     }
-                }, 50);
+                }, 100);
 
-                document.getElementById('modal-title').innerText = "EDITAR JOGO";
+                document.getElementById('modal-title').innerText = "EDITAR PROJETO";
                 document.getElementById('btn-submit').innerText = "SALVAR ALTERAÇÕES";
-                isEditing = true;
                 openModal('modal-upload');
             }, { onlyOnce: true });
         }
@@ -397,6 +395,7 @@
         function closeViewer() {
             document.getElementById('game-viewer').style.display = 'none';
             document.getElementById('main-frame').src = "";
+            document.getElementById('main-frame').srcdoc = "";
         }
 
         window.openModal = (id) => {
@@ -405,11 +404,13 @@
                 document.getElementById('btn-submit').innerText = "PUBLICAR NO HUB";
                 document.getElementById('up-type').value = 'url';
                 toggleUploadInputs();
-                document.querySelector('form').reset();
             }
             document.getElementById(id).classList.remove('hidden');
         };
-        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.closeModal = (id) => {
+            document.getElementById(id).classList.add('hidden');
+            if(id === 'modal-upload') isEditing = false;
+        };
     </script>
 </body>
 </html>
