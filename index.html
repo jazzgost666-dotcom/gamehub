@@ -6,78 +6,83 @@
     <title>PugHall | Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #1a1512; }
+        body { font-family: 'Inter', sans-serif; background-color: #1a1512; color: white; }
         .font-pug { font-family: 'Fredoka', sans-serif; }
-        .bg-pug { background-color: #1e1814; border: 1px solid #3e2f26; }
-        .accent-pug { color: #e67e22; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 50; }
+        .card-pug { background: rgba(30, 24, 20, 0.95); border: 1px solid #3e2f26; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; z-index: 100; padding: 20px; }
         .modal.active { display: flex; }
+        input, select { background: #0d1117 !important; border: 1px solid #3e2f26 !important; color: white !important; }
     </style>
 </head>
-<body class="text-white p-6">
+<body class="p-4 md:p-10">
 
     <div class="max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-10 border-b-2 border-[#e67e22] pb-4">
-            <h1 class="text-3xl font-pug font-bold accent-pug uppercase tracking-wider">🐾 PugHall Admin</h1>
-            <div class="text-sm text-gray-400">Gerenciando Coleção: <span class="text-[#f1c40f]">games</span></div>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 border-b-2 border-[#e67e22] pb-6">
+            <div>
+                <h1 class="text-4xl font-pug font-bold text-[#e67e22] uppercase tracking-tighter">🐾 PUGHALL <span class="text-white">ADMIN</span></h1>
+                <p class="text-[#d2b48c] text-sm font-bold">Gerenciador de Banco de Dados</p>
+            </div>
+            <button onclick="location.reload()" class="bg-[#3e2f26] hover:bg-[#e67e22] px-6 py-2 rounded-lg transition-all font-bold">🔄 Sincronizar</button>
         </header>
 
-        <div class="bg-pug rounded-xl overflow-hidden shadow-2xl">
-            <table class="w-full text-left">
-                <thead class="bg-[#3e2f26] text-[#d2b48c] text-xs uppercase">
-                    <tr>
-                        <th class="p-4">Capa</th>
-                        <th class="p-4">Jogo</th>
-                        <th class="p-4 text-center">Likes/Views</th>
-                        <th class="p-4 text-right">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="gameList">
-                    <tr><td colspan="4" class="p-10 text-center text-gray-500 italic">Buscando pugs no banco de dados...</td></tr>
-                </tbody>
-            </table>
+        <div class="card-pug rounded-2xl overflow-hidden shadow-2xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#3e2f26] text-[#d2b48c] text-xs uppercase tracking-widest">
+                            <th class="p-5">Capa</th>
+                            <th class="p-5">Título / Status</th>
+                            <th class="p-5 text-center">Estatísticas</th>
+                            <th class="p-5 text-right">Gerenciar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gameList">
+                        <tr><td colspan="4" class="p-20 text-center text-gray-500 animate-pulse font-bold">Conectando ao banco de dados PugHall...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <div id="editModal" class="modal">
-        <div class="bg-[#1e1814] p-8 rounded-2xl w-full max-w-md border-2 border-[#e67e22]">
-            <h2 class="text-2xl font-pug font-bold mb-6 accent-pug">Editar Jogo</h2>
+        <div class="card-pug p-8 rounded-3xl w-full max-w-lg border-2 border-[#e67e22] shadow-2xl">
+            <h2 class="text-2xl font-pug font-bold mb-6 text-[#e67e22]">Editar Propriedades</h2>
             <input type="hidden" id="editId">
             
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs text-[#d2b48c] font-bold uppercase">Título</label>
-                    <input type="text" id="editTitle" class="w-full bg-[#0d1117] border border-[#3e2f26] p-3 rounded-lg outline-none focus:border-[#e67e22]">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="text-xs font-bold text-[#d2b48c] uppercase">Título do Jogo</label>
+                    <input type="text" id="editTitle" class="w-full p-3 mt-1 rounded-xl outline-none focus:border-[#e67e22]">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-xs font-bold text-[#d2b48c] uppercase">URL da Imagem (Capa)</label>
+                    <input type="text" id="editCapa" class="w-full p-3 mt-1 rounded-xl outline-none">
                 </div>
                 <div>
-                    <label class="text-xs text-[#d2b48c] font-bold uppercase">URL da Capa</label>
-                    <input type="text" id="editCapa" class="w-full bg-[#0d1117] border border-[#3e2f26] p-3 rounded-lg outline-none focus:border-[#e67e22]">
+                    <label class="text-xs font-bold text-[#d2b48c] uppercase">Likes ❤️</label>
+                    <input type="number" id="editLikes" class="w-full p-3 mt-1 rounded-xl outline-none">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs text-[#d2b48c] font-bold uppercase">Likes</label>
-                        <input type="number" id="editLikes" class="w-full bg-[#0d1117] border border-[#3e2f26] p-3 rounded-lg outline-none">
-                    </div>
-                    <div>
-                        <label class="text-xs text-[#d2b48c] font-bold uppercase">Views</label>
-                        <input type="number" id="editViews" class="w-full bg-[#0d1117] border border-[#3e2f26] p-3 rounded-lg outline-none">
-                    </div>
+                <div>
+                    <label class="text-xs font-bold text-[#d2b48c] uppercase">Views 👁️</label>
+                    <input type="number" id="editViews" class="w-full p-3 mt-1 rounded-xl outline-none">
                 </div>
             </div>
             
-            <div class="flex justify-end gap-3 mt-8">
-                <button onclick="closeModal()" class="text-gray-400 hover:text-white px-4 font-bold">CANCELAR</button>
-                <button onclick="updateGame()" class="bg-[#e67e22] hover:bg-[#d35400] text-white px-6 py-2 rounded-lg font-bold transition-all">SALVAR</button>
+            <div class="flex justify-end gap-4 mt-8">
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white font-bold px-4">CANCELAR</button>
+                <button onclick="updateGame()" class="bg-[#e67e22] hover:bg-[#d35400] text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-all">
+                    ATUALIZAR DADOS
+                </button>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Sua config
+    <script>
+        // Configurações do seu Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyChPRJXA-qNZBVM6ooEcjUbB79xRW1XNAM",
             authDomain: "onyxchat-8ad6f.firebaseapp.com",
@@ -87,44 +92,58 @@
             appId: "1:896434555696:web:76da6aef962e3916d816f5"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const colName = "games"; // Coleção onde o PugHall salva os jogos
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const colName = "games"; // Sua coleção principal
 
-        async function loadGames() {
+        // Função para carregar os dados
+        function loadGames() {
             const list = document.getElementById('gameList');
-            try {
-                const snapshot = await getDocs(collection(db, colName));
+            
+            db.collection(colName).onSnapshot((snapshot) => {
                 list.innerHTML = "";
                 
                 if (snapshot.empty) {
-                    list.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-gray-500">Nenhum jogo encontrado na coleção "${colName}".</td></tr>`;
+                    list.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-orange-200">Nenhum jogo encontrado no banco.</td></tr>`;
                     return;
                 }
 
-                snapshot.forEach((gDoc) => {
-                    const data = gDoc.data();
-                    const id = gDoc.id;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const id = doc.id;
+
                     list.innerHTML += `
-                        <tr class="border-b border-[#3e2f26] hover:bg-[#e67e22]/5 transition">
-                            <td class="p-4"><img src="${data.capa}" class="w-16 h-12 object-cover rounded-md border border-[#3e2f26]"></td>
-                            <td class="p-4 font-bold text-[#d2b48c]">${data.titulo}</td>
-                            <td class="p-4 text-center">
-                                <span class="text-red-400">❤️ ${data.likes || 0}</span> | 
-                                <span class="text-blue-400">👁️ ${data.views || 0}</span>
+                        <tr class="border-b border-[#3e2f26] hover:bg-white/5 transition-colors">
+                            <td class="p-5">
+                                <img src="${data.capa || 'https://via.placeholder.com/150'}" class="w-20 h-14 object-cover rounded-xl border border-[#3e2f26] shadow-lg">
                             </td>
-                            <td class="p-4 text-right">
-                                <button onclick="openEdit('${id}', '${data.titulo}', '${data.capa}', ${data.likes || 0}, ${data.views || 0})" class="text-[#f1c40f] hover:underline mr-4 font-bold">Editar</button>
-                                <button onclick="deleteGame('${id}')" class="text-red-500 hover:underline font-bold">Apagar</button>
+                            <td class="p-5">
+                                <div class="font-bold text-white text-lg">${data.titulo || 'Sem Título'}</div>
+                                <div class="text-[10px] inline-block bg-[#e67e22]/20 text-[#e67e22] px-2 py-1 rounded-md font-black uppercase mt-1">
+                                    ${data.gameStatus || 'Stable'}
+                                </div>
+                            </td>
+                            <td class="p-5 text-center">
+                                <div class="flex justify-center gap-4 text-sm font-bold font-mono">
+                                    <span class="text-red-500">❤️ ${data.likes || 0}</span>
+                                    <span class="text-blue-400">👁️ ${data.views || 0}</span>
+                                </div>
+                            </td>
+                            <td class="p-5 text-right">
+                                <button onclick="openEdit('${id}', '${data.titulo}', '${data.capa}', ${data.likes || 0}, ${data.views || 0})" class="text-[#f1c40f] hover:text-white transition-colors mr-4 font-black text-xs uppercase">Editar</button>
+                                <button onclick="deleteGame('${id}')" class="text-red-500 hover:text-white transition-colors font-black text-xs uppercase">Apagar</button>
                             </td>
                         </tr>
                     `;
                 });
-            } catch (e) {
-                list.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-red-500">Erro: ${e.message}</td></tr>`;
-            }
+            }, (error) => {
+                list.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-red-500 font-bold">ERRO DE PERMISSÃO: Verifique as regras do Firebase.</td></tr>`;
+                console.error(error);
+            });
         }
 
+        // Abrir Modal
         window.openEdit = (id, tit, cap, lik, vie) => {
             document.getElementById('editId').value = id;
             document.getElementById('editTitle').value = tit;
@@ -134,28 +153,39 @@
             document.getElementById('editModal').classList.add('active');
         };
 
+        // Fechar Modal
         window.closeModal = () => document.getElementById('editModal').classList.remove('active');
 
+        // Atualizar no Firebase
         window.updateGame = async () => {
             const id = document.getElementById('editId').value;
-            const ref = doc(db, colName, id);
-            await updateDoc(ref, {
+            const newData = {
                 titulo: document.getElementById('editTitle').value,
                 capa: document.getElementById('editCapa').value,
                 likes: Number(document.getElementById('editLikes').value),
                 views: Number(document.getElementById('editViews').value)
-            });
-            closeModal();
-            loadGames();
-        };
+            };
 
-        window.deleteGame = async (id) => {
-            if(confirm("Deseja apagar este jogo do PugHall?")) {
-                await deleteDoc(doc(db, colName, id));
-                loadGames();
+            try {
+                await db.collection(colName).doc(id).update(newData);
+                closeModal();
+            } catch (e) {
+                alert("Erro ao atualizar: " + e.message);
             }
         };
 
+        // Deletar do Firebase
+        window.deleteGame = async (id) => {
+            if(confirm("🐾 Tem certeza que deseja remover este jogo do PugHall?")) {
+                try {
+                    await db.collection(colName).doc(id).delete();
+                } catch (e) {
+                    alert("Erro ao apagar: " + e.message);
+                }
+            }
+        };
+
+        // Iniciar
         loadGames();
     </script>
 </body>
