@@ -1,170 +1,125 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> </title> <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
-            authDomain: "game-dev-space.firebaseapp.com",
-            databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
-            projectId: "game-dev-space",
-            storageBucket: "game-dev-space.firebasestorage.app",
-            messagingSenderId: "1073185335190",
-            appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        window.fbDB = getDatabase(app);
-        window.fbLib = { ref, set, push, onValue, update, increment, remove };
-    </script>
-
+    <title>Admin Panel - Games</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { box-sizing: border-box; user-select: none; outline: none; }
-        /* Tela inicial totalmente branca */
-        body { background: #ffffff; margin: 0; overflow-x: hidden; font-family: 'Rajdhani', sans-serif; }
-        
-        .glass { background: rgba(11, 9, 21, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(139, 92, 246, 0.2); }
-        .btn-neon { background: #8b5cf6; color: white; font-weight: 900; transition: 0.3s; cursor: pointer; border: none; box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
-        
-        /* Painel escondido por padrão */
-        #main-hub { display: none; background: #0b0915; min-height: 100vh; color: white; }
-        
-        .section-title { font-family: 'Orbitron'; font-weight: 900; font-size: 14px; letter-spacing: 2px; color: #8b5cf6; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .hidden { display: none !important; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body class="bg-gray-900 text-white p-8">
 
-    <div id="main-hub">
-        <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
-            <h1 class="font-orbitron text-xl font-black text-purple-500 italic">GAMEDEV SPACE ADM</h1>
-            <div class="flex items-center gap-5">
-                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[11px] font-black uppercase italic">🚀 Novo Projeto</button>
-                <button onclick="location.reload()" class="text-white/30 text-xs">LOGOUT</button>
-            </div>
-        </header>
-
-        <main class="container mx-auto p-8">
-            <section>
-                <h2 class="section-title">🎮 GERENCIAR BANCO DE DADOS</h2>
-                <div id="grid-all" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
-            </section>
-        </main>
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Gerenciar Jogos</h1>
+        
+        <table class="w-full bg-gray-800 rounded-lg overflow-hidden">
+            <thead>
+                <tr class="bg-gray-700 text-left">
+                    <th class="p-4">Capa</th>
+                    <th class="p-4">Título</th>
+                    <th class="p-4">Likes</th>
+                    <th class="p-4">Views</th>
+                    <th class="p-4">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="gameList">
+                </tbody>
+        </table>
     </div>
 
-    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[35px] w-full max-w-xl text-white">
-            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 italic">🚀 POSTAR NO FIREBASE</h3>
-            <input type="text" id="up-name" placeholder="Título" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white mb-4">
-            <input type="text" id="up-capa" placeholder="URL da Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white mb-4">
-            <select id="up-type" onchange="window.toggleInputs()" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-white mb-4">
-                <option value="url">Link Externo (URL)</option>
-                <option value="code">Código HTML/Embed</option>
-                <option value="file">Arquivo .html</option>
-            </select>
-            <div id="up-input-container" class="mb-6">
-                <input type="text" id="up-content" placeholder="https://..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+    <div id="editModal" class="modal">
+        <div class="bg-gray-800 p-6 rounded-lg w-96">
+            <h2 class="text-xl mb-4">Editar Jogo</h2>
+            <input type="hidden" id="editId">
+            <input type="text" id="editTitle" placeholder="Título" class="w-full mb-2 p-2 rounded bg-gray-700">
+            <input type="text" id="editImage" placeholder="URL da Capa" class="w-full mb-2 p-2 rounded bg-gray-700">
+            <input type="number" id="editLikes" placeholder="Likes" class="w-full mb-2 p-2 rounded bg-gray-700">
+            <input type="number" id="editViews" placeholder="Views" class="w-full mb-4 p-2 rounded bg-gray-700">
+            
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal()" class="bg-gray-600 px-4 py-2 rounded">Cancelar</button>
+                <button onclick="updateGame()" class="bg-blue-600 px-4 py-2 rounded">Salvar</button>
             </div>
-            <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase italic">Publicar Agora</button>
-            <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full mt-4 opacity-50 text-xs">CANCELAR</button>
         </div>
     </div>
 
-    <script>
-        // 1. BLOQUEIOS DE INSPEÇÃO
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) || (e.ctrlKey && e.key === 'U')) {
-                e.preventDefault();
-                return false;
-            }
-        });
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 2. LÓGICA DE ATIVAÇÃO (SHIFT DIREITO + A + D + M)
-        let sequence = "";
-        document.addEventListener('keydown', (e) => {
-            // Verifica se o Shift Direito (code: ShiftRight) está pressionado
-            if (e.code === 'ShiftRight') {
-                const key = e.key.toUpperCase();
-                if (["A", "D", "M"].includes(key)) {
-                    // Valida a ordem ADM
-                    if ((key === "A" && sequence === "") || 
-                        (key === "D" && sequence === "A") || 
-                        (key === "M" && sequence === "AD")) {
-                        sequence += key;
-                    } else if (key === "A") {
-                        sequence = "A";
-                    }
+        const firebaseConfig = {
+            apiKey: "AIzaSyChPRJXA-qNZBVM6ooEcjUbB79xRW1XNAM",
+            authDomain: "onyxchat-8ad6f.firebaseapp.com",
+            projectId: "onyxchat-8ad6f",
+            storageBucket: "onyxchat-8ad6f.firebasestorage.app",
+            messagingSenderId: "896434555696",
+            appId: "1:896434555696:web:76da6aef962e3916d816f5",
+            measurementId: "G-SFJJHC5PM8"
+        };
 
-                    if (sequence === "ADM") {
-                        document.getElementById('main-hub').style.display = 'block';
-                        document.body.style.background = "#0b0915";
-                        loadGames(); // Inicia o Firebase
-                        sequence = "";
-                    }
-                }
-            }
-        });
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const colRef = collection(db, "games"); // Nome da sua coleção no Firebase
 
-        document.addEventListener('keyup', (e) => {
-            if (e.code === 'ShiftRight') sequence = "";
-        });
-
-        // 3. FUNÇÕES FIREBASE (ADAPTADAS DO SEU CÓDIGO)
-        window.toggleInputs = function() {
-            const t = document.getElementById('up-type').value;
-            const c = document.getElementById('up-input-container');
-            if(t === 'file') c.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-4 rounded-2xl text-white">`;
-            else if(t === 'code') c.innerHTML = `<textarea id="up-content" placeholder="HTML..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea>`;
-            else c.innerHTML = `<input type="text" id="up-content" placeholder="https://..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">`;
-        }
-
-        async function enviarProjeto() {
-            const t = document.getElementById('up-type').value;
-            let content = "";
-            if(t === 'file') {
-                const f = document.getElementById('up-file').files[0];
-                if(!f) return alert("Selecione o arquivo!");
-                content = await new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(f); });
-            } else { content = document.getElementById('up-content').value; }
-
-            window.fbLib.set(window.fbLib.push(window.fbLib.ref(window.fbDB, 'games')), {
-                name: document.getElementById('up-name').value,
-                capa: document.getElementById('up-capa').value,
-                type: t, content: content, timestamp: Date.now()
-            }).then(() => {
-                alert("Postado com sucesso!");
-                document.getElementById('modal-upload').classList.add('hidden');
+        // Função para carregar jogos
+        async function loadGames() {
+            const querySnapshot = await getDocs(colRef);
+            const list = document.getElementById('gameList');
+            list.innerHTML = "";
+            
+            querySnapshot.forEach((doc) => {
+                const game = doc.data();
+                list.innerHTML += `
+                    <tr class="border-b border-gray-700">
+                        <td class="p-4"><img src="${game.capa}" class="w-12 h-12 object-cover rounded"></td>
+                        <td class="p-4">${game.titulo}</td>
+                        <td class="p-4">${game.likes || 0}</td>
+                        <td class="p-4">${game.views || 0}</td>
+                        <td class="p-4">
+                            <button onclick="openEdit('${doc.id}', '${game.titulo}', '${game.capa}', ${game.likes}, ${game.views})" class="text-blue-400 mr-2">Editar</button>
+                            <button onclick="deleteGame('${doc.id}')" class="text-red-400">Apagar</button>
+                        </td>
+                    </tr>
+                `;
             });
         }
 
-        function loadGames() {
-            if (!window.fbLib) return setTimeout(loadGames, 500);
-            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
-                const grid = document.getElementById('grid-all'); grid.innerHTML = "";
-                const data = snap.val(); if(!data) return;
-                Object.keys(data).forEach(id => {
-                    const g = data[id];
-                    grid.innerHTML += `
-                        <div class="p-4 glass rounded-[25px] border border-white/5">
-                            <p class="font-black uppercase text-purple-400 text-xs mb-2">${g.name}</p>
-                            <button onclick="deletarJogo('${id}')" class="text-[10px] text-red-500 font-bold hover:underline">REMOVER</button>
-                        </div>`;
-                });
-            });
-        }
+        // Funções globais para os botões
+        window.openEdit = (id, titulo, capa, likes, views) => {
+            document.getElementById('editId').value = id;
+            document.getElementById('editTitle').value = titulo;
+            document.getElementById('editImage').value = capa;
+            document.getElementById('editLikes').value = likes;
+            document.getElementById('editViews').value = views;
+            document.getElementById('editModal').classList.add('active');
+        };
 
-        window.deletarJogo = function(id) {
-            if(confirm("Deseja apagar este jogo?")) {
-                window.fbLib.remove(window.fbLib.ref(window.fbDB, `games/${id}`));
+        window.closeModal = () => document.getElementById('editModal').classList.remove('active');
+
+        window.updateGame = async () => {
+            const id = document.getElementById('editId').value;
+            const docRef = doc(db, "games", id);
+            await updateDoc(docRef, {
+                titulo: document.getElementById('editTitle').value,
+                capa: document.getElementById('editImage').value,
+                likes: Number(document.getElementById('editLikes').value),
+                views: Number(document.getElementById('editViews').value)
+            });
+            alert("Atualizado!");
+            location.reload();
+        };
+
+        window.deleteGame = async (id) => {
+            if(confirm("Tem certeza que deseja apagar?")) {
+                await deleteDoc(doc(db, "games", id));
+                location.reload();
             }
-        }
+        };
+
+        loadGames();
     </script>
 </body>
 </html>
