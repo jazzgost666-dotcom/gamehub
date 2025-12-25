@@ -1,44 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA</title>
-    <style>
-        /* Estética "Vazio" */
-        body { background: #000; color: #111; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        
-        /* Painel ADM */
-        #adminPanel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 30px; border: 1px solid #00ff00; border-radius: 5px; box-shadow: 0 0 50px rgba(0,255,0,0.2); width: 400px; z-index: 1000; color: #00ff00; }
-        h2 { border-bottom: 1px solid #00ff00; padding-bottom: 10px; font-size: 18px; text-transform: uppercase; }
-        input, select { width: 100%; background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 10px; margin-top: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #00ff00; color: #000; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        button:hover { background: #00cc00; }
-        #log { margin-top: 20px; font-size: 11px; color: #00ff00; max-height: 150px; overflow-y: auto; background: #050505; border: 1px dashed #00ff00; padding: 5px; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; }
-    </style>
-</head>
-<body oncontextmenu="return false;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> </title> <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    <div id="overlay" class="overlay"></div>
-    <div id="adminPanel">
-        <h2>Terminal Administrativo</h2>
-        
-        <label style="font-size: 10px;">BANCO DE DADOS: Realtime DB</label>
-        <input type="text" id="path" placeholder="Caminho (ex: users/player1)">
-        <input type="text" id="value" placeholder="Novo Valor (JSON)">
-        
-        <button onclick="salvarDados()">GRAVAR DADOS (SET)</button>
-        <button onclick="lerDados()" style="background: transparent; color: #00ff00; border: 1px solid #00ff00;">LER DADOS (GET)</button>
-        <button onclick="fecharPainel()" style="background: #300; color: white; border: none; margin-top: 20px;">DESCONECTAR</button>
-        
-        <div id="log">> Terminal pronto...</div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
-
-    <script>
-        // Configuração conforme seus dados
         const firebaseConfig = {
             apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
             authDomain: "game-dev-space.firebaseapp.com",
@@ -48,35 +19,93 @@
             messagingSenderId: "1073185335190",
             appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
         };
-        
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
 
-        // 1. Bloqueios de Teclado/F12
+        const app = initializeApp(firebaseConfig);
+        window.fbDB = getDatabase(app);
+        window.fbLib = { ref, set, push, onValue, update, increment, remove };
+    </script>
+
+    <style>
+        * { box-sizing: border-box; user-select: none; outline: none; }
+        /* Tela inicial totalmente branca */
+        body { background: #ffffff; margin: 0; overflow-x: hidden; font-family: 'Rajdhani', sans-serif; }
+        
+        .glass { background: rgba(11, 9, 21, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(139, 92, 246, 0.2); }
+        .btn-neon { background: #8b5cf6; color: white; font-weight: 900; transition: 0.3s; cursor: pointer; border: none; box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
+        
+        /* Painel escondido por padrão */
+        #main-hub { display: none; background: #0b0915; min-height: 100vh; color: white; }
+        
+        .section-title { font-family: 'Orbitron'; font-weight: 900; font-size: 14px; letter-spacing: 2px; color: #8b5cf6; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="main-hub">
+        <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
+            <h1 class="font-orbitron text-xl font-black text-purple-500 italic">GAMEDEV SPACE ADM</h1>
+            <div class="flex items-center gap-5">
+                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-full text-[11px] font-black uppercase italic">🚀 Novo Projeto</button>
+                <button onclick="location.reload()" class="text-white/30 text-xs">LOGOUT</button>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-8">
+            <section>
+                <h2 class="section-title">🎮 GERENCIAR BANCO DE DADOS</h2>
+                <div id="grid-all" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[35px] w-full max-w-xl text-white">
+            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 italic">🚀 POSTAR NO FIREBASE</h3>
+            <input type="text" id="up-name" placeholder="Título" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white mb-4">
+            <input type="text" id="up-capa" placeholder="URL da Capa" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white mb-4">
+            <select id="up-type" onchange="window.toggleInputs()" class="w-full bg-black p-4 rounded-2xl border border-white/10 text-white mb-4">
+                <option value="url">Link Externo (URL)</option>
+                <option value="code">Código HTML/Embed</option>
+                <option value="file">Arquivo .html</option>
+            </select>
+            <div id="up-input-container" class="mb-6">
+                <input type="text" id="up-content" placeholder="https://..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">
+            </div>
+            <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-2xl font-black uppercase italic">Publicar Agora</button>
+            <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full mt-4 opacity-50 text-xs">CANCELAR</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. BLOQUEIOS DE INSPEÇÃO
         document.addEventListener('keydown', (e) => {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) || (e.ctrlKey && e.key === 'U')) {
                 e.preventDefault();
+                return false;
             }
         });
 
-        // 2. Lógica da Sequência: Shift Direito segurado + Teclas A, D, M em ordem
+        // 2. LÓGICA DE ATIVAÇÃO (SHIFT DIREITO + A + D + M)
         let sequence = "";
         document.addEventListener('keydown', (e) => {
+            // Verifica se o Shift Direito (code: ShiftRight) está pressionado
             if (e.code === 'ShiftRight') {
-                // Enquanto o Shift Direito estiver apertado, ele monitora a sequência
                 const key = e.key.toUpperCase();
                 if (["A", "D", "M"].includes(key)) {
-                    // Verifica se a letra é a próxima da sequência ADM
+                    // Valida a ordem ADM
                     if ((key === "A" && sequence === "") || 
                         (key === "D" && sequence === "A") || 
                         (key === "M" && sequence === "AD")) {
                         sequence += key;
                     } else if (key === "A") {
-                        sequence = "A"; // Reinicia se apertar A no meio
+                        sequence = "A";
                     }
 
                     if (sequence === "ADM") {
-                        abrirPainel();
+                        document.getElementById('main-hub').style.display = 'block';
+                        document.body.style.background = "#0b0915";
+                        loadGames(); // Inicia o Firebase
                         sequence = "";
                     }
                 }
@@ -84,46 +113,56 @@
         });
 
         document.addEventListener('keyup', (e) => {
-            if (e.code === 'ShiftRight') sequence = ""; // Limpa ao soltar o shift
+            if (e.code === 'ShiftRight') sequence = "";
         });
 
-        // 3. Funções do Painel
-        function abrirPainel() {
-            document.getElementById('adminPanel').style.display = 'block';
-            document.getElementById('overlay').style.display = 'block';
+        // 3. FUNÇÕES FIREBASE (ADAPTADAS DO SEU CÓDIGO)
+        window.toggleInputs = function() {
+            const t = document.getElementById('up-type').value;
+            const c = document.getElementById('up-input-container');
+            if(t === 'file') c.innerHTML = `<input type="file" id="up-file" accept=".html" class="w-full bg-white/5 p-4 rounded-2xl text-white">`;
+            else if(t === 'code') c.innerHTML = `<textarea id="up-content" placeholder="HTML..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 h-32 text-white text-xs"></textarea>`;
+            else c.innerHTML = `<input type="text" id="up-content" placeholder="https://..." class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 text-white">`;
         }
 
-        function fecharPainel() {
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
+        async function enviarProjeto() {
+            const t = document.getElementById('up-type').value;
+            let content = "";
+            if(t === 'file') {
+                const f = document.getElementById('up-file').files[0];
+                if(!f) return alert("Selecione o arquivo!");
+                content = await new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(f); });
+            } else { content = document.getElementById('up-content').value; }
+
+            window.fbLib.set(window.fbLib.push(window.fbLib.ref(window.fbDB, 'games')), {
+                name: document.getElementById('up-name').value,
+                capa: document.getElementById('up-capa').value,
+                type: t, content: content, timestamp: Date.now()
+            }).then(() => {
+                alert("Postado com sucesso!");
+                document.getElementById('modal-upload').classList.add('hidden');
+            });
         }
 
-        function logger(msg) {
-            const log = document.getElementById('log');
-            log.innerHTML = `> ${msg}<br>` + log.innerHTML;
+        function loadGames() {
+            if (!window.fbLib) return setTimeout(loadGames, 500);
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
+                const grid = document.getElementById('grid-all'); grid.innerHTML = "";
+                const data = snap.val(); if(!data) return;
+                Object.keys(data).forEach(id => {
+                    const g = data[id];
+                    grid.innerHTML += `
+                        <div class="p-4 glass rounded-[25px] border border-white/5">
+                            <p class="font-black uppercase text-purple-400 text-xs mb-2">${g.name}</p>
+                            <button onclick="deletarJogo('${id}')" class="text-[10px] text-red-500 font-bold hover:underline">REMOVER</button>
+                        </div>`;
+                });
+            });
         }
 
-        async function salvarDados() {
-            const path = document.getElementById('path').value;
-            const value = document.getElementById('value').value;
-            try {
-                const parsedValue = JSON.parse(value); // Tenta converter string para JSON
-                await database.ref(path).set(parsedValue);
-                logger("SUCESSO: Dados gravados.");
-            } catch (e) {
-                // Se não for JSON, grava como string pura
-                await database.ref(path).set(value);
-                logger("SUCESSO: String gravada.");
-            }
-        }
-
-        async function lerDados() {
-            const path = document.getElementById('path').value;
-            try {
-                const snapshot = await database.ref(path).once('value');
-                logger("RESULTADO: " + JSON.stringify(snapshot.val()));
-            } catch (e) {
-                logger("ERRO: " + e.message);
+        window.deletarJogo = function(id) {
+            if(confirm("Deseja apagar este jogo?")) {
+                window.fbLib.remove(window.fbLib.ref(window.fbDB, `games/${id}`));
             }
         }
     </script>
