@@ -2,55 +2,34 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Automation Panel</title>
+    <title>Firebase Auth Automation</title>
     <style>
-        /* CSS para deixar o painel organizado */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f0f; color: #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 40px; }
-        .container { width: 100%; max-width: 600px; }
-        .card { background: #1a1a1a; padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h1 { color: #f39c12; margin-bottom: 30px; }
-        h3 { margin-top: 0; color: #f39c12; }
-        .status-box { padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-weight: bold; }
-        .off { background: #3c1a1a; color: #e74c3c; }
-        .on { background: #1a3c1a; color: #2ecc71; }
-        button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; text-align: center; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #333; max-width: 500px; margin: auto; }
+        button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-auth { background: #3498db; color: white; }
         .btn-start { background: #e74c3c; color: white; }
-        .btn-start:hover { background: #c0392b; }
-        .btn-stop { background: #7f8c8d; color: white; }
-        .btn-stop:hover { background: #95a5a6; }
-        .log { background: #000; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; height: 100px; overflow-y: auto; color: #00ff00; border: 1px solid #222; }
+        .log { background: #000; padding: 10px; height: 150px; overflow-y: auto; font-family: monospace; color: #0f0; text-align: left; font-size: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Firebase Control Hub</h1>
-
-        <div class="card">
-            <h3>Postagem Infinita (TESTE)</h3>
-            <div id="statusIndicator" class="status-box off">LOOP PARADO</div>
-            
-            <p style="font-size: 0.9em; color: #888;">Este sistema postará dados na pasta <strong>"jogos_teste"</strong> com o valor "TESTE" repetidamente.</p>
-            
-            <button class="btn-start" id="startBtn">INICIAR LOOP INFINITO</button>
-            <button class="btn-stop" id="stopBtn">PARAR SISTEMA</button>
-
-            <div class="log" id="logBox">Aguardando comando...</div>
-        </div>
-
-        <div class="card">
-            <h3>Info do Projeto</h3>
-            <p><strong>Project ID:</strong> game-dev-space</p>
-            <p><strong>Status:</strong> <span id="dbStatus">Conectando...</span></p>
-        </div>
+    <div class="card">
+        <h2>Postagem com Autenticação</h2>
+        <p id="userStatus">Status: Não Autenticado</p>
+        
+        <button class="btn-auth" id="btnAuth">1. LOGAR AUTOMATICAMENTE</button>
+        
+        <button class="btn-start" id="btnStart" disabled>2. INICIAR POSTAGENS</button>
+        
+        <div class="log" id="logBox">Aguardando login...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Suas credenciais
         const firebaseConfig = {
             apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
             authDomain: "game-dev-space.firebaseapp.com",
@@ -61,58 +40,41 @@
             appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
         };
 
-        // Inicializar
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
-        document.getElementById('dbStatus').innerText = "Online";
-
-        let loopId = null;
-        let count = 0;
 
         const logBox = document.getElementById('logBox');
-        const statusInd = document.getElementById('statusIndicator');
+        const btnStart = document.getElementById('btnStart');
 
         function addLog(msg) {
-            const time = new Date().toLocaleTimeString();
-            logBox.innerHTML = `[${time}] ${msg}<br>` + logBox.innerHTML;
+            logBox.innerHTML = `> ${msg}<br>` + logBox.innerHTML;
         }
 
-        // Função de Início
-        document.getElementById('startBtn').onclick = () => {
-            if (loopId) return;
-
-            statusInd.innerText = "LOOP ATIVO";
-            statusInd.className = "status-box on";
-            addLog("Iniciando postagens em massa...");
-
-            // Intervalo de 300ms (ajustável)
-            loopId = setInterval(() => {
-                count++;
-                const newGameRef = push(ref(db, 'jogos_teste')); // push gera ID único automático do Firebase
-                
-                set(newGameRef, {
-                    game: "TESTE",
-                    post_number: count,
-                    timestamp: new Date().toISOString()
-                })
-                .then(() => {
-                    addLog(`Sucesso: Post #${count} enviado.`);
-                })
-                .catch((err) => {
-                    addLog(`ERRO: ${err.message}`);
-                });
-            }, 300); 
+        // Tentar Login Anônimo (Não precisa de e-mail/senha)
+        document.getElementById('btnAuth').onclick = () => {
+            signInAnonymously(auth)
+                .then(() => addLog("Login efetuado com sucesso!"))
+                .catch(err => addLog("Erro no login: " + err.message));
         };
 
-        // Função de Parada
-        document.getElementById('stopBtn').onclick = () => {
-            if (loopId) {
-                clearInterval(loopId);
-                loopId = null;
-                statusInd.innerText = "LOOP PARADO";
-                statusInd.className = "status-box off";
-                addLog("Sistema interrompido pelo usuário.");
+        // Monitorar se o usuário está logado
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('userStatus').innerText = "Status: LOGADO (ID: " + user.uid.substring(0,5) + ")";
+                btnStart.disabled = false;
             }
+        });
+
+        // Loop de postagem
+        document.getElementById('btnStart').onclick = () => {
+            addLog("Iniciando loop...");
+            setInterval(() => {
+                const newRef = push(ref(db, 'jogos_teste'));
+                set(newRef, { game: "TESTE", date: new Date().toISOString() })
+                    .then(() => addLog("Postado com sucesso!"))
+                    .catch(err => addLog("ERRO DE PERMISSÃO: " + err.message));
+            }, 1000);
         };
     </script>
 </body>
