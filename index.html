@@ -14,7 +14,7 @@
         .snowflake { position: fixed; top: -10px; background: white; border-radius: 50%; pointer-events: none; animation: fall linear infinite; z-index: 10000; }
         @keyframes fall { to { transform: translateY(105vh); } }
 
-        /* --- INTRO & CRÉDITOS NEON --- */
+        /* --- INTRO --- */
         #credits-screen { position: fixed; inset: 0; background: #000; z-index: 20000; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
         .g-spinner { font-size: 150px; color: var(--purple); filter: drop-shadow(0 0 30px var(--purple)); transition: 3s; cursor: pointer; }
         .g-spinning { animation: g-intro 3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
@@ -29,43 +29,35 @@
         /* --- MAIN HUB --- */
         #main-hub { display: none; opacity: 0; transition: 1s; }
         nav { height: 80px; background: #000; border-bottom: 4px solid var(--purple); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-name-abbr { font-size: 8px; color: var(--purple-glow); letter-spacing: 1px; }
-
-        /* --- MODALS --- */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .modal-content { background: #111; border: 4px solid var(--purple); width: 550px; position: relative; }
-        .p-banner { width: 100%; height: 170px; background-size: cover; background-position: center; border-bottom: 4px solid var(--purple); background-color: #1a1a1a; }
-        .p-avatar { width: 100px; height: 100px; border: 4px solid #fff; margin: -50px 0 0 25px; background-size: cover; background-position: center; background-color: #222; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-
+        
         /* --- CARDS & GRID --- */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 35px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 35px; }
         .card { background: #0d0d0d; border: 2px solid #222; padding: 15px; transition: 0.4s; position: relative; }
         .card:hover { border-color: var(--purple); transform: scale(1.02); }
         .card-img { width: 100%; height: 150px; background-size: cover; background-position: center; border: 2px solid #1a1a1a; margin-bottom: 15px; background-color: #111; }
 
         /* --- UI ELEMENTS --- */
         .btn { background: #000; border: 2px solid #fff; color: #fff; padding: 14px; cursor: pointer; font-size: 8px; width: 100%; margin-top: 8px; transition: 0.2s; }
-        .btn:active { transform: scale(0.95); }
         .btn-p { border-color: var(--purple); color: var(--purple); }
         .btn-p:hover { background: var(--purple); color: white; }
         input, textarea { width: 100%; background: #050505; border: 2px solid #333; padding: 14px; color: #fff; margin-bottom: 12px; font-size: 8px; outline: none; }
-        input:focus { border-color: var(--purple); }
-
+        
         #ds-notify { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: #000; padding: 10px 20px; font-size: 8px; border-radius: 2px; display: none; z-index: 100000; }
         #player { position: fixed; inset: 0; background: #000; z-index: 30000; display: none; flex-direction: column; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        .modal-content { background: #111; border: 4px solid var(--purple); width: 500px; padding: 30px; }
     </style>
 </head>
 <body>
 
-    <div id="ds-notify">SED-GAMES: DADOS SINCRONIZADOS</div>
+    <div id="ds-notify">SED-GAMES: NUVEM SINCRONIZADA</div>
 
     <div id="credits-screen" onclick="startExperience()">
         <div id="c-g" class="g-spinner">S</div>
         <div id="c-roll" class="movie-roll">
             <div class="credit-item" style="color:#ff4757; font-size: 14px; margin-bottom: 20px;">
-                ESTABLISHING CONNECTION...<br>
-                <span style="color:#fff; font-size:8px;">LOADING SED-GAMES CORE...</span>
+                CONNECTING TO FIREBASE...<br>
+                <span style="color:#fff; font-size:8px;">ACCESSING SED-GAMES DATA...</span>
             </div>
             <div class="credit-item">
                 <span>SYSTEM OPERATOR</span>
@@ -79,184 +71,126 @@
     <div id="main-hub">
         <nav>
             <div style="color:var(--purple); font-size: 22px; text-shadow: 0 0 10px var(--purple);">SED-GAMES</div>
-            <div class="user-info">
-                <span id="user-display" class="user-name-abbr">USER_ROOT</span>
-                <div id="nav-avatar" onclick="openModal('profile-modal')" style="width:50px; height:50px; border:2px solid var(--purple); cursor:pointer; background-size:cover; background-position:center; border-radius: 4px; background-image: url('https://via.placeholder.com/50');"></div>
-            </div>
+            <button class="btn btn-p" style="width: 200px;" onclick="openModal('studio-modal')">+ NOVO JOGO</button>
         </nav>
 
-        <section style="padding: 40px; background: linear-gradient(180deg, #130f40, #000); border-bottom: 4px solid var(--purple); display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h2 style="font-size: 12px; margin-bottom: 10px;">BIBLIOTECA DE JOGOS</h2>
-                <p style="font-size: 6px; opacity: 0.5;">LOCAL_STORAGE ATIVO</p>
+        <div class="grid" id="gameGrid">
             </div>
-            <button class="btn btn-p" style="width: 220px;" onclick="openModal('studio-modal')">+ ADICIONAR JOGO</button>
-        </section>
-
-        <div class="grid" id="gameGrid"></div>
-    </div>
-
-    <div id="profile-modal" class="modal">
-        <div class="modal-content">
-            <div id="v-banner" class="p-banner"></div>
-            <div id="v-avatar" class="p-avatar"></div>
-            <div style="padding: 30px;">
-                <label style="font-size: 7px; color: var(--purple-glow);">LINK DO GIF PERFIL:</label>
-                <input type="text" id="edit-avatar" style="margin-top:8px;">
-                <label style="font-size: 7px; color: var(--purple-glow);">LINK DO GIF BANNER:</label>
-                <input type="text" id="edit-banner" style="margin-top:8px;">
-                <button class="btn btn-p" onclick="saveProfile()">SALVAR NO SED-DATA</button>
-                <button class="btn" onclick="closeModal('profile-modal')">FECHAR</button>
-            </div>
-        </div>
     </div>
 
     <div id="studio-modal" class="modal">
-        <div class="modal-content" style="padding: 30px;">
+        <div class="modal-content">
             <h3 style="font-size: 10px; margin-bottom: 25px; color: var(--purple);">SED-GAMES STUDIO</h3>
             <input type="text" id="g-name" placeholder="NOME DO JOGO">
             <input type="text" id="g-thumb" placeholder="URL DA IMAGEM DE CAPA">
-            <textarea id="g-code" style="height:180px;" placeholder="COLE SEU CÓDIGO HTML AQUI..."></textarea>
-            <button class="btn btn-p" onclick="saveGame()">COMPILAR & PUBLICAR</button>
-            <button class="btn" onclick="closeModal('studio-modal')">CANCELAR</button>
+            <textarea id="g-code" style="height:180px;" placeholder="COLE O CÓDIGO HTML AQUI..."></textarea>
+            <button class="btn btn-p" onclick="saveGame()">ENVIAR PARA NUVEM</button>
+            <button class="btn" onclick="closeModal('studio-modal')">FECHAR</button>
         </div>
     </div>
 
     <div id="player">
         <div style="padding:15px; background:#000; border-bottom:3px solid var(--purple); display:flex; justify-content:space-between; align-items:center;">
             <span id="p-name" style="font-size:8px; color: var(--purple-glow);">EXECUTANDO...</span>
-            <button class="btn" style="width:auto; margin:0; padding:8px 20px; border-color: red; color: red;" onclick="stopG()">ENCERRAR X</button>
+            <button class="btn" style="width:auto; margin:0; padding:8px 20px; border-color: red; color: red;" onclick="stopG()">SAIR X</button>
         </div>
         <div id="game-view" style="flex:1; background:#fff;"></div>
     </div>
 
-    <script>
-        const STORE_ID = 'SED_GAMES_DATA';
-        // Agora o activeSession é fixo como 'admin' pois removemos o login
-        let activeSession = 'admin';
-        let store = JSON.parse(localStorage.getItem(STORE_ID)) || {
-            'admin': { avatar: "", banner: "", games: [] }
+    <script type="module">
+        // Importando Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Sua Configuração
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvZL5ER9aanLmr4H7XzIehKKOKiR2-B0A",
+            authDomain: "sed-games.firebaseapp.com",
+            projectId: "sed-games",
+            storageBucket: "sed-games.firebasestorage.app",
+            messagingSenderId: "789378411468",
+            appId: "1:789378411468:web:55c66c0ed2486066418b69",
+            measurementId: "G-NHTK76H7TZ"
         };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const gamesCol = collection(db, "jogos");
+
         let audioCtx = null;
 
-        function syncStore() {
-            localStorage.setItem(STORE_ID, JSON.stringify(store));
-            const notify = document.getElementById('ds-notify');
-            notify.style.display = 'block';
-            setTimeout(() => notify.style.display = 'none', 2500);
-        }
-
-        function playSfx(freq, type, dur, vol=0.1) {
-            if(!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + dur);
-        }
-
-        function startExperience() {
+        // Iniciar Experiência
+        window.startExperience = function() {
             if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const g = document.getElementById('c-g');
-            g.classList.add('g-spinning');
+            document.getElementById('c-g').classList.add('g-spinning');
             document.getElementById('click-hint').style.display = 'none';
-            playSfx(60, 'sawtooth', 3.0, 0.2);
             
             setTimeout(() => {
-                g.style.display = 'none';
+                document.getElementById('c-g').style.display = 'none';
                 document.getElementById('c-roll').style.display = 'flex';
-                playSfx(880, 'square', 0.1);
             }, 3000);
 
-            // Redireciona direto para o Hub após 8 segundos de animação
             setTimeout(() => {
-                document.getElementById('credits-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('credits-screen').style.display = 'none';
-                    document.getElementById('main-hub').style.display = 'block';
-                    setTimeout(() => document.getElementById('main-hub').style.opacity = '1', 50);
-                    renderHub();
-                }, 1000);
+                document.getElementById('credits-screen').style.display = 'none';
+                document.getElementById('main-hub').style.display = 'block';
+                setTimeout(() => document.getElementById('main-hub').style.opacity = '1', 50);
             }, 9000);
-        }
+        };
 
-        function renderHub() {
-            const user = store[activeSession];
-            document.getElementById('nav-avatar').style.backgroundImage = `url('${user.avatar}')`;
-            document.getElementById('v-avatar').style.backgroundImage = `url('${user.avatar}')`;
-            document.getElementById('v-banner').style.backgroundImage = `url('${user.banner}')`;
-            
-            const grid = document.getElementById('gameGrid');
-            if(user.games.length === 0) {
-                grid.innerHTML = '<p style="font-size:8px; opacity:0.3;">NENHUM JOGO ENCONTRADO NO BANCO...</p>';
-                return;
-            }
-
-            grid.innerHTML = user.games.map((g, i) => `
-                <div class="card">
-                    <div class="card-img" style="background-image:url('${g.thumb}')"></div>
-                    <p style="font-size:8px; margin-bottom:12px; color:var(--purple-glow);">${g.name}</p>
-                    <button class="btn btn-p" onclick="launchGame(${i})">JOGAR</button>
-                    <button class="btn" style="border-color:#ff4757; color:#ff4757; font-size:6px;" onclick="deleteGame(${i})">REMOVER</button>
-                </div>
-            `).join('');
-        }
-
-        function saveProfile() {
-            store[activeSession].avatar = document.getElementById('edit-avatar').value;
-            store[activeSession].banner = document.getElementById('edit-banner').value;
-            syncStore();
-            renderHub();
-            closeModal('profile-modal');
-        }
-
-        function saveGame() {
+        // Salvar Jogo no Firestore
+        window.saveGame = async function() {
             const n = document.getElementById('g-name').value;
             const t = document.getElementById('g-thumb').value;
             const c = document.getElementById('g-code').value;
             
             if(n && c) {
-                store[activeSession].games.unshift({ name: n, thumb: t, code: c });
-                syncStore();
-                renderHub();
+                await addDoc(gamesCol, { name: n, thumb: t, code: c, date: Date.now() });
                 closeModal('studio-modal');
                 document.getElementById('g-name').value = "";
                 document.getElementById('g-thumb').value = "";
                 document.getElementById('g-code').value = "";
-            } else {
-                alert("ERRO: NOME E CÓDIGO OBRIGATÓRIOS!");
+                showNotify();
             }
-        }
+        };
 
-        function deleteGame(i) {
-            if(confirm("DELETAR JOGO DO SED-GAMES?")) {
-                store[activeSession].games.splice(i, 1);
-                syncStore();
-                renderHub();
-            }
-        }
+        // Carregar Jogos em Tempo Real
+        const q = query(gamesCol, orderBy("date", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const grid = document.getElementById('gameGrid');
+            const games = [];
+            snapshot.forEach(doc => games.push({ id: doc.id, ...doc.data() }));
+            
+            grid.innerHTML = games.map(g => `
+                <div class="card">
+                    <div class="card-img" style="background-image:url('${g.thumb}')"></div>
+                    <p style="font-size:8px; margin-bottom:12px; color:var(--purple-glow);">${g.name}</p>
+                    <button class="btn btn-p" onclick="launchGame('${g.id}')">JOGAR</button>
+                    <button class="btn" style="border-color:#ff4757; color:#ff4757; font-size:6px;" onclick="deleteGame('${g.id}')">DELETAR</button>
+                </div>
+            `).join('');
+            window.currentGames = games;
+        });
 
-        function launchGame(i) {
-            const g = store[activeSession].games[i];
+        window.launchGame = function(id) {
+            const g = window.currentGames.find(x => x.id === id);
             document.getElementById('player').style.display = 'flex';
-            document.getElementById('p-name').innerText = `PLAYING: ${g.name}`;
-            const container = document.getElementById('game-view');
-            container.innerHTML = `<iframe id="runtime" style="width:100%; height:100%; border:none;"></iframe>`;
-            const doc = document.getElementById('runtime').contentWindow.document;
+            document.getElementById('p-name').innerText = `EXECUTANDO: ${g.name}`;
+            const frame = document.getElementById('game-view');
+            frame.innerHTML = `<iframe style="width:100%; height:100%; border:none;"></iframe>`;
+            const doc = frame.querySelector('iframe').contentWindow.document;
             doc.open(); doc.write(g.code); doc.close();
-            playSfx(1000, 'sine', 0.2);
-        }
+        };
 
-        function stopG() {
-            document.getElementById('player').style.display = 'none';
-            document.getElementById('game-view').innerHTML = '';
-        }
+        window.deleteGame = async (id) => { if(confirm("EXCLUIR JOGO?")) await deleteDoc(doc(db, "jogos", id)); };
+        window.stopG = () => { document.getElementById('player').style.display = 'none'; document.getElementById('game-view').innerHTML = ''; };
+        window.openModal = (id) => document.getElementById(id).style.display = 'flex';
+        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
 
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function showNotify() {
+            const n = document.getElementById('ds-notify');
+            n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 3000);
+        }
 
         // Neve
         setInterval(() => {
@@ -265,10 +199,9 @@
             f.style.left = Math.random() * 100 + 'vw';
             f.style.width = f.style.height = Math.random() * 3 + 2 + 'px';
             f.style.animationDuration = Math.random() * 3 + 3 + 's';
-            f.style.opacity = Math.random();
             document.body.appendChild(f);
             setTimeout(() => f.remove(), 6000);
-        }, 150);
+        }, 200);
     </script>
 </body>
 </html>
