@@ -2,80 +2,326 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Firebase Auth Automation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-HUB | DATASTORE ELITE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; text-align: center; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #333; max-width: 500px; margin: auto; }
-        button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        .btn-auth { background: #3498db; color: white; }
-        .btn-start { background: #e74c3c; color: white; }
-        .log { background: #000; padding: 10px; height: 150px; overflow-y: auto; font-family: monospace; color: #0f0; text-align: left; font-size: 12px; margin-top: 10px; }
+        :root { --purple: #6c5ce7; --purple-glow: #a29bfe; --bg: #050505; --success: #2ecc71; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Press Start 2P', cursive; }
+        body { background-color: var(--bg); color: #fff; overflow-x: hidden; height: 100vh; }
+
+        /* --- SISTEMA DE NEVE --- */
+        .snowflake { position: fixed; top: -10px; background: white; border-radius: 50%; pointer-events: none; animation: fall linear infinite; z-index: 10000; }
+        @keyframes fall { to { transform: translateY(105vh); } }
+
+        /* --- INTRO & CRÉDITOS NEON --- */
+        #credits-screen { position: fixed; inset: 0; background: #000; z-index: 20000; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+        .g-spinner { font-size: 150px; color: var(--purple); filter: drop-shadow(0 0 30px var(--purple)); transition: 3s; cursor: pointer; }
+        .g-spinning { animation: g-intro 3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
+        @keyframes g-intro { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.2) rotate(1440deg); opacity: 0; } }
+        
+        .movie-roll { position: absolute; top: 100%; display: flex; flex-direction: column; gap: 80px; text-align: center; animation: roll-up 12s linear forwards; display: none; width: 100%; }
+        @keyframes roll-up { 0% { top: 100%; } 100% { top: -220%; } }
+        
+        .neon-text { font-size: 20px; filter: drop-shadow(0 0 15px currentColor); margin-top: 5px; font-weight: bold; }
+        .cat-neon { color: #ffffff; }
+        .exiled-neon { color: #2ecc71; }
+        .chad-neon { color: #3498db; }
+
+        /* --- AUTH SCREEN --- */
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 19000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .auth-box { background: #111; border: 4px solid var(--purple); padding: 40px; width: 420px; text-align: center; box-shadow: 15px 15px 0 var(--purple); }
+
+        /* --- MAIN HUB --- */
+        #main-hub { display: none; opacity: 0; transition: 1s; }
+        nav { height: 80px; background: #000; border-bottom: 4px solid var(--purple); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-name-abbr { font-size: 8px; color: var(--purple-glow); letter-spacing: 1px; }
+
+        /* --- DATASTORE MODALS --- */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        .modal-content { background: #111; border: 4px solid var(--purple); width: 550px; position: relative; }
+        .p-banner { width: 100%; height: 170px; background-size: cover; background-position: center; border-bottom: 4px solid var(--purple); background-color: #1a1a1a; }
+        .p-avatar { width: 100px; height: 100px; border: 4px solid #fff; margin: -50px 0 0 25px; background-size: cover; background-position: center; background-color: #222; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+
+        /* --- CARDS & GRID --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 35px; }
+        .card { background: #0d0d0d; border: 2px solid #222; padding: 15px; transition: 0.4s; position: relative; }
+        .card:hover { border-color: var(--purple); transform: scale(1.02); }
+        .card-img { width: 100%; height: 150px; background-size: cover; background-position: center; border: 2px solid #1a1a1a; margin-bottom: 15px; background-color: #111; }
+
+        /* --- UI ELEMENTS --- */
+        .btn { background: #000; border: 2px solid #fff; color: #fff; padding: 14px; cursor: pointer; font-size: 8px; width: 100%; margin-top: 8px; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-p { border-color: var(--purple); color: var(--purple); }
+        .btn-p:hover { background: var(--purple); color: white; }
+        input, textarea { width: 100%; background: #050505; border: 2px solid #333; padding: 14px; color: #fff; margin-bottom: 12px; font-size: 8px; outline: none; }
+        input:focus { border-color: var(--purple); }
+
+        /* --- NOTIFICATION --- */
+        #ds-notify { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: #000; padding: 10px 20px; font-size: 8px; border-radius: 2px; display: none; z-index: 100000; }
+        
+        #player { position: fixed; inset: 0; background: #000; z-index: 30000; display: none; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Postagem com Autenticação</h2>
-        <p id="userStatus">Status: Não Autenticado</p>
-        
-        <button class="btn-auth" id="btnAuth">1. LOGAR AUTOMATICAMENTE</button>
-        
-        <button class="btn-start" id="btnStart" disabled>2. INICIAR POSTAGENS</button>
-        
-        <div class="log" id="logBox">Aguardando login...</div>
+    <div id="ds-notify">DATASTORE: DADOS SINCRONIZADOS COM SUCESSO</div>
+
+    <div id="credits-screen" onclick="startExperience()">
+        <div id="c-g" class="g-spinner">G</div>
+        <div id="c-roll" class="movie-roll">
+            <div class="credit-item" style="color:#ff4757; font-size: 14px; margin-bottom: 20px;">
+                ESTABLISHING CONNECTION...<br>
+                <span style="color:#fff; font-size:8px;">ACCESSING LOCAL_STORAGE...</span>
+            </div>
+            <div class="credit-item">
+                <span>DEVELOPER / CREATOR APP</span>
+                <p class="neon-text cat-neon">CAT</p>
+            </div>
+            <div class="credit-item">
+                <span>OWNER / CREATOR SITE</span>
+                <p class="neon-text exiled-neon">EXILED</p>
+            </div>
+            <div class="credit-item">
+                <span>HELPER / CREATOR SERVER</span>
+                <p class="neon-text chad-neon">CHAD</p>
+            </div>
+            <div class="credit-item" style="color:var(--purple); margin-top: 50px; font-size: 10px;">G-HUB ULTIMATE v7.0</div>
+        </div>
+        <p id="click-hint" style="position:absolute; bottom:40px; font-size:8px; color:#444; animation: pulse 1s infinite;">[ CLIQUE NO G PARA INICIAR DATASTORE ]</p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2 style="font-size: 10px; margin-bottom: 25px; color: var(--purple); letter-spacing: 2px;">IDENTIFICATION_REQUIRED</h2>
+            <input type="email" id="login-email" placeholder="USER EMAIL">
+            <input type="password" id="login-pass" placeholder="ACCESS KEY">
+            <button class="btn btn-p" onclick="doLogin()">DECRYPT & ENTER</button>
+        </div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
-            authDomain: "game-dev-space.firebaseapp.com",
-            databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
-            projectId: "game-dev-space",
-            storageBucket: "game-dev-space.firebasestorage.app",
-            messagingSenderId: "1073185335190",
-            appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
-        };
+    <div id="main-hub">
+        <nav>
+            <div style="color:var(--purple); font-size: 22px; text-shadow: 0 0 10px var(--purple);">G-HUB</div>
+            <div class="user-info">
+                <span id="user-display" class="user-name-abbr"></span>
+                <div id="nav-avatar" onclick="openModal('profile-modal')" style="width:50px; height:50px; border:2px solid var(--purple); cursor:pointer; background-size:cover; background-position:center; border-radius: 4px;"></div>
+            </div>
+        </nav>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+        <section style="padding: 40px; background: linear-gradient(180deg, #130f40, #000); border-bottom: 4px solid var(--purple); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="font-size: 12px; margin-bottom: 10px;">SEUS PROJETOS</h2>
+                <p style="font-size: 6px; opacity: 0.5;">DADOS SALVOS NO DISCO LOCAL</p>
+            </div>
+            <button class="btn btn-p" style="width: 220px;" onclick="openModal('studio-modal')">+ NOVO JOGO</button>
+        </section>
 
-        const logBox = document.getElementById('logBox');
-        const btnStart = document.getElementById('btnStart');
+        <div class="grid" id="gameGrid"></div>
+    </div>
 
-        function addLog(msg) {
-            logBox.innerHTML = `> ${msg}<br>` + logBox.innerHTML;
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <div id="v-banner" class="p-banner"></div>
+            <div id="v-avatar" class="p-avatar"></div>
+            <div style="padding: 30px;">
+                <label style="font-size: 7px; color: var(--purple-glow);">LINK DO GIF PERFIL:</label>
+                <input type="text" id="edit-avatar" style="margin-top:8px;">
+                <label style="font-size: 7px; color: var(--purple-glow);">LINK DO GIF BANNER:</label>
+                <input type="text" id="edit-banner" style="margin-top:8px;">
+                <button class="btn btn-p" onclick="saveProfile()">ATUALIZAR DATASTORE</button>
+                <button class="btn" onclick="closeModal('profile-modal')">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="studio-modal" class="modal">
+        <div class="modal-content" style="padding: 30px;">
+            <h3 style="font-size: 10px; margin-bottom: 25px; color: var(--purple);">ENGINE STUDIO</h3>
+            <input type="text" id="g-name" placeholder="NOME DO JOGO">
+            <input type="text" id="g-thumb" placeholder="URL DA IMAGEM DE CAPA">
+            <textarea id="g-code" style="height:180px;" placeholder="COLE SEU CÓDIGO HTML AQUI..."></textarea>
+            <button class="btn btn-p" onclick="saveGame()">COMPILAR & SALVAR</button>
+            <button class="btn" onclick="closeModal('studio-modal')">CANCELAR</button>
+        </div>
+    </div>
+
+    <div id="player">
+        <div style="padding:15px; background:#000; border-bottom:3px solid var(--purple); display:flex; justify-content:space-between; align-items:center;">
+            <span id="p-name" style="font-size:8px; color: var(--purple-glow);">EXECUTANDO...</span>
+            <button class="btn" style="width:auto; margin:0; padding:8px 20px; border-color: red; color: red;" onclick="stopG()">ENCERRAR X</button>
+        </div>
+        <div id="game-view" style="flex:1; background:#fff;"></div>
+    </div>
+
+    <script>
+        // --- MOTOR DO DATASTORE ---
+        const STORE_ID = 'GHUB_CORE_DATA_V7';
+        let store = JSON.parse(localStorage.getItem(STORE_ID)) || {};
+        let activeSession = null;
+        let audioCtx = null;
+
+        function syncStore() {
+            localStorage.setItem(STORE_ID, JSON.stringify(store));
+            const notify = document.getElementById('ds-notify');
+            notify.style.display = 'block';
+            setTimeout(() => notify.style.display = 'none', 2500);
         }
 
-        // Tentar Login Anônimo (Não precisa de e-mail/senha)
-        document.getElementById('btnAuth').onclick = () => {
-            signInAnonymously(auth)
-                .then(() => addLog("Login efetuado com sucesso!"))
-                .catch(err => addLog("Erro no login: " + err.message));
-        };
+        // --- SISTEMA DE ÁUDIO ---
+        function playSfx(freq, type, dur, vol=0.1) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            if(type === 'sawtooth') osc.frequency.exponentialRampToValueAtTime(freq*4, audioCtx.currentTime + dur);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
+        }
 
-        // Monitorar se o usuário está logado
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('userStatus').innerText = "Status: LOGADO (ID: " + user.uid.substring(0,5) + ")";
-                btnStart.disabled = false;
+        // --- INICIALIZAÇÃO ---
+        function startExperience() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const g = document.getElementById('c-g');
+            g.classList.add('g-spinning');
+            document.getElementById('click-hint').style.display = 'none';
+            playSfx(60, 'sawtooth', 3.0, 0.2);
+            
+            setTimeout(() => {
+                g.style.display = 'none';
+                document.getElementById('c-roll').style.display = 'flex';
+                playSfx(880, 'square', 0.1);
+            }, 3000);
+
+            setTimeout(() => {
+                document.getElementById('credits-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('credits-screen').style.display = 'none';
+                    document.getElementById('auth-screen').style.display = 'flex';
+                }, 1000);
+            }, 15000);
+        }
+
+        // --- LÓGICA DE USUÁRIO ---
+        function doLogin() {
+            const email = document.getElementById('login-email').value.toLowerCase();
+            const pass = document.getElementById('login-pass').value;
+            
+            if(!email.includes('@')) return alert("ERRO: FORMATO DE EMAIL INVÁLIDO");
+            
+            if(!store[email]) {
+                store[email] = { pass: pass, avatar: "", banner: "", games: [] };
+                syncStore();
+                alert("NOVO DATASTORE CRIADO PARA ESTE USUÁRIO.");
             }
-        });
 
-        // Loop de postagem
-        document.getElementById('btnStart').onclick = () => {
-            addLog("Iniciando loop...");
-            setInterval(() => {
-                const newRef = push(ref(db, 'jogos_teste'));
-                set(newRef, { game: "TESTE", date: new Date().toISOString() })
-                    .then(() => addLog("Postado com sucesso!"))
-                    .catch(err => addLog("ERRO DE PERMISSÃO: " + err.message));
-            }, 1000);
-        };
+            if(store[email].pass === pass) {
+                activeSession = email;
+                playSfx(1200, 'sine', 0.2);
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-hub').style.display = 'block';
+                setTimeout(() => document.getElementById('main-hub').style.opacity = '1', 50);
+                renderHub();
+            } else {
+                playSfx(100, 'square', 0.4);
+                alert("ERRO: CHAVE DE ACESSO INCORRETA");
+            }
+        }
+
+        function renderHub() {
+            const user = store[activeSession];
+            
+            // Abreviação de Nome Inteligente
+            const rawName = activeSession.split('@')[0];
+            document.getElementById('user-display').innerText = rawName.length > 10 ? rawName.substring(0, 10) + "..." : rawName;
+
+            document.getElementById('nav-avatar').style.backgroundImage = `url('${user.avatar}')`;
+            document.getElementById('v-avatar').style.backgroundImage = `url('${user.avatar}')`;
+            document.getElementById('v-banner').style.backgroundImage = `url('${user.banner}')`;
+            
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = user.games.map((g, i) => `
+                <div class="card">
+                    <div class="card-img" style="background-image:url('${g.thumb}')"></div>
+                    <p style="font-size:8px; margin-bottom:12px; color:var(--purple-glow);">${g.name}</p>
+                    <button class="btn btn-p" onclick="launchGame(${i})">EXECUTAR</button>
+                    <button class="btn" style="border-color:#ff4757; color:#ff4757; font-size:6px;" onclick="deleteGame(${i})">DELETAR</button>
+                </div>
+            `).join('');
+        }
+
+        // --- PERSISTÊNCIA DE DADOS ---
+        function saveProfile() {
+            store[activeSession].avatar = document.getElementById('edit-avatar').value;
+            store[activeSession].banner = document.getElementById('edit-banner').value;
+            syncStore();
+            renderHub();
+            closeModal('profile-modal');
+        }
+
+        function saveGame() {
+            const n = document.getElementById('g-name').value;
+            const t = document.getElementById('g-thumb').value;
+            const c = document.getElementById('g-code').value;
+            
+            if(n && c) {
+                store[activeSession].games.unshift({ name: n, thumb: t, code: c });
+                syncStore();
+                renderHub();
+                closeModal('studio-modal');
+                // Limpar campos
+                document.getElementById('g-name').value = "";
+                document.getElementById('g-thumb').value = "";
+                document.getElementById('g-code').value = "";
+            } else {
+                alert("PREENCHA O NOME E O CÓDIGO!");
+            }
+        }
+
+        function deleteGame(i) {
+            if(confirm("REMOVER PERMANENTEMENTE DO DATASTORE?")) {
+                store[activeSession].games.splice(i, 1);
+                syncStore();
+                renderHub();
+            }
+        }
+
+        // --- CONTROLE DO PLAYER ---
+        function launchGame(i) {
+            const g = store[activeSession].games[i];
+            document.getElementById('player').style.display = 'flex';
+            document.getElementById('p-name').innerText = `EXECUTANDO: ${g.name}`;
+            const container = document.getElementById('game-view');
+            container.innerHTML = `<iframe id="runtime" style="width:100%; height:100%; border:none;"></iframe>`;
+            const doc = document.getElementById('runtime').contentWindow.document;
+            doc.open(); doc.write(g.code); doc.close();
+            playSfx(1000, 'sine', 0.2);
+        }
+
+        function stopG() {
+            document.getElementById('player').style.display = 'none';
+            document.getElementById('game-view').innerHTML = '';
+        }
+
+        // --- UTILS ---
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // Neve Infinita
+        setInterval(() => {
+            const f = document.createElement('div');
+            f.className = 'snowflake';
+            f.style.left = Math.random() * 100 + 'vw';
+            f.style.width = f.style.height = Math.random() * 3 + 2 + 'px';
+            f.style.animationDuration = Math.random() * 3 + 3 + 's';
+            f.style.opacity = Math.random();
+            document.body.appendChild(f);
+            setTimeout(() => f.remove(), 6000);
+        }, 150);
     </script>
 </body>
 </html>
