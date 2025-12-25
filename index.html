@@ -1,207 +1,274 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sed-Games | DATASTORE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Sed-Games | Elite DataStore</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, update, increment, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // CONFIGURAÇÃO DO SEU FIREBASE (Sed-Games)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvZL5ER9aanLmr4H7XzIehKKOKiR2-B0A",
+            authDomain: "sed-games.firebaseapp.com",
+            databaseURL: "https://sed-games-default-rtdb.firebaseio.com", // Adicionei a URL do RTDB
+            projectId: "sed-games",
+            storageBucket: "sed-games.firebasestorage.app",
+            messagingSenderId: "789378411468",
+            appId: "1:789378411468:web:55c66c0ed2486066418b69"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.fbDB = getDatabase(app);
+        window.fbLib = { ref, set, push, onValue, update, increment, remove };
+    </script>
+
     <style>
-        :root { --purple: #6c5ce7; --purple-glow: #a29bfe; --bg: #050505; --success: #2ecc71; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Press Start 2P', cursive; }
-        body { background-color: var(--bg); color: #fff; overflow-x: hidden; height: 100vh; }
-
-        /* --- SISTEMA DE NEVE --- */
-        .snowflake { position: fixed; top: -10px; background: white; border-radius: 50%; pointer-events: none; animation: fall linear infinite; z-index: 10000; }
-        @keyframes fall { to { transform: translateY(105vh); } }
-
-        /* --- INTRO --- */
-        #credits-screen { position: fixed; inset: 0; background: #000; z-index: 20000; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
-        .g-spinner { font-size: 150px; color: var(--purple); filter: drop-shadow(0 0 30px var(--purple)); transition: 3s; cursor: pointer; }
-        .g-spinning { animation: g-intro 3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
-        @keyframes g-intro { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.2) rotate(1440deg); opacity: 0; } }
+        * { box-sizing: border-box; user-select: none; outline: none; }
+        body { font-family: 'Rajdhani', sans-serif; background: #050505; color: white; margin: 0; overflow-x: hidden; }
+        .glass { background: rgba(108, 92, 231, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(108, 92, 231, 0.2); }
+        .btn-neon { background: #6c5ce7; color: white; font-weight: 900; transition: 0.3s; cursor: pointer; border: none; box-shadow: 0 0 15px rgba(108, 92, 231, 0.4); }
+        .btn-neon:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(108, 92, 231, 0.6); }
         
-        .movie-roll { position: absolute; top: 100%; display: flex; flex-direction: column; gap: 80px; text-align: center; animation: roll-up 8s linear forwards; display: none; width: 100%; }
-        @keyframes roll-up { 0% { top: 100%; } 100% { top: -150%; } }
+        #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .intro-s { font-family: 'Orbitron'; font-size: 150px; font-weight: 900; color: #6c5ce7; text-shadow: 0 0 30px #6c5ce7; animation: fall 1.5s ease-out forwards; }
         
-        .neon-text { font-size: 20px; filter: drop-shadow(0 0 15px currentColor); margin-top: 5px; font-weight: bold; }
-        .chad-neon { color: #3498db; }
+        @keyframes fall { 0% { transform: translateY(-200px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes moveUp { 0% { transform: translateY(100%); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-150%); opacity: 0; } }
+        
+        .section-title { font-family: 'Orbitron'; font-weight: 900; font-size: 14px; letter-spacing: 2px; color: #6c5ce7; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(108, 92, 231, 0.3), transparent); }
+        .hidden { display: none !important; }
 
-        /* --- MAIN HUB --- */
-        #main-hub { display: none; opacity: 0; transition: 1s; }
-        nav { height: 80px; background: #000; border-bottom: 4px solid var(--purple); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
-        
-        /* --- CARDS & GRID --- */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 35px; }
-        .card { background: #0d0d0d; border: 2px solid #222; padding: 15px; transition: 0.4s; position: relative; }
-        .card:hover { border-color: var(--purple); transform: scale(1.02); }
-        .card-img { width: 100%; height: 150px; background-size: cover; background-position: center; border: 2px solid #1a1a1a; margin-bottom: 15px; background-color: #111; }
-
-        /* --- UI ELEMENTS --- */
-        .btn { background: #000; border: 2px solid #fff; color: #fff; padding: 14px; cursor: pointer; font-size: 8px; width: 100%; margin-top: 8px; transition: 0.2s; }
-        .btn-p { border-color: var(--purple); color: var(--purple); }
-        .btn-p:hover { background: var(--purple); color: white; }
-        input, textarea { width: 100%; background: #050505; border: 2px solid #333; padding: 14px; color: #fff; margin-bottom: 12px; font-size: 8px; outline: none; }
-        
-        #ds-notify { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: #000; padding: 10px 20px; font-size: 8px; border-radius: 2px; display: none; z-index: 100000; }
-        #player { position: fixed; inset: 0; background: #000; z-index: 30000; display: none; flex-direction: column; }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .modal-content { background: #111; border: 4px solid var(--purple); width: 500px; padding: 30px; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #6c5ce7; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="ds-notify">SED-GAMES: NUVEM SINCRONIZADA</div>
-
-    <div id="credits-screen" onclick="startExperience()">
-        <div id="c-g" class="g-spinner">S</div>
-        <div id="c-roll" class="movie-roll">
-            <div class="credit-item" style="color:#ff4757; font-size: 14px; margin-bottom: 20px;">
-                CONNECTING TO FIREBASE...<br>
-                <span style="color:#fff; font-size:8px;">ACCESSING SED-GAMES DATA...</span>
+    <div id="intro-screen">
+        <div class="intro-s">S</div>
+        <div style="height:150px; overflow:hidden; margin-top:20px; position:relative; width:300px;">
+            <div style="position: absolute; width: 100%; animation: moveUp 6s linear 1.5s forwards; transform: translateY(100%); opacity: 0; text-align: center;">
+                <p class="text-purple-400 text-xs font-bold uppercase italic tracking-widest">Powered by</p>
+                <p class="text-xl font-black mb-4">SED-GAMES ENGINE</p>
+                <p class="text-purple-400 text-xs font-bold uppercase italic tracking-widest">Lead Operator</p>
+                <p class="text-xl font-black">CHAD SYSTEM</p>
             </div>
-            <div class="credit-item">
-                <span>SYSTEM OPERATOR</span>
-                <p class="neon-text chad-neon">CHAD</p>
-            </div>
-            <div class="credit-item" style="color:var(--purple); margin-top: 50px; font-size: 10px;">SED-GAMES v1.0</div>
-        </div>
-        <p id="click-hint" style="position:absolute; bottom:40px; font-size:8px; color:#444; animation: pulse 1s infinite;">[ CLIQUE NO S PARA INICIAR ]</p>
-    </div>
-
-    <div id="main-hub">
-        <nav>
-            <div style="color:var(--purple); font-size: 22px; text-shadow: 0 0 10px var(--purple);">SED-GAMES</div>
-            <button class="btn btn-p" style="width: 200px;" onclick="openModal('studio-modal')">+ NOVO JOGO</button>
-        </nav>
-
-        <div class="grid" id="gameGrid">
-            </div>
-    </div>
-
-    <div id="studio-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="font-size: 10px; margin-bottom: 25px; color: var(--purple);">SED-GAMES STUDIO</h3>
-            <input type="text" id="g-name" placeholder="NOME DO JOGO">
-            <input type="text" id="g-thumb" placeholder="URL DA IMAGEM DE CAPA">
-            <textarea id="g-code" style="height:180px;" placeholder="COLE O CÓDIGO HTML AQUI..."></textarea>
-            <button class="btn btn-p" onclick="saveGame()">ENVIAR PARA NUVEM</button>
-            <button class="btn" onclick="closeModal('studio-modal')">FECHAR</button>
         </div>
     </div>
 
-    <div id="player">
-        <div style="padding:15px; background:#000; border-bottom:3px solid var(--purple); display:flex; justify-content:space-between; align-items:center;">
-            <span id="p-name" style="font-size:8px; color: var(--purple-glow);">EXECUTANDO...</span>
-            <button class="btn" style="width:auto; margin:0; padding:8px 20px; border-color: red; color: red;" onclick="stopG()">SAIR X</button>
-        </div>
-        <div id="game-view" style="flex:1; background:#fff;"></div>
-    </div>
-
-    <script type="module">
-        // Importando Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Sua Configuração
-        const firebaseConfig = {
-            apiKey: "AIzaSyAvZL5ER9aanLmr4H7XzIehKKOKiR2-B0A",
-            authDomain: "sed-games.firebaseapp.com",
-            projectId: "sed-games",
-            storageBucket: "sed-games.firebasestorage.app",
-            messagingSenderId: "789378411468",
-            appId: "1:789378411468:web:55c66c0ed2486066418b69",
-            measurementId: "G-NHTK76H7TZ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const gamesCol = collection(db, "jogos");
-
-        let audioCtx = null;
-
-        // Iniciar Experiência
-        window.startExperience = function() {
-            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            document.getElementById('c-g').classList.add('g-spinning');
-            document.getElementById('click-hint').style.display = 'none';
-            
-            setTimeout(() => {
-                document.getElementById('c-g').style.display = 'none';
-                document.getElementById('c-roll').style.display = 'flex';
-            }, 3000);
-
-            setTimeout(() => {
-                document.getElementById('credits-screen').style.display = 'none';
-                document.getElementById('main-hub').style.display = 'block';
-                setTimeout(() => document.getElementById('main-hub').style.opacity = '1', 50);
-            }, 9000);
-        };
-
-        // Salvar Jogo no Firestore
-        window.saveGame = async function() {
-            const n = document.getElementById('g-name').value;
-            const t = document.getElementById('g-thumb').value;
-            const c = document.getElementById('g-code').value;
-            
-            if(n && c) {
-                await addDoc(gamesCol, { name: n, thumb: t, code: c, date: Date.now() });
-                closeModal('studio-modal');
-                document.getElementById('g-name').value = "";
-                document.getElementById('g-thumb').value = "";
-                document.getElementById('g-code').value = "";
-                showNotify();
-            }
-        };
-
-        // Carregar Jogos em Tempo Real
-        const q = query(gamesCol, orderBy("date", "desc"));
-        onSnapshot(q, (snapshot) => {
-            const grid = document.getElementById('gameGrid');
-            const games = [];
-            snapshot.forEach(doc => games.push({ id: doc.id, ...doc.data() }));
-            
-            grid.innerHTML = games.map(g => `
-                <div class="card">
-                    <div class="card-img" style="background-image:url('${g.thumb}')"></div>
-                    <p style="font-size:8px; margin-bottom:12px; color:var(--purple-glow);">${g.name}</p>
-                    <button class="btn btn-p" onclick="launchGame('${g.id}')">JOGAR</button>
-                    <button class="btn" style="border-color:#ff4757; color:#ff4757; font-size:6px;" onclick="deleteGame('${g.id}')">DELETAR</button>
+    <div id="main-hub" class="hidden">
+        <header class="p-5 flex justify-between items-center glass sticky top-0 z-50">
+            <h1 class="font-orbitron text-xl font-black text-purple-500 italic tracking-tighter">SED-GAMES</h1>
+            <div class="flex items-center gap-5">
+                <button onclick="document.getElementById('modal-upload').classList.remove('hidden')" class="btn-neon px-6 py-2 rounded-lg text-[10px] font-black uppercase italic">🚀 Publicar Jogo</button>
+                <div onclick="document.getElementById('modal-profile').classList.remove('hidden')" class="cursor-pointer group flex items-center gap-3">
+                    <div id="nav-avatar" class="w-10 h-10 rounded-lg border-2 border-purple-500 bg-cover bg-center transition-transform group-hover:rotate-12 bg-[#111]"></div>
                 </div>
-            `).join('');
-            window.currentGames = games;
-        });
+            </div>
+        </header>
 
-        window.launchGame = function(id) {
-            const g = window.currentGames.find(x => x.id === id);
-            document.getElementById('player').style.display = 'flex';
-            document.getElementById('p-name').innerText = `EXECUTANDO: ${g.name}`;
-            const frame = document.getElementById('game-view');
-            frame.innerHTML = `<iframe style="width:100%; height:100%; border:none;"></iframe>`;
-            const doc = frame.querySelector('iframe').contentWindow.document;
-            doc.open(); doc.write(g.code); doc.close();
+        <main class="container mx-auto p-8">
+            <div id="display-banner" class="w-full h-[280px] rounded-[30px] bg-[#0a0a0a] relative border border-white/5 bg-cover bg-center mb-20 shadow-2xl">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent rounded-[30px]"></div>
+                <div id="display-avatar" class="w-[120px] h-[120px] rounded-2xl border-4 border-purple-500 absolute bottom-[-50px] left-[40px] bg-cover bg-center bg-[#111] z-10 shadow-xl"></div>
+                <div class="absolute bottom-4 left-[180px]">
+                    <h2 class="text-2xl font-black font-orbitron italic">ROOT_USER</h2>
+                    <p class="text-purple-400 text-xs font-bold uppercase">Sed-Games Elite Member</p>
+                </div>
+            </div>
+
+            <section class="mt-24">
+                <h2 class="section-title">🕹️ DATABASE DE JOGOS</h2>
+                <div id="grid-all" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="game-viewer" class="hidden fixed inset-0 z-[1000] bg-black">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center glass p-3 border-b border-purple-500/30">
+                <div class="flex items-center gap-4">
+                    <button onclick="closeViewer()" class="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-2 rounded font-black text-[10px] transition">SAIR DO JOGO</button>
+                    <h3 id="v-title" class="font-orbitron font-bold text-purple-500 text-sm uppercase italic"></h3>
+                </div>
+                <div class="flex gap-4">
+                     <span class="text-[10px] text-white/40 uppercase font-bold self-center">Status: Executando</span>
+                </div>
+            </div>
+            <iframe id="main-frame" class="w-full flex-1 bg-black" allow="autoplay; fullscreen; pointer-lock"></iframe>
+        </div>
+    </div>
+
+    <div id="modal-upload" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[30px] w-full max-w-xl border-purple-500/50">
+            <h3 class="font-orbitron text-xl font-black mb-6 text-purple-500 italic">🚀 ENVIAR PROJETO</h3>
+            <input type="text" id="up-name" placeholder="Título do Jogo" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-white mb-4 focus:border-purple-500 transition">
+            <input type="text" id="up-capa" placeholder="URL da Capa (Imagem/GIF)" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-white mb-4 focus:border-purple-500 transition">
+            
+            <div class="flex gap-4 mb-4">
+                <select id="up-type" onchange="toggleInputs()" class="flex-1 bg-black p-4 rounded-xl border border-white/10 text-white text-xs font-bold uppercase">
+                    <option value="url">Link Externo</option>
+                    <option value="code">Código HTML</option>
+                </select>
+            </div>
+
+            <div id="up-input-container" class="mb-6">
+                <input type="text" id="up-content" placeholder="https://..." class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-white">
+            </div>
+
+            <button onclick="enviarProjeto()" class="w-full btn-neon py-4 rounded-xl font-black uppercase italic">Compilar & Publicar</button>
+            <button onclick="document.getElementById('modal-upload').classList.add('hidden')" class="w-full mt-4 opacity-50 text-[10px] font-bold tracking-widest">CANCELAR OPERAÇÃO</button>
+        </div>
+    </div>
+
+    <div id="modal-profile" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[30px] w-full max-w-sm border-purple-500/50">
+            <h3 class="font-orbitron font-black mb-6 text-purple-500 italic">SYSTEM PERFIL</h3>
+            <p class="text-[10px] text-white/50 mb-2 uppercase font-bold">Imagem de Perfil (URL)</p>
+            <input type="text" id="p-avatar" placeholder="URL do Avatar" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-white mb-4">
+            <p class="text-[10px] text-white/50 mb-2 uppercase font-bold">Banner Superior (URL)</p>
+            <input type="text" id="p-banner" placeholder="URL do Banner" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-white mb-4">
+            <button onclick="saveProfile()" class="w-full btn-neon py-4 rounded-xl font-black uppercase italic">Sincronizar Dados</button>
+            <button onclick="document.getElementById('modal-profile').classList.add('hidden')" class="w-full mt-4 opacity-50 text-[10px] font-bold">VOLTAR</button>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de Usuário Persistente (Local)
+        let currentUser = JSON.parse(localStorage.getItem('sed_user')) || { 
+            avatar: 'https://i.pinimg.com/originals/8a/80/7e/8a807ec3bc5406c151e2472b5344337b.gif', 
+            banner: 'https://i.pinimg.com/originals/0b/1e/24/0b1e2499368297753e053f56854972f0.gif' 
         };
 
-        window.deleteGame = async (id) => { if(confirm("EXCLUIR JOGO?")) await deleteDoc(doc(db, "jogos", id)); };
-        window.stopG = () => { document.getElementById('player').style.display = 'none'; document.getElementById('game-view').innerHTML = ''; };
-        window.openModal = (id) => document.getElementById(id).style.display = 'flex';
-        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+        // Splash Screen Logic
+        window.onload = () => { 
+            setTimeout(() => { 
+                document.getElementById('intro-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('intro-screen').classList.add('hidden'); 
+                    document.getElementById('main-hub').classList.remove('hidden'); 
+                    updateUI(); 
+                    loadGames(); 
+                }, 500);
+            }, 7500); 
+        };
 
-        function showNotify() {
+        function toggleInputs() {
+            const type = document.getElementById('up-type').value;
+            const container = document.getElementById('up-input-container');
+            if(type === 'code') {
+                container.innerHTML = `<textarea id="up-content" placeholder="Cole o código HTML aqui..." class="w-full bg-white/5 p-4 rounded-xl border border-white/10 h-40 text-white text-xs font-mono"></textarea>`;
+            } else {
+                container.innerHTML = `<input type="text" id="up-content" placeholder="https://..." class="w-full bg-white/5 p-4 rounded-xl border border-white/10 text-white">`;
+            }
+        }
+
+        async function enviarProjeto() {
+            const name = document.getElementById('up-name').value;
+            const capa = document.getElementById('up-capa').value;
+            const content = document.getElementById('up-content').value;
+            const type = document.getElementById('up-type').value;
+
+            if(!name || !content) return alert("Preencha os campos obrigatórios!");
+
+            const newGameRef = window.fbLib.push(window.fbLib.ref(window.fbDB, 'games'));
+            window.fbLib.set(newGameRef, {
+                name: name,
+                capa: capa || 'https://via.placeholder.com/400x200?text=Sed-Games',
+                type: type,
+                content: content,
+                likes: 0,
+                timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('modal-upload').classList.add('hidden');
+                showNotification("JOGO PUBLICADO COM SUCESSO!");
+            });
+        }
+
+        function loadGames() {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, 'games'), snap => {
+                const grid = document.getElementById('grid-all'); 
+                grid.innerHTML = "";
+                const data = snap.val(); 
+                if(!data) {
+                    grid.innerHTML = "<p class='text-white/20 uppercase font-bold text-xs'>Nenhum jogo encontrado no banco...</p>";
+                    return;
+                }
+                
+                Object.keys(data).reverse().forEach(id => {
+                    const g = data[id];
+                    grid.innerHTML += `
+                        <div class="group relative glass rounded-[20px] overflow-hidden cursor-pointer hover:border-purple-500 transition-all duration-500" onclick="openViewer('${id}')">
+                            <div class="relative h-44 overflow-hidden">
+                                <img src="${g.capa}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#050505] to-transparent opacity-60"></div>
+                            </div>
+                            <div class="p-4 flex justify-between items-center">
+                                <div>
+                                    <p class="font-orbitron font-black uppercase text-[10px] tracking-wider text-purple-400 mb-1">${g.type}</p>
+                                    <p class="font-black uppercase text-sm tracking-tighter">${g.name}</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20 group-hover:bg-purple-500 transition-colors">
+                                    <span class="text-[10px]">▶</span>
+                                </button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        function openViewer(id) {
+            window.fbLib.onValue(window.fbLib.ref(window.fbDB, `games/${id}`), snap => {
+                const g = snap.val();
+                if(!g) return;
+                document.getElementById('v-title').innerText = g.name;
+                const frame = document.getElementById('main-frame');
+                if(g.type === 'code') frame.srcdoc = g.content; else frame.src = g.content;
+                document.getElementById('game-viewer').classList.remove('hidden');
+            }, { onlyOnce: true });
+        }
+
+        function closeViewer() {
+            document.getElementById('main-frame').src = "about:blank";
+            document.getElementById('main-frame').srcdoc = "";
+            document.getElementById('game-viewer').classList.add('hidden');
+        }
+
+        function updateUI() {
+            if(currentUser.avatar) {
+                document.getElementById('nav-avatar').style.backgroundImage = `url('${currentUser.avatar}')`;
+                document.getElementById('display-avatar').style.backgroundImage = `url('${currentUser.avatar}')`;
+            }
+            if(currentUser.banner) {
+                document.getElementById('display-banner').style.backgroundImage = `url('${currentUser.banner}')`;
+            }
+        }
+
+        function saveProfile() {
+            currentUser.avatar = document.getElementById('p-avatar').value || currentUser.avatar;
+            currentUser.banner = document.getElementById('p-banner').value || currentUser.banner;
+            localStorage.setItem('sed_user', JSON.stringify(currentUser));
+            updateUI();
+            document.getElementById('modal-profile').classList.add('hidden');
+            showNotification("PERFIL ATUALIZADO!");
+        }
+
+        function showNotification(text) {
             const n = document.getElementById('ds-notify');
+            n.innerText = text;
             n.style.display = 'block';
             setTimeout(() => n.style.display = 'none', 3000);
         }
-
-        // Neve
-        setInterval(() => {
-            const f = document.createElement('div');
-            f.className = 'snowflake';
-            f.style.left = Math.random() * 100 + 'vw';
-            f.style.width = f.style.height = Math.random() * 3 + 2 + 'px';
-            f.style.animationDuration = Math.random() * 3 + 3 + 's';
-            document.body.appendChild(f);
-            setTimeout(() => f.remove(), 6000);
-        }, 200);
     </script>
 </body>
 </html>
