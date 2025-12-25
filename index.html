@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G-HUB | DATASTORE ELITE</title>
+    <title>Sed-Games | DATASTORE</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root { --purple: #6c5ce7; --purple-glow: #a29bfe; --bg: #050505; --success: #2ecc71; }
@@ -20,17 +20,11 @@
         .g-spinning { animation: g-intro 3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
         @keyframes g-intro { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.2) rotate(1440deg); opacity: 0; } }
         
-        .movie-roll { position: absolute; top: 100%; display: flex; flex-direction: column; gap: 80px; text-align: center; animation: roll-up 12s linear forwards; display: none; width: 100%; }
-        @keyframes roll-up { 0% { top: 100%; } 100% { top: -220%; } }
+        .movie-roll { position: absolute; top: 100%; display: flex; flex-direction: column; gap: 80px; text-align: center; animation: roll-up 8s linear forwards; display: none; width: 100%; }
+        @keyframes roll-up { 0% { top: 100%; } 100% { top: -150%; } }
         
         .neon-text { font-size: 20px; filter: drop-shadow(0 0 15px currentColor); margin-top: 5px; font-weight: bold; }
-        .cat-neon { color: #ffffff; }
-        .exiled-neon { color: #2ecc71; }
         .chad-neon { color: #3498db; }
-
-        /* --- AUTH SCREEN --- */
-        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 19000; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        .auth-box { background: #111; border: 4px solid var(--purple); padding: 40px; width: 420px; text-align: center; box-shadow: 15px 15px 0 var(--purple); }
 
         /* --- MAIN HUB --- */
         #main-hub { display: none; opacity: 0; transition: 1s; }
@@ -38,7 +32,7 @@
         .user-info { display: flex; align-items: center; gap: 15px; }
         .user-name-abbr { font-size: 8px; color: var(--purple-glow); letter-spacing: 1px; }
 
-        /* --- DATASTORE MODALS --- */
+        /* --- MODALS --- */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         .modal-content { background: #111; border: 4px solid var(--purple); width: 550px; position: relative; }
         .p-banner { width: 100%; height: 170px; background-size: cover; background-position: center; border-bottom: 4px solid var(--purple); background-color: #1a1a1a; }
@@ -58,64 +52,45 @@
         input, textarea { width: 100%; background: #050505; border: 2px solid #333; padding: 14px; color: #fff; margin-bottom: 12px; font-size: 8px; outline: none; }
         input:focus { border-color: var(--purple); }
 
-        /* --- NOTIFICATION --- */
         #ds-notify { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: #000; padding: 10px 20px; font-size: 8px; border-radius: 2px; display: none; z-index: 100000; }
-        
         #player { position: fixed; inset: 0; background: #000; z-index: 30000; display: none; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <div id="ds-notify">DATASTORE: DADOS SINCRONIZADOS COM SUCESSO</div>
+    <div id="ds-notify">SED-GAMES: DADOS SINCRONIZADOS</div>
 
     <div id="credits-screen" onclick="startExperience()">
-        <div id="c-g" class="g-spinner">G</div>
+        <div id="c-g" class="g-spinner">S</div>
         <div id="c-roll" class="movie-roll">
             <div class="credit-item" style="color:#ff4757; font-size: 14px; margin-bottom: 20px;">
                 ESTABLISHING CONNECTION...<br>
-                <span style="color:#fff; font-size:8px;">ACCESSING LOCAL_STORAGE...</span>
+                <span style="color:#fff; font-size:8px;">LOADING SED-GAMES CORE...</span>
             </div>
             <div class="credit-item">
-                <span>DEVELOPER / CREATOR APP</span>
-                <p class="neon-text cat-neon">CAT</p>
-            </div>
-            <div class="credit-item">
-                <span>OWNER / CREATOR SITE</span>
-                <p class="neon-text exiled-neon">EXILED</p>
-            </div>
-            <div class="credit-item">
-                <span>HELPER / CREATOR SERVER</span>
+                <span>SYSTEM OPERATOR</span>
                 <p class="neon-text chad-neon">CHAD</p>
             </div>
-            <div class="credit-item" style="color:var(--purple); margin-top: 50px; font-size: 10px;">G-HUB ULTIMATE v7.0</div>
+            <div class="credit-item" style="color:var(--purple); margin-top: 50px; font-size: 10px;">SED-GAMES v1.0</div>
         </div>
-        <p id="click-hint" style="position:absolute; bottom:40px; font-size:8px; color:#444; animation: pulse 1s infinite;">[ CLIQUE NO G PARA INICIAR DATASTORE ]</p>
-    </div>
-
-    <div id="auth-screen">
-        <div class="auth-box">
-            <h2 style="font-size: 10px; margin-bottom: 25px; color: var(--purple); letter-spacing: 2px;">IDENTIFICATION_REQUIRED</h2>
-            <input type="email" id="login-email" placeholder="USER EMAIL">
-            <input type="password" id="login-pass" placeholder="ACCESS KEY">
-            <button class="btn btn-p" onclick="doLogin()">DECRYPT & ENTER</button>
-        </div>
+        <p id="click-hint" style="position:absolute; bottom:40px; font-size:8px; color:#444; animation: pulse 1s infinite;">[ CLIQUE NO S PARA INICIAR ]</p>
     </div>
 
     <div id="main-hub">
         <nav>
-            <div style="color:var(--purple); font-size: 22px; text-shadow: 0 0 10px var(--purple);">G-HUB</div>
+            <div style="color:var(--purple); font-size: 22px; text-shadow: 0 0 10px var(--purple);">SED-GAMES</div>
             <div class="user-info">
-                <span id="user-display" class="user-name-abbr"></span>
-                <div id="nav-avatar" onclick="openModal('profile-modal')" style="width:50px; height:50px; border:2px solid var(--purple); cursor:pointer; background-size:cover; background-position:center; border-radius: 4px;"></div>
+                <span id="user-display" class="user-name-abbr">USER_ROOT</span>
+                <div id="nav-avatar" onclick="openModal('profile-modal')" style="width:50px; height:50px; border:2px solid var(--purple); cursor:pointer; background-size:cover; background-position:center; border-radius: 4px; background-image: url('https://via.placeholder.com/50');"></div>
             </div>
         </nav>
 
         <section style="padding: 40px; background: linear-gradient(180deg, #130f40, #000); border-bottom: 4px solid var(--purple); display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h2 style="font-size: 12px; margin-bottom: 10px;">SEUS PROJETOS</h2>
-                <p style="font-size: 6px; opacity: 0.5;">DADOS SALVOS NO DISCO LOCAL</p>
+                <h2 style="font-size: 12px; margin-bottom: 10px;">BIBLIOTECA DE JOGOS</h2>
+                <p style="font-size: 6px; opacity: 0.5;">LOCAL_STORAGE ATIVO</p>
             </div>
-            <button class="btn btn-p" style="width: 220px;" onclick="openModal('studio-modal')">+ NOVO JOGO</button>
+            <button class="btn btn-p" style="width: 220px;" onclick="openModal('studio-modal')">+ ADICIONAR JOGO</button>
         </section>
 
         <div class="grid" id="gameGrid"></div>
@@ -130,7 +105,7 @@
                 <input type="text" id="edit-avatar" style="margin-top:8px;">
                 <label style="font-size: 7px; color: var(--purple-glow);">LINK DO GIF BANNER:</label>
                 <input type="text" id="edit-banner" style="margin-top:8px;">
-                <button class="btn btn-p" onclick="saveProfile()">ATUALIZAR DATASTORE</button>
+                <button class="btn btn-p" onclick="saveProfile()">SALVAR NO SED-DATA</button>
                 <button class="btn" onclick="closeModal('profile-modal')">FECHAR</button>
             </div>
         </div>
@@ -138,11 +113,11 @@
 
     <div id="studio-modal" class="modal">
         <div class="modal-content" style="padding: 30px;">
-            <h3 style="font-size: 10px; margin-bottom: 25px; color: var(--purple);">ENGINE STUDIO</h3>
+            <h3 style="font-size: 10px; margin-bottom: 25px; color: var(--purple);">SED-GAMES STUDIO</h3>
             <input type="text" id="g-name" placeholder="NOME DO JOGO">
             <input type="text" id="g-thumb" placeholder="URL DA IMAGEM DE CAPA">
             <textarea id="g-code" style="height:180px;" placeholder="COLE SEU CÓDIGO HTML AQUI..."></textarea>
-            <button class="btn btn-p" onclick="saveGame()">COMPILAR & SALVAR</button>
+            <button class="btn btn-p" onclick="saveGame()">COMPILAR & PUBLICAR</button>
             <button class="btn" onclick="closeModal('studio-modal')">CANCELAR</button>
         </div>
     </div>
@@ -156,10 +131,12 @@
     </div>
 
     <script>
-        // --- MOTOR DO DATASTORE ---
-        const STORE_ID = 'GHUB_CORE_DATA_V7';
-        let store = JSON.parse(localStorage.getItem(STORE_ID)) || {};
-        let activeSession = null;
+        const STORE_ID = 'SED_GAMES_DATA';
+        // Agora o activeSession é fixo como 'admin' pois removemos o login
+        let activeSession = 'admin';
+        let store = JSON.parse(localStorage.getItem(STORE_ID)) || {
+            'admin': { avatar: "", banner: "", games: [] }
+        };
         let audioCtx = null;
 
         function syncStore() {
@@ -169,21 +146,18 @@
             setTimeout(() => notify.style.display = 'none', 2500);
         }
 
-        // --- SISTEMA DE ÁUDIO ---
         function playSfx(freq, type, dur, vol=0.1) {
             if(!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            if(type === 'sawtooth') osc.frequency.exponentialRampToValueAtTime(freq*4, audioCtx.currentTime + dur);
             gain.gain.setValueAtTime(vol, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + dur);
         }
 
-        // --- INICIALIZAÇÃO ---
         function startExperience() {
             if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const g = document.getElementById('c-g');
@@ -197,64 +171,40 @@
                 playSfx(880, 'square', 0.1);
             }, 3000);
 
+            // Redireciona direto para o Hub após 8 segundos de animação
             setTimeout(() => {
                 document.getElementById('credits-screen').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('credits-screen').style.display = 'none';
-                    document.getElementById('auth-screen').style.display = 'flex';
+                    document.getElementById('main-hub').style.display = 'block';
+                    setTimeout(() => document.getElementById('main-hub').style.opacity = '1', 50);
+                    renderHub();
                 }, 1000);
-            }, 15000);
-        }
-
-        // --- LÓGICA DE USUÁRIO ---
-        function doLogin() {
-            const email = document.getElementById('login-email').value.toLowerCase();
-            const pass = document.getElementById('login-pass').value;
-            
-            if(!email.includes('@')) return alert("ERRO: FORMATO DE EMAIL INVÁLIDO");
-            
-            if(!store[email]) {
-                store[email] = { pass: pass, avatar: "", banner: "", games: [] };
-                syncStore();
-                alert("NOVO DATASTORE CRIADO PARA ESTE USUÁRIO.");
-            }
-
-            if(store[email].pass === pass) {
-                activeSession = email;
-                playSfx(1200, 'sine', 0.2);
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-hub').style.display = 'block';
-                setTimeout(() => document.getElementById('main-hub').style.opacity = '1', 50);
-                renderHub();
-            } else {
-                playSfx(100, 'square', 0.4);
-                alert("ERRO: CHAVE DE ACESSO INCORRETA");
-            }
+            }, 9000);
         }
 
         function renderHub() {
             const user = store[activeSession];
-            
-            // Abreviação de Nome Inteligente
-            const rawName = activeSession.split('@')[0];
-            document.getElementById('user-display').innerText = rawName.length > 10 ? rawName.substring(0, 10) + "..." : rawName;
-
             document.getElementById('nav-avatar').style.backgroundImage = `url('${user.avatar}')`;
             document.getElementById('v-avatar').style.backgroundImage = `url('${user.avatar}')`;
             document.getElementById('v-banner').style.backgroundImage = `url('${user.banner}')`;
             
             const grid = document.getElementById('gameGrid');
+            if(user.games.length === 0) {
+                grid.innerHTML = '<p style="font-size:8px; opacity:0.3;">NENHUM JOGO ENCONTRADO NO BANCO...</p>';
+                return;
+            }
+
             grid.innerHTML = user.games.map((g, i) => `
                 <div class="card">
                     <div class="card-img" style="background-image:url('${g.thumb}')"></div>
                     <p style="font-size:8px; margin-bottom:12px; color:var(--purple-glow);">${g.name}</p>
-                    <button class="btn btn-p" onclick="launchGame(${i})">EXECUTAR</button>
-                    <button class="btn" style="border-color:#ff4757; color:#ff4757; font-size:6px;" onclick="deleteGame(${i})">DELETAR</button>
+                    <button class="btn btn-p" onclick="launchGame(${i})">JOGAR</button>
+                    <button class="btn" style="border-color:#ff4757; color:#ff4757; font-size:6px;" onclick="deleteGame(${i})">REMOVER</button>
                 </div>
             `).join('');
         }
 
-        // --- PERSISTÊNCIA DE DADOS ---
         function saveProfile() {
             store[activeSession].avatar = document.getElementById('edit-avatar').value;
             store[activeSession].banner = document.getElementById('edit-banner').value;
@@ -273,28 +223,26 @@
                 syncStore();
                 renderHub();
                 closeModal('studio-modal');
-                // Limpar campos
                 document.getElementById('g-name').value = "";
                 document.getElementById('g-thumb').value = "";
                 document.getElementById('g-code').value = "";
             } else {
-                alert("PREENCHA O NOME E O CÓDIGO!");
+                alert("ERRO: NOME E CÓDIGO OBRIGATÓRIOS!");
             }
         }
 
         function deleteGame(i) {
-            if(confirm("REMOVER PERMANENTEMENTE DO DATASTORE?")) {
+            if(confirm("DELETAR JOGO DO SED-GAMES?")) {
                 store[activeSession].games.splice(i, 1);
                 syncStore();
                 renderHub();
             }
         }
 
-        // --- CONTROLE DO PLAYER ---
         function launchGame(i) {
             const g = store[activeSession].games[i];
             document.getElementById('player').style.display = 'flex';
-            document.getElementById('p-name').innerText = `EXECUTANDO: ${g.name}`;
+            document.getElementById('p-name').innerText = `PLAYING: ${g.name}`;
             const container = document.getElementById('game-view');
             container.innerHTML = `<iframe id="runtime" style="width:100%; height:100%; border:none;"></iframe>`;
             const doc = document.getElementById('runtime').contentWindow.document;
@@ -307,11 +255,10 @@
             document.getElementById('game-view').innerHTML = '';
         }
 
-        // --- UTILS ---
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // Neve Infinita
+        // Neve
         setInterval(() => {
             const f = document.createElement('div');
             f.className = 'snowflake';
