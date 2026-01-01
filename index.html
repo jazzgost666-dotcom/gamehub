@@ -1,404 +1,43 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mestre das IAs - Página de Vendas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<style>
+  /* Estilo do Botão */
+  .botao-curso {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Centraliza na tela toda */
+    background-color: #f0f2f5;
+    font-family: sans-serif;
+  }
 
-    <style>
-        :root {
-            --blue: #2563eb;
-            --dark: #0f172a;
-            --gray: #475569;
-            --light: #f8fafc;
-        }
+  .btn {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8); /* Azul do seu tema */
+    color: white;
+    padding: 20px 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 50px;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #fff;
-            color: var(--dark);
-        }
-
-        /* ================= CONTAINER ================= */
-        .container {
-            max-width: 1100px;
-            margin: auto;
-            padding: 80px 20px;
-        }
-
-        .highlight {
-            color: var(--blue);
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 3rem;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-
-        .subtitle {
-            text-align: center;
-            max-width: 820px;
-            margin: 20px auto 50px;
-            color: var(--gray);
-            font-size: 1.15rem;
-        }
-
-        /* ================= ANIMAÇÕES ================= */
-        .reveal {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: 0.8s ease;
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: none;
-        }
-
-        .stagger > * {
-            opacity: 0;
-            transform: translateY(25px);
-        }
-
-        .stagger.active > * {
-            animation: stagger 0.5s ease forwards;
-        }
-
-        .stagger.active > *:nth-child(1) { animation-delay: 0.1s; }
-        .stagger.active > *:nth-child(2) { animation-delay: 0.25s; }
-        .stagger.active > *:nth-child(3) { animation-delay: 0.4s; }
-        .stagger.active > *:nth-child(4) { animation-delay: 0.55s; }
-
-        @keyframes stagger {
-            to { opacity: 1; transform: none; }
-        }
-
-        /* ================= FEATURES ================= */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-            align-items: stretch;
-        }
-
-        .feature {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
-            background: var(--light);
-            border-radius: 14px;
-            border: 1px solid rgba(37, 99, 235, 0.14);
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
-            transition: 0.3s ease;
-            min-height: 70px;
-        }
-
-        .feature:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 18px 40px rgba(37, 99, 235, 0.16);
-        }
-
-        .feature h3 {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.35;
-            color: var(--dark);
-        }
-
-        .feature .check {
-            flex-shrink: 0;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: rgba(37, 99, 235, 0.14);
-            color: var(--blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 0.95rem;
-        }
-
-        /* ================= CTA ================= */
-        .features-cta {
-            text-align: center;
-            margin: 50px 0 0;
-        }
-
-        .cta-secondary {
-            display: inline-block;
-            padding: 20px 64px;
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #fff;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            border-radius: 999px;
-            text-decoration: none;
-            box-shadow: 0 18px 45px rgba(37, 99, 235, 0.35);
-            transition: 0.3s ease;
-        }
-
-        .cta-secondary:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 30px 70px rgba(37, 99, 235, 0.45);
-        }
-
-        /* ================= SECTION TITLE ================= */
-        .section-title {
-            max-width: 900px;
-            margin: 70px auto 24px;
-            text-align: center;
-        }
-
-        .section-title h2 {
-            font-size: 2.3rem;
-            font-weight: 800;
-            line-height: 1.25;
-            margin-bottom: 10px;
-        }
-
-        .section-title p {
-            font-size: 1.1rem;
-            color: var(--gray);
-            line-height: 1.6;
-        }
-
-        /* ================= MÓDULOS ================= */
-        .modules {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-top: 40px;
-            align-items: start;
-        }
-
-        .module {
-            padding: 26px 24px;
-            background: #fff;
-            border-radius: 20px;
-            border: 1px solid rgba(37, 99, 235, 0.15);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-            height: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-        }
-
-        .module h3 {
-            margin: 0 0 8px;
-            font-size: 1.2rem;
-            line-height: 1.3;
-            color: var(--blue);
-        }
-
-        .module p {
-            margin: 0;
-            font-size: 1rem;
-            line-height: 1.5;
-            color: var(--gray);
-        }
-
-        /* ================= OFERTA ================= */
-        .offer {
-            padding: 80px 20px;
-            background: radial-gradient(circle at top, #f1f5ff, #fff);
-        }
-
-        .offer-box {
-            max-width: 720px;
-            margin: auto;
-            background: #fff;
-            padding: 55px 45px;
-            border-radius: 28px;
-            text-align: center;
-            border: 1px solid rgba(37, 99, 235, 0.15);
-            box-shadow: 0 40px 100px rgba(37, 99, 235, 0.15);
-        }
-
-        .offer-box h2 {
-            font-size: 2.1rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-        }
-
-        .offer-sub {
-            font-size: 1.05rem;
-            color: var(--gray);
-            margin-bottom: 24px;
-        }
-
-        .offer-list {
-            list-style: none;
-            margin-bottom: 28px;
-        }
-
-        .offer-list li {
-            margin: 10px 0;
-        }
-
-        .old-price {
-            text-decoration: line-through;
-            color: #64748b;
-        }
-
-        .new-price {
-            font-size: 3rem;
-            font-weight: 900;
-            color: var(--blue);
-            margin: 10px 0 24px;
-        }
-
-        .cta-button {
-            display: inline-block;
-            padding: 18px 54px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: #fff;
-            border-radius: 999px;
-            text-decoration: none;
-            font-weight: 700;
-        }
-
-        .offer-note {
-            display: block;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #64748b;
-        }
-
-        /* ================= VIDEO ================= */
-        .video-container {
-            max-width: 900px;
-            margin: 60px auto;
-            aspect-ratio: 16/9;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15);
-        }
-
-        .video-container iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-
-        /* ================= MOBILE ================= */
-        @media (max-width: 768px) {
-            .features { grid-template-columns: 1fr; }
-            .feature { align-items: flex-start; }
-            h1 { font-size: 2.2rem; }
-            .offer-box { padding: 40px 24px; }
-            .new-price { font-size: 2.4rem; }
-        }
-    </style>
+  .btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4);
+  }
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h1 class="reveal">
-        Aprenda a Usar a <span class="highlight">INTELIGÊNCIA ARTIFICIAL</span><br>
-        para Criar <span class="highlight">Negócios Digitais</span> do ZERO
-    </h1>
-
-    <div class="video-container reveal">
-        <iframe src="https://www.youtube.com/embed/qWqFU-Bymm8" title="Vídeo do Curso" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    </div>
-
-    <p class="subtitle reveal active">
-        Descubra na prática como transformar seus negócios digitais usando
-        <span class="highlight">Inteligência Artificial</span>.
-    </p>
-
-    <div class="features stagger reveal active">
-        <div class="feature">
-            <span class="check">✓</span>
-            <h3>Criar imagens profissionais com Inteligência Artificial</h3>
-        </div>
-        <div class="feature">
-            <span class="check">✓</span>
-            <h3>Criar vídeos completos com Inteligência Artificial</h3>
-        </div>
-        <div class="feature">
-            <span class="check">✓</span>
-            <h3>Criar jogos, aplicativos e sites com Inteligência Artificial</h3>
-        </div>
-        <div class="feature">
-            <span class="check">✓</span>
-            <h3>Usar Inteligência Artificial para ganhar dinheiro online</h3>
-        </div>
-    </div>
-
-    <div class="features-cta reveal active">
-        <a href="#oferta" class="cta-secondary">Garanta Sua Vaga</a>
-    </div>
-
-    <div class="section-title reveal active">
-        <h2>O passo a passo para dominar a <span class="highlight">INTELIGÊNCIA ARTIFICIAL</span> na prática</h2>
-        <p><strong>Sem enrolação, sem teoria.</strong><br>Vou te ensinar na prática, passo a passo, clique por clique, como usar IA para criar projetos reais.</p>
-    </div>
-
-    <div class="modules stagger reveal active">
-        <div class="module">
-            <h3>Criação com Inteligência Artificial</h3>
-            <p>Você vai aprender a criar imagens, vídeos, música usando Inteligência Artificial, do zero.</p>
-        </div>
-        <div class="module">
-            <h3>Programação com Inteligência Artificial</h3>
-            <p>Você vai aprender a programar jogos, sites e apps com ajuda da IA, mesmo sem experiência prévia.</p>
-        </div>
-        <div class="module">
-            <h3>Como transformar I.A em dinheiro?</h3>
-            <p>Você vai aprender como utilizar a IA para criar negócios digitais lucrativos.</p>
-        </div>
-    </div>
+<div class="botao-curso">
+  <a href="https://dashboard.kiwify.com.br/" class="btn" target="_blank">
+    ▶ Acessar Meu Curso Completo
+  </a>
 </div>
-
-<section class="offer reveal active" id="oferta">
-    <div class="offer-box">
-        <h2>O primeiro passo para a transformação será dado agora.</h2>
-        <p class="offer-sub">
-            Esse é o ponto de virada. A partir daqui, você abandona o amadorismo e entra no jogo real da <span class="highlight">Inteligência Artificial</span>.
-        </p>
-
-        <ul class="offer-list">
-            <li>✔ Acesso vitalício ao Mestre das IAs</li>
-            <li>✔ Comunidade de Networking EXCLUSIVA</li>
-            <li>✔ Suporte Pessoal e Direto Comigo</li>
-        </ul>
-
-        <span class="old-price">De R$ 115,80</span>
-        <div class="new-price">R$ 57,90</div>
-
-        <a href="#" class="cta-button">Garantir meu acesso</a>
-
-        <span class="offer-note">Acesso imediato • Conteúdo vitalício • Atualizações inclusas</span>
-    </div>
-</section>
-
-<script>
-    /* Reveal Animation Script */
-    const obs = new IntersectionObserver(e => {
-        e.forEach(i => i.isIntersecting && i.target.classList.add('active'))
-    }, { threshold: 0.15 });
-
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-    
-    // Removi o script que bloqueava o clique direito para você poder estudar o código
-</script>
 
 </body>
 </html>
