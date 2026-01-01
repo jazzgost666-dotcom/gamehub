@@ -3,358 +3,402 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHub - Celebração 2026</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,700&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Mestre das IAs - Página de Vendas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        /* --- CSS VARIABLES & RESET --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #c9a227; --primary-dark: #a88b1f; 
-            --gold: #d4af37; --gold-light: #f3e5ab;
-            --dark: #1a1a1a; --darker: #0f0f0f;
-            --light: #f8f8f8; --white: #ffffff; 
-            --success: #4ade80; --danger: #ef4444;
-            --glass: rgba(255, 255, 255, 0.95);
+            --blue: #2563eb;
+            --dark: #0f172a;
+            --gray: #475569;
+            --light: #f8fafc;
         }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Poppins', sans-serif;
-            background: #f0f0f0;
+            font-family: 'Inter', sans-serif;
+            background: #fff;
             color: var(--dark);
-            min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* --- INTRO ANIMATION --- */
-        #intro-screen {
-            position: fixed; inset: 0; 
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
-            z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 1s ease;
-            pointer-events: auto;
-        }
-        .intro-particles {
-            position: absolute; inset: 0; opacity: 0.3;
-            background-image: radial-gradient(var(--gold) 1px, transparent 1px);
-            background-size: 30px 30px;
-            animation: moveBg 20s linear infinite;
-        }
-        @keyframes moveBg { 0% { background-position: 0 0; } 100% { background-position: 100px 100px; } }
-
-        .golden-g {
-            font-family: 'Cinzel Decorative', cursive;
-            font-size: 10rem; line-height: 1;
-            background: linear-gradient(to bottom, #fff 0%, #ffd700 50%, #b8860b 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            opacity: 0; transform: scale(0.5);
-            animation: introG 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            filter: drop-shadow(0 0 50px rgba(212, 175, 55, 0.8));
-            position: relative; z-index: 2;
-            text-shadow: 0 0 20px rgba(255,215,0,0.3);
-        }
-        .intro-year {
-            color: var(--gold); letter-spacing: 12px; margin-top: 1rem; opacity: 0;
-            animation: fadeUp 1s ease 1s forwards;
-            text-transform: uppercase; font-size: 1.2rem;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-            z-index: 2;
-            font-family: 'Playfair Display', serif;
-        }
-        @keyframes introG {
-            0% { opacity: 0; transform: scale(0.5) rotate(-10deg); filter: blur(10px); }
-            50% { opacity: 1; transform: scale(1.1) rotate(0deg); filter: blur(0); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        /* ================= CONTAINER ================= */
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 80px 20px;
         }
 
-        /* --- UTILS --- */
-        .hidden { display: none !important; }
-        .btn { cursor: pointer; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
-        .custom-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: 0.3s; }
-        .custom-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
-        
-        /* --- LOADING --- */
-        .loading-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; color: var(--gold); }
-        .spinner { width: 50px; height: 50px; border: 4px solid #333; border-top-color: var(--gold); border-radius: 50%; animation: spin 1s infinite linear; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* --- AUTH MODAL --- */
-        .auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(5px); }
-        .auth-box { 
-            background: linear-gradient(145deg, #1a1a1a, #0f0f0f); 
-            padding: 3rem 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 420px; text-align: center; 
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(212, 175, 55, 0.1);
+        .highlight {
+            color: var(--blue);
         }
-        .auth-logo { 
-            font-size: 4rem; margin-bottom: 0.5rem; 
-            background: linear-gradient(to bottom, #fff, var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-            font-family: 'Cinzel Decorative', cursive; 
+
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
         }
-        .auth-input-dark { width: 100%; padding: 15px; margin: 20px 0; background: #222; border: 1px solid #333; color: white; border-radius: 8px; outline: none; transition: 0.3s; font-size: 1rem; }
-        .auth-input-dark:focus { border-color: var(--gold); background: #2a2a2a; }
-        .auth-btn { width: 100%; padding: 15px; background: linear-gradient(45deg, var(--gold), #b8860b); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
-        .auth-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
-        /* --- NAVBAR --- */
-        .navbar { position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-bottom: 1px solid rgba(0,0,0,0.05); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .nav-logo { font-weight: 800; font-size: 1.5rem; background: linear-gradient(45deg, var(--gold), #b8860b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; font-family: 'Cinzel Decorative', cursive; }
-        .nav-items { display: flex; gap: 1rem; align-items: center; }
-        .nav-item { padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; font-weight: 500; color: #555; display: flex; align-items: center; gap: 0.5rem; border: none; background: transparent; transition: 0.3s; cursor: pointer; }
-        .nav-item:hover, .nav-item.active { background: #eee; color: var(--dark); }
-        .user-pill { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 2rem; background: #fff; border: 1px solid #eee; transition: 0.3s; }
-        .user-pill:hover { border-color: var(--gold); }
-        .user-pill img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #ddd; }
+        .subtitle {
+            text-align: center;
+            max-width: 820px;
+            margin: 20px auto 50px;
+            color: var(--gray);
+            font-size: 1.15rem;
+        }
 
-        /* --- MAIN LAYOUT --- */
-        main { margin-top: 80px; padding: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
-        .section { display: none; animation: fadeUp 0.4s ease; }
-        .section.active { display: block; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* ================= ANIMAÇÕES ================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: 0.8s ease;
+        }
 
-        /* --- GAMES GRID --- */
-        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
-        .game-card { background: white; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #eee; cursor: pointer; position: relative; }
-        .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); border-color: var(--gold); }
-        .game-thumb { height: 160px; background: #333; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; color: #555; }
-        .game-thumb i { font-size: 3rem; color: rgba(255,255,255,0.2); }
-        .game-content { padding: 1rem; }
-        .game-title { font-weight: 700; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .game-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: #888; margin-top: 0.5rem; }
-        .game-tag { display: inline-block; padding: 0.2rem 0.6rem; background: #fff8e1; color: #b8860b; border-radius: 0.5rem; font-size: 0.7rem; margin-top: 0.5rem; font-weight: 600; }
+        .reveal.active {
+            opacity: 1;
+            transform: none;
+        }
 
-        /* --- EDITOR --- */
-        .editor-split { display: grid; grid-template-columns: 1fr 1fr; height: calc(100vh - 120px); gap: 1rem; }
-        .code-area { display: flex; flex-direction: column; background: #1e1e1e; border-radius: 1rem; overflow: hidden; }
-        .code-tabs { display: flex; background: #252526; }
-        .code-tab { padding: 10px 20px; color: #888; background: transparent; border: none; cursor: pointer; }
-        .code-tab.active { color: #fff; background: #1e1e1e; border-top: 2px solid var(--gold); }
-        textarea.code-input { flex: 1; background: transparent; border: none; color: #d4d4d4; padding: 15px; font-family: monospace; resize: none; outline: none; }
-        .preview-area { background: white; border-radius: 1rem; border: 1px solid #ddd; overflow: hidden; display: flex; flex-direction: column; }
-        .preview-toolbar { padding: 10px; background: #f0f0f0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
-        #previewFrame { flex: 1; width: 100%; border: none; background: #fff; }
+        .stagger > * {
+            opacity: 0;
+            transform: translateY(25px);
+        }
 
+        .stagger.active > * {
+            animation: stagger 0.5s ease forwards;
+        }
+
+        .stagger.active > *:nth-child(1) { animation-delay: 0.1s; }
+        .stagger.active > *:nth-child(2) { animation-delay: 0.25s; }
+        .stagger.active > *:nth-child(3) { animation-delay: 0.4s; }
+        .stagger.active > *:nth-child(4) { animation-delay: 0.55s; }
+
+        @keyframes stagger {
+            to { opacity: 1; transform: none; }
+        }
+
+        /* ================= FEATURES ================= */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--light);
+            border-radius: 14px;
+            border: 1px solid rgba(37, 99, 235, 0.14);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
+            transition: 0.3s ease;
+            min-height: 70px;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px rgba(37, 99, 235, 0.16);
+        }
+
+        .feature h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.35;
+            color: var(--dark);
+        }
+
+        .feature .check {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.14);
+            color: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.95rem;
+        }
+
+        /* ================= CTA ================= */
+        .features-cta {
+            text-align: center;
+            margin: 50px 0 0;
+        }
+
+        .cta-secondary {
+            display: inline-block;
+            padding: 20px 64px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-radius: 999px;
+            text-decoration: none;
+            box-shadow: 0 18px 45px rgba(37, 99, 235, 0.35);
+            transition: 0.3s ease;
+        }
+
+        .cta-secondary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 70px rgba(37, 99, 235, 0.45);
+        }
+
+        /* ================= SECTION TITLE ================= */
+        .section-title {
+            max-width: 900px;
+            margin: 70px auto 24px;
+            text-align: center;
+        }
+
+        .section-title h2 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            font-size: 1.1rem;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* ================= MÓDULOS ================= */
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+            align-items: start;
+        }
+
+        .module {
+            padding: 26px 24px;
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .module h3 {
+            margin: 0 0 8px;
+            font-size: 1.2rem;
+            line-height: 1.3;
+            color: var(--blue);
+        }
+
+        .module p {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--gray);
+        }
+
+        /* ================= OFERTA ================= */
+        .offer {
+            padding: 80px 20px;
+            background: radial-gradient(circle at top, #f1f5ff, #fff);
+        }
+
+        .offer-box {
+            max-width: 720px;
+            margin: auto;
+            background: #fff;
+            padding: 55px 45px;
+            border-radius: 28px;
+            text-align: center;
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            box-shadow: 0 40px 100px rgba(37, 99, 235, 0.15);
+        }
+
+        .offer-box h2 {
+            font-size: 2.1rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .offer-sub {
+            font-size: 1.05rem;
+            color: var(--gray);
+            margin-bottom: 24px;
+        }
+
+        .offer-list {
+            list-style: none;
+            margin-bottom: 28px;
+        }
+
+        .offer-list li {
+            margin: 10px 0;
+        }
+
+        .old-price {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+
+        .new-price {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--blue);
+            margin: 10px 0 24px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 54px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .offer-note {
+            display: block;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        /* ================= VIDEO ================= */
+        .video-container {
+            max-width: 900px;
+            margin: 60px auto;
+            aspect-ratio: 16/9;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15);
+        }
+
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* ================= MOBILE ================= */
         @media (max-width: 768px) {
-            .editor-split { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
-            .navbar span { display: none; }
+            .features { grid-template-columns: 1fr; }
+            .feature { align-items: flex-start; }
+            h1 { font-size: 2.2rem; }
+            .offer-box { padding: 40px 24px; }
+            .new-price { font-size: 2.4rem; }
         }
     </style>
 </head>
 <body>
 
-    <div id="intro-screen">
-        <div class="intro-particles"></div>
-        <div class="golden-g">G</div>
-        <div class="intro-year">Celebração 2026</div>
+<div class="container">
+    <h1 class="reveal">
+        Aprenda a Usar a <span class="highlight">INTELIGÊNCIA ARTIFICIAL</span><br>
+        para Criar <span class="highlight">Negócios Digitais</span> do ZERO
+    </h1>
+
+    <div class="video-container reveal">
+        <iframe src="https://www.youtube.com/embed/qWqFU-Bymm8" title="Vídeo do Curso" allow="autoplay; encrypted-media" allowfullscreen></iframe>
     </div>
 
-    <div id="authModal" class="auth-modal hidden">
-        <div class="auth-box">
-            <div class="auth-logo">G</div>
-            <h2 style="color: white; margin-bottom: 2rem; font-weight: 300;">Bem-vindo ao GameHub</h2>
-            <div id="authMsg" style="color: var(--danger); font-size: 0.9rem; margin-bottom: 1rem; min-height: 1.2em;"></div>
-            <input type="text" id="usernameInput" class="auth-input-dark" placeholder="Nome de usuário" maxlength="15">
-            <button id="loginBtn" class="auth-btn" onclick="app.login()">ACESSAR SISTEMA</button>
+    <p class="subtitle reveal active">
+        Descubra na prática como transformar seus negócios digitais usando
+        <span class="highlight">Inteligência Artificial</span>.
+    </p>
+
+    <div class="features stagger reveal active">
+        <div class="feature">
+            <span class="check">✓</span>
+            <h3>Criar imagens profissionais com Inteligência Artificial</h3>
+        </div>
+        <div class="feature">
+            <span class="check">✓</span>
+            <h3>Criar vídeos completos com Inteligência Artificial</h3>
+        </div>
+        <div class="feature">
+            <span class="check">✓</span>
+            <h3>Criar jogos, aplicativos e sites com Inteligência Artificial</h3>
+        </div>
+        <div class="feature">
+            <span class="check">✓</span>
+            <h3>Usar Inteligência Artificial para ganhar dinheiro online</h3>
         </div>
     </div>
 
-    <nav class="navbar hidden" id="mainNav">
-        <div class="nav-logo" onclick="app.nav('home')"><i class="fas fa-rocket"></i> GameHub</div>
-        <div class="nav-items">
-            <button class="nav-item active" id="btn-home" onclick="app.nav('home')"><i class="fas fa-home"></i> <span>Início</span></button>
-            <button class="nav-item" id="btn-editor" onclick="app.nav('editor')"><i class="fas fa-code"></i> <span>Criar</span></button>
-            <div class="user-pill">
-                <img src="https://ui-avatars.com/api/?name=User&background=random" id="navAvatar">
-                <span id="navName">Visitante</span>
-            </div>
-            <button class="nav-item" style="color: var(--danger)" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i></button>
+    <div class="features-cta reveal active">
+        <a href="#oferta" class="cta-secondary">Garanta Sua Vaga</a>
+    </div>
+
+    <div class="section-title reveal active">
+        <h2>O passo a passo para dominar a <span class="highlight">INTELIGÊNCIA ARTIFICIAL</span> na prática</h2>
+        <p><strong>Sem enrolação, sem teoria.</strong><br>Vou te ensinar na prática, passo a passo, clique por clique, como usar IA para criar projetos reais.</p>
+    </div>
+
+    <div class="modules stagger reveal active">
+        <div class="module">
+            <h3>Criação com Inteligência Artificial</h3>
+            <p>Você vai aprender a criar imagens, vídeos, música usando Inteligência Artificial, do zero.</p>
         </div>
-    </nav>
+        <div class="module">
+            <h3>Programação com Inteligência Artificial</h3>
+            <p>Você vai aprender a programar jogos, sites e apps com ajuda da IA, mesmo sem experiência prévia.</p>
+        </div>
+        <div class="module">
+            <h3>Como transformar I.A em dinheiro?</h3>
+            <p>Você vai aprender como utilizar a IA para criar negócios digitais lucrativos.</p>
+        </div>
+    </div>
+</div>
 
-    <main id="mainContent" class="hidden">
-        <section id="home" class="section active">
-            <div style="text-align: center; margin-bottom: 3rem;">
-                <h1 style="font-size: 3rem; font-weight: 800; color: var(--gold); font-family: 'Cinzel Decorative', cursive;">Explore o Futuro</h1>
-                <p style="color: #666; font-size: 1.2rem;">Jogue, crie e compartilhe com a comunidade.</p>
-                <div style="margin-top: 2rem; display: inline-flex; background: white; padding: 5px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-                    <input type="text" id="searchInput" placeholder="Buscar jogos..." style="border: none; padding: 10px 20px; outline: none; width: 300px; border-radius: 50px;" oninput="app.renderGames()">
-                </div>
-            </div>
-            <div id="gamesGrid" class="games-grid"></div>
-        </section>
+<section class="offer reveal active" id="oferta">
+    <div class="offer-box">
+        <h2>O primeiro passo para a transformação será dado agora.</h2>
+        <p class="offer-sub">
+            Esse é o ponto de virada. A partir daqui, você abandona o amadorismo e entra no jogo real da <span class="highlight">Inteligência Artificial</span>.
+        </p>
 
-        <section id="editor" class="section">
-            <div class="editor-split">
-                <div class="code-area">
-                    <div class="code-tabs">
-                        <button class="code-tab active" onclick="editor.setTab('html')" id="tab-html">HTML</button>
-                        <button class="code-tab" onclick="editor.setTab('css')" id="tab-css">CSS</button>
-                        <button class="code-tab" onclick="editor.setTab('js')" id="tab-js">JS</button>
-                    </div>
-                    <textarea id="codeEditor" class="code-input" spellcheck="false" oninput="editor.updateCode()" placeholder="Escreva seu código aqui..."></textarea>
-                </div>
-                <div class="preview-area">
-                    <div class="preview-toolbar">
-                        <strong>Preview</strong>
-                        <div>
-                            <button class="btn" onclick="editor.runPreview()" style="padding: 5px 15px; background: #eee; border: 1px solid #ddd; border-radius: 5px;"><i class="fas fa-play"></i> Rodar</button>
-                            <button class="btn" onclick="alert('Funcionalidade de publicação em breve!')" style="padding: 5px 15px; background: var(--gold); color: white; border: none; border-radius: 5px;"><i class="fas fa-cloud-upload-alt"></i> Publicar</button>
-                        </div>
-                    </div>
-                    <iframe id="previewFrame"></iframe>
-                </div>
-            </div>
-        </section>
-    </main>
+        <ul class="offer-list">
+            <li>✔ Acesso vitalício ao Mestre das IAs</li>
+            <li>✔ Comunidade de Networking EXCLUSIVA</li>
+            <li>✔ Suporte Pessoal e Direto Comigo</li>
+        </ul>
 
-    <script>
-        // --- JAVASCRIPT LOGIC ---
-        
-        // Mock Data de Jogos
-        const mockGames = [
-            { id: 1, title: "Neon Racer 2077", author: "CyberDev", category: "Corrida", plays: "12k", icon: "fa-car" },
-            { id: 2, title: "Space Invaders Remake", author: "RetroKing", category: "Arcade", plays: "8.5k", icon: "fa-gamepad" },
-            { id: 3, title: "Quantum Puzzle", author: "MindBender", category: "Lógica", plays: "5k", icon: "fa-puzzle-piece" },
-            { id: 4, title: "Golden Quest", author: "GoldMember", category: "Aventura", plays: "22k", icon: "fa-crown" },
-            { id: 5, title: "Cyber Chess", author: "DeepBlue", category: "Estratégia", plays: "3k", icon: "fa-chess" },
-            { id: 6, title: "Code Breaker", author: "HackerOne", category: "Puzzle", plays: "15k", icon: "fa-laptop-code" }
-        ];
+        <span class="old-price">De R$ 115,80</span>
+        <div class="new-price">R$ 57,90</div>
 
-        const app = {
-            user: null,
-            
-            init: function() {
-                // Intro Animation Timer
-                setTimeout(() => {
-                    document.getElementById('intro-screen').style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('intro-screen').classList.add('hidden');
-                        document.getElementById('authModal').classList.remove('hidden');
-                    }, 1000);
-                }, 3500);
-                
-                this.renderGames();
-            },
+        <a href="#" class="cta-button">Garantir meu acesso</a>
 
-            login: function() {
-                const username = document.getElementById('usernameInput').value;
-                if (!username) {
-                    document.getElementById('authMsg').innerText = "Por favor, digite um nome.";
-                    return;
-                }
-                
-                this.user = username;
-                document.getElementById('navName').innerText = username;
-                document.getElementById('navAvatar').src = `https://ui-avatars.com/api/?name=${username}&background=d4af37&color=fff`;
-                
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('mainNav').classList.remove('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-                document.getElementById('mainContent').style.display = 'block';
-            },
+        <span class="offer-note">Acesso imediato • Conteúdo vitalício • Atualizações inclusas</span>
+    </div>
+</section>
 
-            logout: function() {
-                location.reload();
-            },
+<script>
+    /* Reveal Animation Script */
+    const obs = new IntersectionObserver(e => {
+        e.forEach(i => i.isIntersecting && i.target.classList.add('active'))
+    }, { threshold: 0.15 });
 
-            nav: function(pageId) {
-                // Esconder todas as seções
-                document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    
+    // Removi o script que bloqueava o clique direito para você poder estudar o código
+</script>
 
-                // Mostrar a selecionada
-                document.getElementById(pageId).classList.add('active');
-                
-                // Atualizar botão ativo na nav
-                const btnId = `btn-${pageId}`;
-                if(document.getElementById(btnId)) {
-                    document.getElementById(btnId).classList.add('active');
-                }
-            },
-
-            renderGames: function() {
-                const grid = document.getElementById('gamesGrid');
-                const search = document.getElementById('searchInput').value.toLowerCase();
-                grid.innerHTML = '';
-
-                const filtered = mockGames.filter(g => g.title.toLowerCase().includes(search));
-
-                filtered.forEach(game => {
-                    const card = document.createElement('div');
-                    card.className = 'game-card';
-                    card.innerHTML = `
-                        <div class="game-thumb">
-                            <i class="fas ${game.icon}"></i>
-                        </div>
-                        <div class="game-content">
-                            <div class="game-title">${game.title}</div>
-                            <div class="game-tag">${game.category}</div>
-                            <div class="game-meta">
-                                <span><i class="fas fa-user"></i> ${game.author}</span>
-                                <span><i class="fas fa-play"></i> ${game.plays}</span>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-        };
-
-        const editor = {
-            currentTab: 'html',
-            code: {
-                html: '<h1>Olá Mundo!</h1>\n<p>Bem-vindo ao meu jogo.</p>',
-                css: 'body { background: #f0f0f0; font-family: sans-serif; padding: 20px; }\nh1 { color: #d4af37; }',
-                js: 'console.log("Jogo iniciado!");'
-            },
-
-            setTab: function(tab) {
-                // Salvar o que está no textarea atual para a memória
-                this.code[this.currentTab] = document.getElementById('codeEditor').value;
-                
-                // Mudar abas visuais
-                this.currentTab = tab;
-                document.querySelectorAll('.code-tab').forEach(b => b.classList.remove('active'));
-                document.getElementById(`tab-${tab}`).classList.add('active');
-                
-                // Carregar novo código
-                document.getElementById('codeEditor').value = this.code[tab];
-            },
-
-            updateCode: function() {
-                // Apenas atualiza a memória em tempo real se necessário, mas o setTab já cuida disso
-                this.code[this.currentTab] = document.getElementById('codeEditor').value;
-            },
-
-            runPreview: function() {
-                this.updateCode(); // Garante que está salvo
-                const frame = document.getElementById('previewFrame');
-                const doc = frame.contentDocument || frame.contentWindow.document;
-                
-                const fullSource = `
-                    <html>
-                    <head><style>${this.code.css}</style></head>
-                    <body>
-                        ${this.code.html}
-                        <script>${this.code.js}<\/script>
-                    </body>
-                    </html>
-                `;
-                
-                doc.open();
-                doc.write(fullSource);
-                doc.close();
-            }
-        };
-
-        // Inicializar editor com conteúdo HTML padrão
-        document.getElementById('codeEditor').value = editor.code.html;
-
-        // Iniciar App
-        window.onload = () => app.init();
-
-    </script>
 </body>
 </html>
