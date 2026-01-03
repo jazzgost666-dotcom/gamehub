@@ -1,34 +1,36 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
     <meta charset="utf-8">
-    <title>NexusHub | Modo Full Access</title>
+    <title>NexusHub Admin | DEBUG MODE</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #0a0a0b; color: #fff; font-family: sans-serif; padding: 20px; }
-        .admin-box { max-width: 600px; margin: auto; background: #16161a; padding: 25px; border-radius: 15px; border: 1px solid #333; }
-        .input-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; }
-        button { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-add { background: #00ff88; color: #000; width: 100%; margin-top: 10px; }
-        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #00ff88; }
-        .btn-del { background: #ff4d4d; color: white; margin-left: 5px; }
-        .btn-edit { background: #2d9cdb; color: white; }
-        small { color: #888; display: block; }
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        .admin-box { max-width: 700px; margin: auto; border: 1px solid #0f0; padding: 20px; }
+        .game-card { background: #111; border: 1px solid #333; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .data-raw { font-size: 10px; color: #888; margin-top: 5px; }
+        input { background: #222; color: #0f0; border: 1px solid #0f0; padding: 10px; width: 60%; }
+        button { padding: 10px; cursor: pointer; border: none; font-weight: bold; }
+        .btn-add { background: #0f0; color: #000; }
+        .btn-del { background: #f00; color: #fff; }
+        .btn-edit { background: #00f; color: #fff; }
+        h2 { border-bottom: 2px solid #0f0; padding-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="admin-box">
-    <h2>⚡ NEXUSHUB ADMIN</h2>
-    <div class="input-row" style="flex-direction: column;">
+    <h2>NEXUSHUB - MODO FORÇA BRUTA</h2>
+    <div id="status">Status: Sincronizando...</div>
+    
+    <div style="margin: 20px 0;">
         <input type="hidden" id="editKey">
-        <input type="text" id="gameInput" placeholder="Digite o nome do jogo aqui...">
-        <button class="btn-add" id="mainBtn" onclick="saveData()">ADICIONAR / SALVAR JOGO</button>
+        <input type="text" id="gameInput" placeholder="NOME DO JOGO">
+        <button class="btn-add" onclick="saveData()">SALVAR / POSTAR</button>
     </div>
 
-    <div id="gameList">Caminhando nos arquivos...</div>
+    <div id="gameList">Buscando na database...</div>
 </div>
 
 <script>
@@ -38,51 +40,56 @@
         projectId: "nexushub-b9667",
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. LEITURA UNIVERSAL (Lê String ou Objeto)
+    // 1. LEITURA UNIVERSAL - MOSTRA TUDO QUE EXISTIR
     db.ref('/').on('value', (snapshot) => {
         const list = document.getElementById('gameList');
         list.innerHTML = "";
         const data = snapshot.val();
+        document.getElementById('status').innerText = "Status: Conectado ✅";
 
         if (!data) {
-            list.innerHTML = "Banco vazio.";
+            list.innerHTML = "O Banco está vazio.";
             return;
         }
 
-        // Se houver uma pasta 'jogos', foca nela, senão lê a raiz
+        // Função recursiva para achar o nome em qualquer lugar do objeto
+        function findName(obj) {
+            if (typeof obj === 'string') return obj;
+            if (typeof obj !== 'object' || obj === null) return "Sem nome";
+            return obj.nome || obj.name || obj.title || obj.jogo || obj.label || Object.values(obj)[0];
+        }
+
+        // Tenta detectar se a lista está em 'jogos' ou na raiz
         const root = data.jogos ? data.jogos : data;
         const prefix = data.jogos ? 'jogos/' : '';
 
         Object.keys(root).forEach(key => {
             const val = root[key];
-            
-            // LÓGICA DE NOME: Se for objeto pega .nome, se for string usa o valor direto
-            let nameToShow = "";
-            if (typeof val === 'object' && val !== null) {
-                nameToShow = val.nome || val.title || val.name || "Objeto sem campo 'nome'";
-            } else {
-                nameToShow = val; // É uma string pura
-            }
+            const name = findName(val);
+            const rawData = JSON.stringify(val); // Mostra o dado real pra gente saber o erro
 
             list.innerHTML += `
                 <div class="game-card">
                     <div>
-                        <strong>${nameToShow}</strong>
-                        <small>ID: ${key}</small>
+                        <strong>${name}</strong>
+                        <div class="data-raw">RAW: ${rawData}</div>
+                        <small style="color:yellow">ID: ${key}</small>
                     </div>
                     <div>
-                        <button class="btn-edit" onclick="prepareEdit('${key}', '${nameToShow}', '${prefix}')">✏️</button>
+                        <button class="btn-edit" onclick="prepareEdit('${key}', '${name}', '${prefix}')">✏️</button>
                         <button class="btn-del" onclick="deleteGame('${prefix}${key}')">🗑️</button>
                     </div>
                 </div>
             `;
         });
+    }, (error) => {
+        document.getElementById('status').innerText = "ERRO: " + error.message;
     });
 
-    // 2. GRAVAÇÃO "TANQUE DE GUERRA"
+    // 2. GRAVAÇÃO DE "SOBREPOSIÇÃO" (Resolve o Adicionar e Editar)
     window.saveData = function() {
         const input = document.getElementById('gameInput');
         const key = document.getElementById('editKey').value;
@@ -90,42 +97,39 @@
         if (!input.value) return alert("Digite algo!");
 
         if (key) {
-            // EDITAR: Tenta atualizar como objeto. Se o banco recusar, salva como texto.
+            // EDITAR: Usa SET para forçar a escrita por cima de tudo
             db.ref(key).set({
                 nome: input.value,
-                lastUpdate: Date.now()
-            }).then(() => resetForm());
+                likes: 0
+            }).then(() => {
+                alert("Atualizado com sucesso!");
+                resetForm();
+            });
         } else {
-            // ADICIONAR: Sempre cria dentro de 'jogos' para organizar
+            // ADICIONAR: Tenta postar na pasta 'jogos' que é o padrão
             db.ref('jogos').push({
                 nome: input.value,
                 likes: 0
             }).then(() => {
                 input.value = "";
-                alert("Jogo enviado!");
-            }).catch(() => {
-                // Se o chefe bloqueou a pasta 'jogos', tenta salvar na raiz
-                db.ref().push(input.value);
+                alert("Postado com sucesso!");
             });
         }
     }
 
     window.deleteGame = (path) => {
-        if(confirm("Apagar mesmo?")) db.ref(path).remove();
+        if(confirm("Deseja apagar?")) db.ref(path).remove();
     }
 
     window.prepareEdit = (key, name, prefix) => {
         document.getElementById('editKey').value = prefix + key;
         document.getElementById('gameInput').value = name;
-        document.getElementById('mainBtn').innerText = "ATUALIZAR JOGO";
-        document.getElementById('mainBtn').style.background = "#2d9cdb";
+        window.scrollTo(0,0);
     }
 
     function resetForm() {
         document.getElementById('editKey').value = "";
         document.getElementById('gameInput').value = "";
-        document.getElementById('mainBtn').innerText = "ADICIONAR / SALVAR JOGO";
-        document.getElementById('mainBtn').style.background = "#00ff88";
     }
 </script>
 </body>
