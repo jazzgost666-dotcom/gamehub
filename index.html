@@ -2,134 +2,138 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>NexusHub Admin | DEBUG MODE</title>
+    <title>NexusHub Admin | FINAL FIX</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
-        .admin-box { max-width: 700px; margin: auto; border: 1px solid #0f0; padding: 20px; }
-        .game-card { background: #111; border: 1px solid #333; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-        .data-raw { font-size: 10px; color: #888; margin-top: 5px; }
-        input { background: #222; color: #0f0; border: 1px solid #0f0; padding: 10px; width: 60%; }
-        button { padding: 10px; cursor: pointer; border: none; font-weight: bold; }
-        .btn-add { background: #0f0; color: #000; }
-        .btn-del { background: #f00; color: #fff; }
-        .btn-edit { background: #00f; color: #fff; }
-        h2 { border-bottom: 2px solid #0f0; padding-bottom: 10px; }
+        :root { --neon: #00ff88; --error: #ff4444; }
+        body { background: #0a0a0b; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .container { max-width: 650px; margin: auto; }
+        .panel { background: #16161a; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--neon); }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px; width: calc(100% - 26px); margin-bottom: 10px; }
+        input:focus { border-color: var(--neon); outline: none; }
+        button { padding: 10px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: var(--neon); color: #000; width: 100%; font-size: 16px; }
+        .btn-del { background: var(--error); color: #fff; }
+        .btn-edit { background: #2d9cdb; color: #fff; margin-right: 5px; }
+        .info b { color: var(--neon); font-size: 18px; }
+        .status { font-size: 12px; color: #888; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="admin-box">
-    <h2>NEXUSHUB - MODO FORÇA BRUTA</h2>
-    <div id="status">Status: Sincronizando...</div>
-    
-    <div style="margin: 20px 0;">
+<div class="container">
+    <div class="panel">
+        <h2 style="margin-top:0">🎮 NexusHub Control</h2>
         <input type="hidden" id="editKey">
-        <input type="text" id="gameInput" placeholder="NOME DO JOGO">
-        <button class="btn-add" onclick="saveData()">SALVAR / POSTAR</button>
+        <input type="text" id="gameInput" placeholder="Nome do Jogo">
+        <button class="btn-add" id="mainBtn" onclick="saveData()">POSTAR NOVO JOGO</button>
     </div>
 
-    <div id="gameList">Buscando na database...</div>
+    <div id="gameList">Sincronizando...</div>
+    <div class="status" id="status">Conectado ao Firebase</div>
 </div>
 
 <script>
-    const firebaseConfig = {
+    const config = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
         databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
         projectId: "nexushub-b9667",
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(config);
     const db = firebase.database();
 
-    // 1. LEITURA UNIVERSAL - MOSTRA TUDO QUE EXISTIR
+    // 1. LER E FILTRAR (Transforma JSON em nomes bonitos)
     db.ref('/').on('value', (snapshot) => {
         const list = document.getElementById('gameList');
         list.innerHTML = "";
         const data = snapshot.val();
-        document.getElementById('status').innerText = "Status: Conectado ✅";
 
         if (!data) {
-            list.innerHTML = "O Banco está vazio.";
+            list.innerHTML = "<p>Nenhum dado encontrado.</p>";
             return;
         }
 
-        // Função recursiva para achar o nome em qualquer lugar do objeto
-        function findName(obj) {
-            if (typeof obj === 'string') return obj;
-            if (typeof obj !== 'object' || obj === null) return "Sem nome";
-            return obj.nome || obj.name || obj.title || obj.jogo || obj.label || Object.values(obj)[0];
-        }
-
-        // Tenta detectar se a lista está em 'jogos' ou na raiz
+        // Se os dados estiverem na pasta 'jogos', usa ela. Senão, usa a raiz.
         const root = data.jogos ? data.jogos : data;
         const prefix = data.jogos ? 'jogos/' : '';
 
         Object.keys(root).forEach(key => {
             const val = root[key];
-            const name = findName(val);
-            const rawData = JSON.stringify(val); // Mostra o dado real pra gente saber o erro
+            
+            // Tenta extrair o nome não importa onde ele esteja no JSON
+            let finalName = "Jogo sem nome";
+            if (typeof val === 'string') {
+                finalName = val;
+            } else if (typeof val === 'object' && val !== null) {
+                finalName = val.nome || val.name || val.titulo || val.title || Object.values(val)[0] || "Objeto";
+            }
+
+            // Evita mostrar logs do Firebase como se fossem jogos
+            if (typeof finalName === 'object') finalName = "Configuração do Sistema";
 
             list.innerHTML += `
                 <div class="game-card">
-                    <div>
-                        <strong>${name}</strong>
-                        <div class="data-raw">RAW: ${rawData}</div>
-                        <small style="color:yellow">ID: ${key}</small>
+                    <div class="info">
+                        <b>${finalName}</b>
                     </div>
                     <div>
-                        <button class="btn-edit" onclick="prepareEdit('${key}', '${name}', '${prefix}')">✏️</button>
+                        <button class="btn-edit" onclick="prepareEdit('${key}', '${finalName}', '${prefix}')">✏️</button>
                         <button class="btn-del" onclick="deleteGame('${prefix}${key}')">🗑️</button>
                     </div>
                 </div>
             `;
         });
-    }, (error) => {
-        document.getElementById('status').innerText = "ERRO: " + error.message;
     });
 
-    // 2. GRAVAÇÃO DE "SOBREPOSIÇÃO" (Resolve o Adicionar e Editar)
+    // 2. SALVAR E EDITAR (FORÇA BRUTA)
     window.saveData = function() {
         const input = document.getElementById('gameInput');
         const key = document.getElementById('editKey').value;
         
-        if (!input.value) return alert("Digite algo!");
+        if (!input.value) return alert("Escreva o nome do jogo!");
+
+        const dadosParaSalvar = {
+            nome: input.value,
+            dataPostagem: new Date().toISOString()
+        };
 
         if (key) {
-            // EDITAR: Usa SET para forçar a escrita por cima de tudo
-            db.ref(key).set({
-                nome: input.value,
-                likes: 0
-            }).then(() => {
-                alert("Atualizado com sucesso!");
-                resetForm();
-            });
+            // Se tem chave, atualiza
+            db.ref(key).set(dadosParaSalvar)
+                .then(() => { alert("Atualizado!"); resetForm(); })
+                .catch(e => alert("Erro ao editar: " + e.message));
         } else {
-            // ADICIONAR: Tenta postar na pasta 'jogos' que é o padrão
-            db.ref('jogos').push({
-                nome: input.value,
-                likes: 0
-            }).then(() => {
-                input.value = "";
-                alert("Postado com sucesso!");
-            });
+            // Se não tem, cria novo na pasta 'jogos'
+            db.ref('jogos').push(dadosParaSalvar)
+                .then(() => { input.value = ""; alert("Postado com sucesso!"); })
+                .catch(e => {
+                    // Se a pasta 'jogos' for proibida, tenta na raiz
+                    db.ref().push(input.value);
+                });
         }
     }
 
     window.deleteGame = (path) => {
-        if(confirm("Deseja apagar?")) db.ref(path).remove();
+        if(confirm("Deseja apagar este item?")) {
+            db.ref(path).remove().then(() => alert("Apagado!"));
+        }
     }
 
     window.prepareEdit = (key, name, prefix) => {
         document.getElementById('editKey').value = prefix + key;
         document.getElementById('gameInput').value = name;
-        window.scrollTo(0,0);
+        document.getElementById('mainBtn').innerText = "ATUALIZAR JOGO";
+        document.getElementById('mainBtn').style.background = "#2d9cdb";
     }
 
     function resetForm() {
         document.getElementById('editKey').value = "";
         document.getElementById('gameInput').value = "";
+        document.getElementById('mainBtn').innerText = "POSTAR NOVO JOGO";
+        document.getElementById('mainBtn').style.background = "var(--neon)";
     }
 </script>
 </body>
