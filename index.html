@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NexusHub | PAINEL ADMINISTRATIVO</title>
+    <title>NexusHub Admin | SISTEMA RESTAURADO</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -18,10 +18,10 @@
         .btn-add:hover { box-shadow: 0 0 15px var(--neon); transform: translateY(-2px); }
         .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
         .game-name { font-size: 18px; font-weight: bold; color: #fff; }
-        .game-meta { color: #888; font-size: 12px; }
+        .game-likes { color: #ffcc00; font-size: 14px; margin-top: 5px; }
         .actions { display: flex; gap: 8px; }
-        .btn-del { background: #ff4d4d; color: white; width: 40px; }
-        .btn-edit { background: #2d9cdb; color: white; width: 40px; }
+        .btn-del { background: #ff4d4d; color: white; width: 45px; }
+        .btn-edit { background: #2d9cdb; color: white; width: 45px; }
     </style>
 </head>
 <body>
@@ -34,10 +34,10 @@
     <div class="input-box">
         <input type="hidden" id="editKey">
         <input type="text" id="gameInput" placeholder="NOME DO JOGO">
-        <button class="btn-add" id="btnAction" onclick="saveGame()">Gravar no Banco</button>
+        <button class="btn-add" id="btnAction" onclick="saveGame()">GRAVAR NO BANCO</button>
     </div>
 
-    <div id="gameList">Sincronizando jogos...</div>
+    <div id="gameList">Buscando jogos...</div>
 </div>
 
 <script>
@@ -47,32 +47,34 @@
         projectId: "nexushub-b9667",
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. LER APENAS O QUE ESTÁ DENTRO DE "GAMES"
+    // 1. LER APENAS A PASTA 'GAMES' (Ignora o lixo da raiz)
     db.ref('games').on('value', (snapshot) => {
         const list = document.getElementById('gameList');
         list.innerHTML = "";
         const data = snapshot.val();
 
-        if (!data || typeof data !== 'object') {
-            list.innerHTML = "<p style='color:#666; text-align:center;'>Nenhum jogo na pasta 'games'. Adicione um acima!</p>";
+        if (!data) {
+            list.innerHTML = "<p style='color:#666; text-align:center;'>Nenhum jogo postado ainda.</p>";
             return;
         }
 
         Object.keys(data).forEach(key => {
-            const game = data[key];
-            const name = (typeof game === 'object') ? (game.nome || "Sem nome") : game;
+            const item = data[key];
+            // Se o item for objeto pega o nome, se for texto pega o valor direto
+            const nome = (typeof item === 'object') ? (item.nome || "Sem nome") : item;
+            const likes = (typeof item === 'object') ? (item.likes || 0) : 0;
             
             list.innerHTML += `
                 <div class="game-card">
                     <div>
-                        <div class="game-name">${name}</div>
-                        <div class="game-meta">ID: ${key}</div>
+                        <div class="game-name">${nome}</div>
+                        <div class="game-likes">👍 ${likes} Likes</div>
                     </div>
                     <div class="actions">
-                        <button class="btn-edit" onclick="prepareEdit('${key}', '${name}')">✏️</button>
+                        <button class="btn-edit" onclick="prepareEdit('${key}', '${nome}')">✏️</button>
                         <button class="btn-del" onclick="deleteGame('${key}')">🗑️</button>
                     </div>
                 </div>
@@ -80,31 +82,34 @@
         });
     });
 
-    // 2. SALVAR DENTRO DE "GAMES"
+    // 2. SALVAR E EDITAR (MODO TANQUE)
     function saveGame() {
         const input = document.getElementById('gameInput');
         const key = document.getElementById('editKey').value;
         
-        if (!input.value) return alert("Digite o nome!");
+        if (!input.value) return alert("Escreva o nome do jogo!");
+
+        const dadosParaGravar = {
+            nome: input.value,
+            likes: 0
+        };
 
         if (key) {
-            // EDITAR
-            db.ref('games/' + key).update({ nome: input.value })
-                .then(() => { resetForm(); alert("Jogo Atualizado!"); });
+            // EDITAR: Grava por cima do ID específico
+            db.ref('games/' + key).set(dadosParaGravar)
+                .then(() => { resetForm(); alert("JOGO ATUALIZADO!"); });
         } else {
-            // ADICIONAR NOVO
-            db.ref('games').push({
-                nome: input.value,
-                timestamp: Date.now()
-            }).then(() => {
-                input.value = "";
-                alert("Jogo Adicionado com Sucesso!");
-            });
+            // ADICIONAR NOVO: Cria um novo ID dentro de 'games'
+            db.ref('games').push(dadosParaGravar)
+                .then(() => {
+                    input.value = "";
+                    alert("POSTADO COM SUCESSO!");
+                });
         }
     }
 
     window.deleteGame = (key) => {
-        if(confirm("Deseja apagar?")) {
+        if(confirm("Deseja apagar este jogo?")) {
             db.ref('games/' + key).remove();
         }
     }
@@ -112,7 +117,8 @@
     window.prepareEdit = (key, name) => {
         document.getElementById('editKey').value = key;
         document.getElementById('gameInput').value = name;
-        document.getElementById('btnAction').innerText = "Atualizar Jogo";
+        document.getElementById('btnAction').innerText = "Atualizar Agora";
+        document.getElementById('btnAction').style.background = "#2d9cdb";
         window.scrollTo(0,0);
     }
 
@@ -120,6 +126,7 @@
         document.getElementById('editKey').value = "";
         document.getElementById('gameInput').value = "";
         document.getElementById('btnAction').innerText = "Gravar no Banco";
+        document.getElementById('btnAction').style.background = "var(--neon)";
     }
 </script>
 </body>
