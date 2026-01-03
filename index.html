@@ -2,139 +2,114 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>NexusHub Admin | FINAL FIX</title>
+    <title>SISTEMA DE RECUPERAÇÃO NEXUSHUB</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --neon: #00ff88; --error: #ff4444; }
-        body { background: #0a0a0b; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .container { max-width: 650px; margin: auto; }
-        .panel { background: #16161a; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--neon); }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px; width: calc(100% - 26px); margin-bottom: 10px; }
-        input:focus { border-color: var(--neon); outline: none; }
-        button { padding: 10px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-add { background: var(--neon); color: #000; width: 100%; font-size: 16px; }
-        .btn-del { background: var(--error); color: #fff; }
-        .btn-edit { background: #2d9cdb; color: #fff; margin-right: 5px; }
-        .info b { color: var(--neon); font-size: 18px; }
-        .status { font-size: 12px; color: #888; text-align: center; }
+        body { background: #1a0000; color: #fff; font-family: monospace; padding: 20px; }
+        .alert { background: #ff0000; color: #fff; padding: 15px; font-weight: bold; border: 2px solid #fff; margin-bottom: 20px; }
+        .item { background: #000; border: 1px solid #ff0000; padding: 15px; margin: 10px 0; }
+        input { background: #333; color: #fff; border: 1px solid #ff0000; padding: 10px; width: 300px; }
+        button { padding: 10px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn-update { background: #ff0000; color: #fff; }
+        .btn-post { background: #fff; color: #000; margin-top: 10px; padding: 15px; width: 320px; }
+        .raw-data { color: #aaa; font-size: 11px; word-break: break-all; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="panel">
-        <h2 style="margin-top:0">🎮 NexusHub Control</h2>
-        <input type="hidden" id="editKey">
-        <input type="text" id="gameInput" placeholder="Nome do Jogo">
-        <button class="btn-add" id="mainBtn" onclick="saveData()">POSTAR NOVO JOGO</button>
+    <div class="alert">MODO DE SOBREPOSIÇÃO ATIVADO: SE O NOME NÃO APARECE, DIGITE E CLIQUE EM "FORÇAR NOME"</div>
+
+    <div style="border: 2px solid #fff; padding: 20px; margin-bottom: 20px;">
+        <h3>POSTAR NOVO JOGO (FORÇA BRUTA)</h3>
+        <input type="text" id="novoNome" placeholder="NOME DO JOGO">
+        <br>
+        <button class="btn-post" onclick="postarNovo()">POSTAR NA RAIZ DO BANCO</button>
     </div>
 
-    <div id="gameList">Sincronizando...</div>
-    <div class="status" id="status">Conectado ao Firebase</div>
-</div>
+    <div id="listaTotal">Carregando estrutura do banco...</div>
 
 <script>
     const config = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
         databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
-        projectId: "nexushub-b9667",
+        projectId: "nexushub-b9667"
     };
 
     firebase.initializeApp(config);
     const db = firebase.database();
 
-    // 1. LER E FILTRAR (Transforma JSON em nomes bonitos)
+    // 1. SCANNER TOTAL
     db.ref('/').on('value', (snapshot) => {
-        const list = document.getElementById('gameList');
-        list.innerHTML = "";
+        const div = document.getElementById('listaTotal');
+        div.innerHTML = "<h2>ITENS DETECTADOS NO BANCO:</h2>";
         const data = snapshot.val();
 
         if (!data) {
-            list.innerHTML = "<p>Nenhum dado encontrado.</p>";
+            div.innerHTML += "BANCO VAZIO OU SEM PERMISSÃO DE LEITURA.";
             return;
         }
 
-        // Se os dados estiverem na pasta 'jogos', usa ela. Senão, usa a raiz.
-        const root = data.jogos ? data.jogos : data;
-        const prefix = data.jogos ? 'jogos/' : '';
-
-        Object.keys(root).forEach(key => {
-            const val = root[key];
+        // Função para varrer tudo sem erro
+        Object.keys(data).forEach(key => {
+            const valor = data[key];
             
-            // Tenta extrair o nome não importa onde ele esteja no JSON
-            let finalName = "Jogo sem nome";
-            if (typeof val === 'string') {
-                finalName = val;
-            } else if (typeof val === 'object' && val !== null) {
-                finalName = val.nome || val.name || val.titulo || val.title || Object.values(val)[0] || "Objeto";
+            // Se o valor for um objeto, tenta pegar o nome dentro dele
+            let nomeAtual = "DESCONHECIDO / VAZIO";
+            if (typeof valor === 'string') nomeAtual = valor;
+            else if (valor && typeof valor === 'object') {
+                nomeAtual = valor.nome || valor.title || valor.name || "OBJETO SEM CAMPO NOME";
             }
 
-            // Evita mostrar logs do Firebase como se fossem jogos
-            if (typeof finalName === 'object') finalName = "Configuração do Sistema";
-
-            list.innerHTML += `
-                <div class="game-card">
-                    <div class="info">
-                        <b>${finalName}</b>
-                    </div>
-                    <div>
-                        <button class="btn-edit" onclick="prepareEdit('${key}', '${finalName}', '${prefix}')">✏️</button>
-                        <button class="btn-del" onclick="deleteGame('${prefix}${key}')">🗑️</button>
+            div.innerHTML += `
+                <div class="item">
+                    <div><strong>ID:</strong> ${key}</div>
+                    <div><strong>NOME ATUAL:</strong> <span style="color:#0f0">${nomeAtual}</span></div>
+                    <div class="raw-data">DADO BRUTO: ${JSON.stringify(valor)}</div>
+                    <div style="margin-top:10px">
+                        <input type="text" id="input-${key}" placeholder="Novo nome para este ID">
+                        <button class="btn-update" onclick="forcarUpdate('${key}')">FORÇAR NOME</button>
+                        <button onclick="apagar('${key}')">APAGAR</button>
                     </div>
                 </div>
             `;
         });
     });
 
-    // 2. SALVAR E EDITAR (FORÇA BRUTA)
-    window.saveData = function() {
-        const input = document.getElementById('gameInput');
-        const key = document.getElementById('editKey').value;
-        
-        if (!input.value) return alert("Escreva o nome do jogo!");
+    // 2. FORÇAR UPDATE (Muda o nome de algo que já existe)
+    window.forcarUpdate = function(id) {
+        const novoValor = document.getElementById('input-' + id).value;
+        if (!novoValor) return alert("Digite o nome para forçar!");
 
-        const dadosParaSalvar = {
-            nome: input.value,
-            dataPostagem: new Date().toISOString()
-        };
+        // Se o deletar funciona, o SET tem que funcionar!
+        db.ref(id).set({
+            nome: novoValor,
+            likes: 0
+        }).then(() => alert("FORÇADO COM SUCESSO!"))
+          .catch(e => alert("ERRO: " + e.message));
+    };
 
-        if (key) {
-            // Se tem chave, atualiza
-            db.ref(key).set(dadosParaSalvar)
-                .then(() => { alert("Atualizado!"); resetForm(); })
-                .catch(e => alert("Erro ao editar: " + e.message));
-        } else {
-            // Se não tem, cria novo na pasta 'jogos'
-            db.ref('jogos').push(dadosParaSalvar)
-                .then(() => { input.value = ""; alert("Postado com sucesso!"); })
-                .catch(e => {
-                    // Se a pasta 'jogos' for proibida, tenta na raiz
-                    db.ref().push(input.value);
-                });
+    // 3. POSTAR NOVO (Cria um novo ID na raiz)
+    window.postarNovo = function() {
+        const nome = document.getElementById('novoNome').value;
+        if (!nome) return alert("Digite o nome!");
+
+        // Tenta postar direto na raiz para não errar o caminho
+        db.ref().push({
+            nome: nome,
+            likes: 0
+        }).then(() => {
+            alert("POSTADO!");
+            document.getElementById('novoNome').value = "";
+        }).catch(e => alert("ERRO AO POSTAR: " + e.message));
+    };
+
+    // 4. APAGAR (O que você disse que funciona)
+    window.apagar = function(id) {
+        if(confirm("DELETAR?")) {
+            db.ref(id).remove();
         }
-    }
-
-    window.deleteGame = (path) => {
-        if(confirm("Deseja apagar este item?")) {
-            db.ref(path).remove().then(() => alert("Apagado!"));
-        }
-    }
-
-    window.prepareEdit = (key, name, prefix) => {
-        document.getElementById('editKey').value = prefix + key;
-        document.getElementById('gameInput').value = name;
-        document.getElementById('mainBtn').innerText = "ATUALIZAR JOGO";
-        document.getElementById('mainBtn').style.background = "#2d9cdb";
-    }
-
-    function resetForm() {
-        document.getElementById('editKey').value = "";
-        document.getElementById('gameInput').value = "";
-        document.getElementById('mainBtn').innerText = "POSTAR NOVO JOGO";
-        document.getElementById('mainBtn').style.background = "var(--neon)";
-    }
+    };
 </script>
 </body>
 </html>
