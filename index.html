@@ -2,38 +2,48 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>GLSHUB | ADMIN PANEL</title>
+    <title>GLSHUB ADMIN | SISTEMA FINAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --accent: #00d9ff; --bg: #0a0a0b; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: #16161a; border: 1px solid #333; padding: 25px; border-radius: 15px; }
-        h1 { color: var(--accent); text-align: center; text-transform: uppercase; }
-        .input-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; }
-        button { padding: 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        .btn-add { background: var(--accent); color: #000; }
-        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
-        .actions { display: flex; gap: 8px; }
-        .btn-del { background: #ff4d4d; color: white; }
-        .btn-edit { background: #2d9cdb; color: white; }
+        :root { --neon: #00ff88; --blue: #00d9ff; --red: #ff4d4d; }
+        body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .container { max-width: 550px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
+        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--neon); }
+        
+        .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
+        .btn-main:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--neon); }
+
+        .game-card { background: #1a1a1a; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
+        .game-info b { font-size: 18px; color: #fff; display: block; }
+        .game-info span { color: #666; font-size: 11px; }
+        
+        .actions { display: flex; gap: 10px; }
+        .btn-edit { background: var(--blue); color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .btn-del { background: var(--red); color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>GLSHUB ADMIN</h1>
-    <div class="input-box">
-        <input type="hidden" id="editKey">
-        <input type="text" id="gameInput" placeholder="NOME DO JOGO">
-        <button class="btn-add" id="btnAction" onclick="saveGame()">Gravar no Banco</button>
+    <h1>GLSHUB Admin</h1>
+
+    <div class="input-group">
+        <input type="hidden" id="editId">
+        <input type="text" id="gameName" placeholder="NOME DO JOGO">
+        <input type="text" id="postedBy" placeholder="POSTADO POR (SEU NOME)">
+        <button class="btn-main" id="saveBtn" onclick="processarSalvar()">Gravar no Banco de Dados</button>
     </div>
-    <div id="gameList">Conectando ao projeto glshub...</div>
+
+    <div id="displayList">Conectando ao Firebase GLSHUB...</div>
 </div>
 
 <script>
-    // CREDENCIAIS ATUALIZADAS GLSHUB
+    // CONFIGURAÇÃO QUE VOCÊ PASSOU
     const firebaseConfig = {
         apiKey: "AIzaSyCS1NBS0qrLiCpV_OSqpUKoipxzdGiUQ48",
         authDomain: "glshub.firebaseapp.com",
@@ -44,69 +54,92 @@
         measurementId: "G-1TGK9KLKQL"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // LER JOGOS (Sempre olha para a pasta 'games')
+    // 1. LER APENAS A PASTA 'GAMES'
     db.ref('games').on('value', (snapshot) => {
-        const list = document.getElementById('gameList');
+        const list = document.getElementById('displayList');
         list.innerHTML = "";
         const data = snapshot.val();
 
         if (!data) {
-            list.innerHTML = "<p style='color:#666; text-align:center;'>Nenhum jogo encontrado no glshub.</p>";
+            list.innerHTML = "<p style='text-align:center; color:#555;'>Nenhum jogo na lista do GLSHUB.</p>";
             return;
         }
 
-        Object.keys(data).forEach(key => {
-            const item = data[key];
-            const nome = (typeof item === 'object') ? (item.nome || "Sem nome") : item;
+        Object.keys(data).forEach(id => {
+            const item = data[id];
             
+            let nomeVal = "";
+            if (typeof item === 'object' && item !== null) {
+                nomeVal = item.nome || item.name || "Sem nome no banco";
+            } else {
+                nomeVal = item;
+            }
+
+            const autor = item.autor || "Desconhecido";
+
             list.innerHTML += `
                 <div class="game-card">
-                    <div><b>${nome}</b><br><small style="color:#555">${key}</small></div>
+                    <div class="game-info">
+                        <b>${nomeVal}</b>
+                        <span>Por: ${autor} | ID: ${id}</span>
+                    </div>
                     <div class="actions">
-                        <button class="btn-edit" onclick="prepareEdit('${key}', '${nome}')">✏️</button>
-                        <button class="btn-del" onclick="deleteGame('${key}')">🗑️</button>
+                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nomeVal}', '${autor}')">✏️</button>
+                        <button class="btn-del" onclick="remover('${id}')">🗑️</button>
                     </div>
                 </div>
             `;
         });
     });
 
-    function saveGame() {
-        const input = document.getElementById('gameInput');
-        const key = document.getElementById('editKey').value;
-        if (!input.value) return alert("Digite o nome!");
+    // 2. SALVAR NO GLSHUB
+    function processarSalvar() {
+        const nome = document.getElementById('gameName').value;
+        const autor = document.getElementById('postedBy').value;
+        const id = document.getElementById('editId').value;
 
-        const gameData = { nome: input.value, timestamp: Date.now() };
+        if (!nome) return alert("Digite o nome do jogo!");
 
-        if (key) {
-            db.ref('games/' + key).set(gameData).then(() => { resetForm(); alert("Atualizado!"); });
+        const dadosParaEnviar = {
+            nome: nome,
+            autor: autor || "Admin",
+            likes: 0,
+            data: new Date().getTime()
+        };
+
+        if (id) {
+            db.ref('games/' + id).set(dadosParaEnviar)
+                .then(() => { alert("ATUALIZADO COM SUCESSO!"); resetar(); });
         } else {
-            db.ref('games').push(gameData).then(() => { input.value = ""; alert("Postado!"); });
+            db.ref('games').push(dadosParaEnviar)
+                .then(() => { alert("POSTADO COM SUCESSO!"); resetar(); });
         }
     }
 
-    window.deleteGame = (key) => {
-        if(confirm("Deseja apagar?")) {
-            db.ref('games/' + key).remove()
-              .then(() => alert("Apagado com sucesso!"))
-              .catch(e => alert("ERRO DE PERMISSÃO: Vá no Firebase Console > Realtime Database > Rules e mude para true."));
+    window.remover = (id) => {
+        if(confirm("Deseja apagar permanentemente?")) {
+            db.ref('games/' + id).remove();
         }
     }
 
-    window.prepareEdit = (key, nome) => {
-        document.getElementById('editKey').value = key;
-        document.getElementById('gameInput').value = nome;
-        document.getElementById('btnAction').innerText = "Atualizar Jogo";
+    window.prepararEdicao = (id, nome, autor) => {
+        document.getElementById('editId').value = id;
+        document.getElementById('gameName').value = nome;
+        document.getElementById('postedBy').value = autor;
+        document.getElementById('saveBtn').innerText = "Atualizar Jogo";
+        document.getElementById('saveBtn').style.background = "#00d9ff";
         window.scrollTo(0,0);
     }
 
-    function resetForm() {
-        document.getElementById('editKey').value = "";
-        document.getElementById('gameInput').value = "";
-        document.getElementById('btnAction').innerText = "Gravar no Banco";
+    function resetar() {
+        document.getElementById('editId').value = "";
+        document.getElementById('gameName').value = "";
+        document.getElementById('postedBy').value = "";
+        document.getElementById('saveBtn').innerText = "Gravar no Banco de Dados";
+        document.getElementById('saveBtn').style.background = "#00ff88";
     }
 </script>
 </body>
