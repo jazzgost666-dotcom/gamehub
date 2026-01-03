@@ -1,118 +1,118 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>NexusHub Ultra Sync</title>
+    <meta charset="utf-8">
+    <title>PAINEL DE EMERGÊNCIA</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-        .box { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
-        input { padding: 10px; border-radius: 5px; border: none; width: 200px; }
-        button { padding: 10px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
-        .jogo { background: #252525; padding: 10px; margin: 10px 0; display: flex; justify-content: space-between; border-left: 4px solid #007bff; }
-        .erro { color: #ff4444; font-weight: bold; }
-        .sucesso { color: #00ff00; }
+        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
+        .painel { border: 2px solid #0f0; padding: 20px; margin-bottom: 20px; }
+        input { background: #222; color: #0f0; border: 1px solid #0f0; padding: 10px; width: 300px; }
+        button { background: #0f0; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        .jogo-card { border: 1px solid #444; padding: 10px; margin-top: 10px; display: flex; justify-content: space-between; }
+        .erro-msg { color: red; font-size: 20px; background: white; padding: 10px; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>🚀 NexusHub - Painel de Emergência</h2>
-        <div id="debug">Status: Tentando conectar...</div>
-        <br>
-        <input type="text" id="nomeJogo" placeholder="Nome do Jogo">
-        <button onclick="enviarDados()">ADICIONAR JOGO</button>
-        <button onclick="tentarSincronizarNovamente()" style="background: #555;">FORÇAR RECARGA</button>
+    <div id="erroStatus" class="erro-msg">ERRO: O BANCO ESTÁ BLOQUEADO PELO CHEFE (PERMISSION DENIED)</div>
+
+    <div class="painel">
+        <h1>SISTEMA DE SINCRONIZAÇÃO FORÇADA</h1>
+        <p>Status do Banco: <span id="status">CONECTANDO...</span></p>
+        
+        <input type="text" id="inputNome" placeholder="NOME DO JOGO">
+        <button onclick="salvar()">GRAVAR NO FIREBASE</button>
     </div>
 
-    <div id="lista" class="box">
-        <h3>Lista de Jogos:</h3>
-        <div id="display">Carregando...</div>
+    <div class="painel">
+        <h3>JOGOS NO BANCO:</h3>
+        <div id="lista">Carregando...</div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<script>
+    // 1. SUA CONFIGURAÇÃO
+    const firebaseConfig = {
+        apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
+        authDomain: "nexushub-b9667.firebaseapp.com",
+        databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
+        projectId: "nexushub-b9667",
+        storageBucket: "nexushub-b9667.firebasestorage.app",
+        messagingSenderId: "491337953014",
+        appId: "1:491337953014:web:9db7f2f23fd0c85154c6d7",
+    };
 
-        const config = {
-            apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
-            databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
-            projectId: "nexushub-b9667",
-        };
+    // 2. INICIALIZAÇÃO FORÇADA
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
 
-        const app = initializeApp(config);
-        const db = getDatabase(app);
+    // 3. FUNÇÃO PARA SALVAR (TENTA SALVAR NA RAIZ E EM 'JOGOS')
+    function salvar() {
+        const nome = document.getElementById('inputNome').value;
+        if(!nome) return alert("Escreva o nome!");
 
-        // Função de Enviar
-        window.enviarDados = function() {
-            const nome = document.getElementById('nomeJogo').value;
-            if(!nome) return alert("Digite algo!");
-            
-            // Tentativa via SDK
-            push(ref(db, 'jogos'), { nome: nome })
-            .then(() => { alert("Enviado!"); document.getElementById('nomeJogo').value = ""; })
-            .catch(err => {
-                console.error(err);
-                // TENTATIVA 2: SE O SDK FALHAR, TENTA VIA REST API (FORÇA BRUTA)
-                enviarViaRest(nome);
-            });
-        }
-
-        // Função de Listar (Tempo Real)
-        onValue(ref(db, 'jogos'), (snapshot) => {
-            renderizar(snapshot.val());
-            document.getElementById('debug').innerHTML = "<span class='sucesso'>Conectado via SDK! ✅</span>";
-        }, (error) => {
-            document.getElementById('debug').innerHTML = "<span class='erro'>Erro no SDK. Tentando Modo REST...</span>";
-            carregarViaRest();
+        // Tenta salvar em 'jogos'
+        db.ref('jogos').push({
+            nome: nome,
+            data: new Date().getTime()
+        }).then(() => {
+            alert("SUCESSO! Gravou em /jogos");
+            document.getElementById('inputNome').value = "";
+        }).catch(e => {
+            console.error(e);
+            alert("ERRO AO GRAVAR: " + e.message);
         });
+    }
 
-        window.deletar = function(id) {
-            remove(ref(db, 'jogos/' + id));
-        }
+    // 4. FUNÇÃO PARA LER (ESCUTA TUDO)
+    // Vamos tentar ler a raiz '/' para ver se o seu chefe colocou os dados em outro lugar
+    db.ref('/').on('value', (snapshot) => {
+        document.getElementById('status').innerText = "ONLINE ✅";
+        document.getElementById('erroStatus').style.display = "none";
+        
+        const dados = snapshot.val();
+        console.log("DADOS RECEBIDOS:", dados);
 
-        function renderizar(dados) {
-            const display = document.getElementById('display');
-            display.innerHTML = "";
-            if (!dados) { display.innerHTML = "Banco vazio."; return; }
+        const listaDiv = document.getElementById('lista');
+        listaDiv.innerHTML = "";
+
+        if (dados) {
+            // Se os dados vierem dentro de 'jogos' ou direto na raiz
+            const jogos = dados.jogos ? dados.jogos : dados;
             
-            Object.keys(dados).forEach(id => {
-                display.innerHTML += `
-                    <div class="jogo">
-                        ${dados[id].nome || dados[id]} 
-                        <button onclick="deletar('${id}')" style="background:red">X</button>
-                    </div>`;
+            Object.keys(jogos).forEach(id => {
+                const item = jogos[id];
+                // Verifica se é um objeto com nome ou só uma string
+                const nomeMostrado = item.nome ? item.nome : JSON.stringify(item);
+                
+                listaDiv.innerHTML += `
+                    <div class="jogo-card">
+                        <span>ID: ${id} | <b>${nomeMostrado}</b></span>
+                        <button style="background:red" onclick="apagar('${id}')">DELETAR</button>
+                    </div>
+                `;
             });
+        } else {
+            listaDiv.innerHTML = "O banco está vazio (vazio mesmo, sem nada).";
         }
+    }, (error) => {
+        console.error("ERRO DE LEITURA:", error);
+        document.getElementById('status').innerText = "BLOQUEADO ❌";
+        document.getElementById('erroStatus').style.display = "block";
+    });
 
-        // TENTATIVA 2: MODO REST (FETCH API) - Ignora o SDK e vai direto na URL
-        async function carregarViaRest() {
-            try {
-                const res = await fetch("https://nexushub-b9667-default-rtdb.firebaseio.com/jogos.json");
-                const data = await res.json();
-                renderizar(data);
-                document.getElementById('debug').innerHTML = "<span class='sucesso'>Conectado via REST! 🌐</span>";
-            } catch (e) {
-                document.getElementById('debug').innerHTML = "<span class='erro'>FALHA TOTAL: O banco deve estar privado.</span>";
-            }
+    // 5. FUNÇÃO PARA APAGAR
+    window.apagar = function(id) {
+        if(confirm("Apagar?")) {
+            db.ref('jogos/' + id).remove()
+              .catch(() => db.ref('/' + id).remove()); // tenta apagar na raiz se falhar
         }
+    }
+</script>
 
-        async function enviarViaRest(nome) {
-            await fetch("https://nexushub-b9667-default-rtdb.firebaseio.com/jogos.json", {
-                method: 'POST',
-                body: JSON.stringify({ nome: nome })
-            });
-            carregarViaRest();
-        }
-
-        window.tentarSincronizarNovamente = () => carregarViaRest();
-
-    </script>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
-        // Se o seu chefe configurou o Firebase muito antigo, este script v8 pode ser a salvação
-        console.log("Sistema de backup v8 carregado.");
-    </script>
 </body>
 </html>
