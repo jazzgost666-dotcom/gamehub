@@ -2,143 +2,154 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NexusHub | Recuperação Total</title>
+    <title>NexusHub Admin | SISTEMA OPERACIONAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #0a0a0a; color: #00ff00; font-family: 'Courier New', monospace; padding: 20px; }
-        .painel { border: 2px solid #00ff00; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px #00ff00; }
-        .jogo-item { background: #1a1a1a; border: 1px solid #333; margin: 10px 0; padding: 15px; border-radius: 8px; }
-        .controles { display: flex; gap: 10px; margin-top: 10px; }
-        input { background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 10px; width: 250px; }
-        button { cursor: pointer; padding: 8px 15px; font-weight: bold; border: none; border-radius: 4px; }
-        .btn-del { background: #ff0000; color: white; }
-        .btn-edit { background: #0088ff; color: white; }
-        .btn-save { background: #00ff00; color: black; font-size: 1.2em; }
-        .debug-info { color: #888; font-size: 0.8em; }
+        :root { --neon: #00ff88; --danger: #ff3333; --blue: #00a2ff; }
+        body { background: #050505; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .panel { max-width: 800px; margin: auto; border: 1px solid var(--neon); padding: 20px; border-radius: 15px; background: #111; box-shadow: 0 0 20px rgba(0,255,136,0.1); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 30px; }
+        input { flex: 1; background: #222; border: 1px solid #444; color: white; padding: 15px; border-radius: 8px; font-size: 16px; }
+        input:focus { border-color: var(--neon); outline: none; }
+        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.3s; padding: 10px 20px; }
+        .btn-main { background: var(--neon); color: #000; font-size: 16px; }
+        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--neon); }
+        .card { background: #1a1a1a; margin: 15px 0; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .info h3 { margin: 0; color: var(--neon); }
+        .controls { display: flex; gap: 10px; }
+        .btn-edit { background: var(--blue); color: white; }
+        .btn-del { background: var(--danger); color: white; }
+        .btn-like { background: #333; color: #ff4081; border: 1px solid #ff4081; }
     </style>
 </head>
 <body>
 
-<div class="painel">
-    <h1>NEXUSHUB - RECONEXÃO FORÇADA</h1>
-    <div id="status">📡 Buscando dados em todas as pastas...</div>
-    <hr>
+<div class="panel">
+    <h1>🎮 NEXUSHUB ADMIN <small style="font-size: 12px; color: #888;">v5.0</small></h1>
     
-    <div style="margin: 20px 0;">
+    <div class="input-group">
         <input type="hidden" id="keyAtual">
-        <input type="hidden" id="pathAtual">
-        <input type="text" id="nomeInput" placeholder="NOME DO JOGO">
-        <button class="btn-save" onclick="salvarAlteracao()">SALVAR / ATUALIZAR</button>
+        <input type="text" id="nomeJogo" placeholder="Nome do jogo...">
+        <button id="btnAcao" class="btn-main" onclick="processarSalvar()">ADICIONAR</button>
     </div>
 
-    <div id="listaCompleta">
-        </div>
+    <div id="listaContainer">
+        <p style="text-align:center; color: #666;">Sincronizando com a base de dados...</p>
+    </div>
 </div>
 
 <script>
-    const config = {
+    const firebaseConfig = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
         databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
         projectId: "nexushub-b9667",
     };
 
-    firebase.initializeApp(config);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. VARREDURA TOTAL (Lê a raiz '/' para não perder nada)
+    // --- SINCRONIZAÇÃO EM TEMPO REAL ---
     db.ref('/').on('value', (snapshot) => {
-        const display = document.getElementById('listaCompleta');
-        display.innerHTML = "";
-        document.getElementById('status').innerText = "✅ DADOS SINCRONIZADOS";
-        
-        const tudo = snapshot.val();
-        console.log("Banco Completo:", tudo);
+        const container = document.getElementById('listaContainer');
+        container.innerHTML = "";
+        const data = snapshot.val();
 
-        if (!tudo) {
-            display.innerHTML = "<h3>O banco está totalmente vazio.</h3>";
+        if (!data) {
+            container.innerHTML = "<h3>O banco está vazio. Adicione o primeiro jogo!</h3>";
             return;
         }
 
-        // Função para desenhar os itens na tela
-        function renderItem(id, data, path) {
-            const nome = data.nome || data.title || (typeof data === 'string' ? data : "Objeto sem nome");
-            const likes = data.likes || 0;
+        // Tenta achar onde os jogos estão (na raiz ou em /jogos)
+        const listaBruta = data.jogos ? data.jogos : data;
+        const path = data.jogos ? 'jogos/' : '';
 
-            const html = `
-                <div class="jogo-item">
-                    <div>
-                        <strong>NOME:</strong> ${nome} <br>
-                        <span class="debug-info">Caminho: ${path}/${id}</span>
+        Object.keys(listaBruta).forEach(id => {
+            const item = listaBruta[id];
+            // Se o item for apenas uma string, transforma em objeto visualmente
+            const nome = (typeof item === 'object') ? (item.nome || item.title || "Sem Nome") : item;
+            const likes = item.likes || 0;
+
+            container.innerHTML += `
+                <div class="card">
+                    <div class="info">
+                        <h3>${nome}</h3>
+                        <small style="color: #555;">ID: ${id}</small>
                     </div>
-                    <div class="controles">
-                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nome}', '${path}')">✏️ EDITAR</button>
-                        <button class="btn-del" onclick="apagarItem('${id}', '${path}')">🗑️ APAGAR</button>
-                        <button style="background:#444; color:white">❤️ ${likes}</button>
+                    <div class="controls">
+                        <button class="btn-like" onclick="gerenciarLike('${path}${id}', ${likes})">❤️ ${likes}</button>
+                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nome}', '${path}')">✏️</button>
+                        <button class="btn-del" onclick="removerJogo('${path}${id}')">🗑️</button>
                     </div>
                 </div>
             `;
-            display.innerHTML += html;
-        }
-
-        // Procura em 'jogos', em 'games' ou na raiz
-        if (tudo.jogos) {
-            Object.keys(tudo.jogos).forEach(key => renderItem(key, tudo.jogos[key], 'jogos'));
-        } else if (tudo.games) {
-            Object.keys(tudo.games).forEach(key => renderItem(key, tudo.games[key], 'games'));
-        } else {
-            // Se os dados estão soltos na raiz
-            Object.keys(tudo).forEach(key => {
-                if (typeof tudo[key] === 'object' || typeof tudo[key] === 'string') {
-                    renderItem(key, tudo[key], '');
-                }
-            });
-        }
+        });
     });
 
-    // 2. FUNÇÃO SALVAR/EDITAR DINÂMICA
-    window.salvarAlteracao = function() {
-        const nome = document.getElementById('nomeInput').value;
+    // --- SALVAR OU ATUALIZAR (CORRIGIDO) ---
+    function processarSalvar() {
+        const nome = document.getElementById('nomeJogo').value;
         const key = document.getElementById('keyAtual').value;
-        const path = document.getElementById('pathAtual').value || 'jogos'; // padrão é 'jogos'
 
-        if (!nome) return alert("Digite o nome!");
+        if (!nome) return alert("Escreva o nome do jogo!");
 
         if (key) {
-            // EDITAR existente
-            db.ref(path + '/' + key).update({ nome: nome })
-              .then(() => alert("Atualizado!"))
-              .catch(e => alert("Erro: " + e.message));
+            // EDITAR: Usa o caminho que já existe
+            db.ref(key).update({ nome: nome })
+            .then(() => { resetarForm(); })
+            .catch(err => { 
+                // Se falhar o update por ser string, tenta o set
+                db.ref(key).set({ nome: nome, likes: 0 });
+                resetarForm();
+            });
         } else {
-            // CRIAR novo (Sempre cria em 'jogos' para organizar)
+            // ADICIONAR NOVO: Sempre cria como objeto para evitar erros futuros
             db.ref('jogos').push({
                 nome: nome,
                 likes: 0,
-                timestamp: Date.now()
+                criadoEm: Date.now()
+            }).then(() => {
+                document.getElementById('nomeJogo').value = "";
             });
         }
-        
-        // Limpar campos
-        document.getElementById('nomeInput').value = "";
-        document.getElementById('keyAtual').value = "";
+    }
+
+    // --- LIKES (CORRIGIDO) ---
+    window.gerenciarLike = function(fullPath, likesAtuais) {
+        db.ref(fullPath).update({
+            likes: (likesAtuais || 0) + 1
+        }).catch(e => {
+            // Se o item for uma string, o Firebase não deixa dar update. 
+            // Esse bloco converte string em objeto automaticamente.
+            db.ref(fullPath).once('value', snap => {
+                const nomeAntigo = snap.val();
+                db.ref(fullPath).set({ nome: nomeAntigo, likes: 1 });
+            });
+        });
     };
 
-    // 3. PREPARAR EDIÇÃO
-    window.prepararEdicao = function(key, nome, path) {
-        document.getElementById('nomeInput').value = nome;
-        document.getElementById('keyAtual').value = key;
-        document.getElementById('pathAtual').value = path;
-        window.scrollTo(0,0);
-        document.getElementById('nomeInput').focus();
+    // --- PREPARAR EDIÇÃO ---
+    window.prepararEdicao = function(id, nome, path) {
+        document.getElementById('nomeJogo').value = nome;
+        document.getElementById('keyAtual').value = path + id; // Salva o caminho completo
+        document.getElementById('btnAcao').innerText = "ATUALIZAR";
+        document.getElementById('btnAcao').style.background = "#00a2ff";
+        document.getElementById('nomeJogo').focus();
     };
 
-    // 4. APAGAR
-    window.apagarItem = function(key, path) {
-        if (confirm("TEM CERTEZA? Isso não tem volta!")) {
-            const refPath = path ? path + '/' + key : key;
-            db.ref(refPath).remove();
+    // --- DELETAR ---
+    window.removerJogo = function(fullPath) {
+        if(confirm("Deseja apagar permanentemente?")) {
+            db.ref(fullPath).remove();
         }
     };
+
+    function resetarForm() {
+        document.getElementById('keyAtual').value = "";
+        document.getElementById('nomeJogo').value = "";
+        document.getElementById('btnAcao').innerText = "ADICIONAR";
+        document.getElementById('btnAcao').style.background = "var(--neon)";
+    }
 </script>
 
 </body>
