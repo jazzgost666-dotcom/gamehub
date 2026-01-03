@@ -2,39 +2,43 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>NexusHub Admin - Gerenciar Jogos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel NexusHub - Admin</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
-        input, button { padding: 10px; margin: 5px 0; }
-        .jogo-item { border-bottom: 1px solid #ddd; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-delete { background: #ff4444; color: white; border: none; cursor: pointer; }
-        .btn-edit { background: #44aaff; color: white; border: none; cursor: pointer; margin-right: 5px; }
+        :root { --primary: #6200ee; --danger: #ff4d4d; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 600px; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.3s; }
+        #btnSalvar { background: var(--primary); color: white; }
+        .btn-delete { background: #fee; color: var(--danger); }
+        .btn-edit { background: #eef; color: var(--primary); margin-right: 5px; }
+        .item { background: #fff; border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .status { font-size: 12px; color: #666; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🎮 Painel de Controle - Jogos</h2>
+<div class="card">
+    <h2>🎮 NexusHub Admin</h2>
+    <div id="connectionStatus" class="status">Verificando conexão...</div>
     
-    <div id="form-container">
+    <div class="form-group">
         <input type="hidden" id="jogoId">
-        <input type="text" id="nomeJogo" placeholder="Nome do Jogo" style="width: 70%;">
-        <button id="btnSalvar" onclick="salvarJogo()">Adicionar Jogo</button>
+        <input type="text" id="nomeJogo" placeholder="Nome do jogo ou plataforma...">
+        <button id="btnSalvar">Adicionar</button>
     </div>
-
-    <hr>
 
     <div id="listaJogos">
-        <p>Carregando jogos...</p>
-    </div>
+        </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Sua configuração
     const firebaseConfig = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
         authDomain: "nexushub-b9667.firebaseapp.com",
@@ -46,67 +50,83 @@
         measurementId: "G-X4BVBFRKDP"
     };
 
-    // Inicializa Firebase
+    // Inicialização
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const jogosRef = ref(db, 'jogos');
+    const dbPath = 'jogos'; // Tente mudar para '/' se não carregar nada
 
-    // --- FUNÇÃO: Salvar ou Atualizar ---
-    window.salvarJogo = function() {
-        const id = document.getElementById('jogoId').value;
-        const nome = document.getElementById('nomeJogo').value;
+    const inputNome = document.getElementById('nomeJogo');
+    const inputId = document.getElementById('jogoId');
+    const btnSalvar = document.getElementById('btnSalvar');
+    const statusDiv = document.getElementById('connectionStatus');
 
-        if (nome === "") return alert("Digite o nome do jogo!");
-
-        if (id) {
-            // Atualizar existente
-            update(ref(db, 'jogos/' + id), { nome: nome });
-            document.getElementById('btnSalvar').innerText = "Adicionar Jogo";
-        } else {
-            // Criar novo
-            const novoJogoRef = push(jogosRef);
-            set(novoJogoRef, { nome: nome });
-        }
-
-        document.getElementById('nomeJogo').value = "";
-        document.getElementById('jogoId').value = "";
-    };
-
-    // --- FUNÇÃO: Ler em Tempo Real ---
-    onValue(jogosRef, (snapshot) => {
+    // --- CARREGAR DADOS ---
+    onValue(ref(db, dbPath), (snapshot) => {
         const listaDiv = document.getElementById('listaJogos');
         listaDiv.innerHTML = "";
+        statusDiv.innerText = "Sincronizado com Firebase ✅";
         
-        snapshot.forEach((childSnapshot) => {
-            const id = childSnapshot.key;
-            const dados = childSnapshot.val();
-
-            listaDiv.innerHTML += `
-                <div class="jogo-item">
-                    <span>${dados.nome}</span>
-                    <div>
-                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${dados.nome}')">Editar</button>
-                        <button class="btn-delete" onclick="removerJogo('${id}')">Excluir</button>
+        if (snapshot.exists()) {
+            snapshot.forEach((child) => {
+                const jogo = child.val();
+                const id = child.key;
+                
+                listaDiv.innerHTML += `
+                    <div class="item">
+                        <strong>${jogo.nome}</strong>
+                        <div>
+                            <button class="btn-edit" onclick="prepararEdicao('${id}', '${jogo.nome}')">✏️</button>
+                            <button class="btn-delete" onclick="deletarJogo('${id}')">🗑️</button>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        } else {
+            listaDiv.innerHTML = "<p>Nenhum jogo encontrado no banco.</p>";
+        }
+    }, (error) => {
+        console.error(error);
+        statusDiv.innerHTML = `<b style="color:red">ERRO: Sem permissão de acesso. Peça ao chefe para liberar as "Rules" do Database!</b>`;
     });
 
-    // --- FUNÇÃO: Deletar ---
-    window.removerJogo = function(id) {
-        if(confirm("Tem certeza que deseja apagar?")) {
-            remove(ref(db, 'jogos/' + id));
+    // --- SALVAR / EDITAR ---
+    btnSalvar.onclick = () => {
+        const nome = inputNome.value;
+        const id = inputId.value;
+
+        if(!nome) return alert("Digite o nome!");
+
+        if(id) {
+            update(ref(db, `${dbPath}/${id}`), { nome: nome })
+                .then(() => resetForm());
+        } else {
+            const novoRef = push(ref(db, dbPath));
+            set(novoRef, { nome: nome })
+                .then(() => resetForm());
         }
     };
 
-    // --- FUNÇÃO: Preparar Edição ---
-    window.prepararEdicao = function(id, nome) {
-        document.getElementById('jogoId').value = id;
-        document.getElementById('nomeJogo').value = nome;
-        document.getElementById('btnSalvar').innerText = "Atualizar Jogo";
+    // --- FUNÇÕES GLOBAIS (PARA O ONCLICK) ---
+    window.prepararEdicao = (id, nome) => {
+        inputId.value = id;
+        inputNome.value = nome;
+        btnSalvar.innerText = "Atualizar";
+        btnSalvar.style.background = "#28a745";
     };
 
+    window.deletarJogo = (id) => {
+        if(confirm("Deseja mesmo excluir?")) {
+            remove(ref(db, `${dbPath}/${id}`));
+        }
+    };
+
+    function resetForm() {
+        inputId.value = "";
+        inputNome.value = "";
+        btnSalvar.innerText = "Adicionar";
+        btnSalvar.style.background = "var(--primary)";
+    }
 </script>
+
 </body>
 </html>
