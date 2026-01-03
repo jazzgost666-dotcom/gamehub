@@ -2,115 +2,73 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusHub | Galeria de Jogos</title>
+    <title>NexusHub | LIMPEZA AUTOMÁTICA</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --neon: #00ff88; --dark: #050505; --card: #111; }
-        body { background: var(--dark); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
-        
-        .container { max-width: 1200px; margin: auto; }
-        header { text-align: center; padding: 40px 0; border-bottom: 1px solid #222; margin-bottom: 40px; }
-        header h1 { color: var(--neon); text-transform: uppercase; letter-spacing: 5px; font-size: 2.5em; margin: 0; }
-        
-        /* Grid de Jogos Infinitos */
-        .game-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 25px; 
-        }
-
-        .game-card { 
-            background: var(--card); 
-            border: 1px solid #333; 
-            border-radius: 15px; 
-            padding: 20px; 
-            transition: all 0.3s ease; 
-            position: relative;
-            overflow: hidden;
-            border-bottom: 4px solid var(--neon);
-        }
-
-        .game-card:hover { 
-            transform: translateY(-10px); 
-            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2); 
-            border-color: var(--neon);
-        }
-
-        .game-title { font-size: 22px; font-weight: bold; color: #fff; margin-bottom: 8px; }
-        .game-author { color: #888; font-size: 14px; margin-bottom: 15px; }
-        
-        .stats { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
-        .likes-count { background: #222; color: #ffcc00; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-        
-        #loading { text-align: center; color: var(--neon); font-weight: bold; }
+        body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .status-box { border: 2px solid #ff0000; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 0 20px #ff0000; }
+        .btn-auto { background: #ff0000; color: #fff; border: none; padding: 20px 40px; font-size: 20px; font-weight: bold; border-radius: 10px; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
+        .btn-auto.active { background: #00ff00; color: #000; box-shadow: 0 0 20px #00ff00; }
+        #log { margin-top: 20px; font-size: 14px; color: #888; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>NEXUSHUB</h1>
-        <p style="color: #666;">A maior biblioteca de jogos da comunidade</p>
-    </header>
-
-    <div id="loading">Sincronizando com o banco de dados...</div>
-    <div class="game-grid" id="gameGrid"></div>
-</div>
+    <div class="status-box">
+        <h1 id="txtStatus">MODO FAXINA: DESATIVADO</h1>
+        <button id="btnPower" class="btn-auto" onclick="toggleLimpeza()">Ativar Limpeza Infinita</button>
+        <div id="log">Aguardando comando...</div>
+    </div>
 
 <script>
-    // Configuração do seu Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
         databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
         projectId: "nexushub-b9667",
     };
 
-    // Inicializa o Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    
+    let limpando = false;
 
-    // FUNÇÃO QUE LÊ OS JOGOS EM TEMPO REAL (24H ONLINE)
-    db.ref('games').on('value', (snapshot) => {
-        const grid = document.getElementById('gameGrid');
-        const loader = document.getElementById('loading');
-        grid.innerHTML = ""; // Limpa a grid para atualizar
-        
-        const data = snapshot.val();
+    function toggleLimpeza() {
+        limpando = !limpando;
+        const btn = document.getElementById('btnPower');
+        const status = document.getElementById('txtStatus');
+        const log = document.getElementById('log');
 
-        if (!data) {
-            loader.innerText = "Nenhum jogo encontrado no momento.";
-            return;
+        if (limpando) {
+            btn.innerText = "Limpeza Ativada (Rodando...)";
+            btn.classList.add('active');
+            status.innerText = "MODO FAXINA: ATIVO 24H";
+            status.style.color = "#00ff00";
+            iniciarEscaneamento();
+        } else {
+            btn.innerText = "Ativar Limpeza Infinita";
+            btn.classList.remove('active');
+            status.innerText = "MODO FAXINA: DESATIVADO";
+            status.style.color = "#ff0000";
+            db.ref('games').off(); // Para de ouvir o banco
+            log.innerText = "Faxina interrompida.";
         }
+    }
 
-        loader.style.display = "none"; // Esconde o carregando
-
-        // Transforma os dados em lista e mostra na tela
-        Object.keys(data).forEach(id => {
-            const jogo = data[id];
-            
-            // Proteção contra nomes vazios ou undefined
-            const nomeFinal = jogo.nome || "Jogo Sem Nome";
-            const autorFinal = jogo.autor || "Membro da Comunidade";
-            const likesFinal = jogo.likes || 0;
-
-            grid.innerHTML += `
-                <div class="game-card">
-                    <div class="game-title">${nomeFinal}</div>
-                    <div class="game-author">Postado por: ${autorFinal}</div>
-                    <div class="stats">
-                        <div class="likes-count">👍 ${likesFinal} LIKES</div>
-                        <span style="color: #333; font-size: 10px;">ID: ${id}</span>
-                    </div>
-                </div>
-            `;
+    function iniciarEscaneamento() {
+        const log = document.getElementById('log');
+        
+        // Sempre que entrar algo novo na pasta 'games'
+        db.ref('games').on('child_added', (snapshot) => {
+            if (limpando) {
+                const id = snapshot.key;
+                db.ref('games/' + id).remove()
+                    .then(() => {
+                        log.innerText = "Detectado e Apagado: " + id + " [" + new Date().toLocaleTimeString() + "]";
+                    });
+            }
         });
-    }, (error) => {
-        console.error("Erro ao carregar banco:", error);
-        document.getElementById('loading').innerText = "Erro de conexão com o servidor.";
-    });
+    }
 </script>
-
 </body>
 </html>
