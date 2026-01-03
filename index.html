@@ -2,41 +2,33 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NexusHub Admin | SISTEMA OPERACIONAL</title>
+    <title>NexusHub | Sincronização Forçada</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --neon: #00ff88; --danger: #ff3333; --blue: #00a2ff; }
-        body { background: #050505; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .panel { max-width: 800px; margin: auto; border: 1px solid var(--neon); padding: 20px; border-radius: 15px; background: #111; box-shadow: 0 0 20px rgba(0,255,136,0.1); }
-        .input-group { display: flex; gap: 10px; margin-bottom: 30px; }
-        input { flex: 1; background: #222; border: 1px solid #444; color: white; padding: 15px; border-radius: 8px; font-size: 16px; }
-        input:focus { border-color: var(--neon); outline: none; }
-        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.3s; padding: 10px 20px; }
-        .btn-main { background: var(--neon); color: #000; font-size: 16px; }
-        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--neon); }
-        .card { background: #1a1a1a; margin: 15px 0; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
-        .info h3 { margin: 0; color: var(--neon); }
-        .controls { display: flex; gap: 10px; }
-        .btn-edit { background: var(--blue); color: white; }
-        .btn-del { background: var(--danger); color: white; }
-        .btn-like { background: #333; color: #ff4081; border: 1px solid #ff4081; }
+        body { background: #000; color: #00ff00; font-family: sans-serif; padding: 20px; }
+        .box { border: 2px solid #00ff00; padding: 20px; border-radius: 10px; background: #050505; }
+        .jogo-card { background: #111; border: 1px solid #333; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #00ff00; }
+        input { background: #222; border: 1px solid #00ff00; color: #fff; padding: 12px; width: 60%; }
+        button { padding: 12px; cursor: pointer; font-weight: bold; border: none; border-radius: 5px; }
+        .btn-add { background: #00ff00; color: #000; }
+        .btn-del { background: #ff4444; color: #fff; }
+        .btn-edit { background: #0088ff; color: #fff; }
     </style>
 </head>
 <body>
 
-<div class="panel">
-    <h1>🎮 NEXUSHUB ADMIN <small style="font-size: 12px; color: #888;">v5.0</small></h1>
+<div class="box">
+    <h1>🚀 NEXUSHUB ENGINE</h1>
+    <p id="debug">Status: Verificando onde os jogos estão escondidos...</p>
     
-    <div class="input-group">
+    <div style="margin-bottom: 20px;">
         <input type="hidden" id="keyAtual">
-        <input type="text" id="nomeJogo" placeholder="Nome do jogo...">
-        <button id="btnAcao" class="btn-main" onclick="processarSalvar()">ADICIONAR</button>
+        <input type="text" id="nomeJogo" placeholder="NOME DO JOGO NOVO">
+        <button class="btn-add" onclick="forcarSalvar()">GRAVAR AGORA</button>
     </div>
 
-    <div id="listaContainer">
-        <p style="text-align:center; color: #666;">Sincronizando com a base de dados...</p>
-    </div>
+    <div id="lista"></div>
 </div>
 
 <script>
@@ -46,111 +38,97 @@
         projectId: "nexushub-b9667",
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- SINCRONIZAÇÃO EM TEMPO REAL ---
-    db.ref('/').on('value', (snapshot) => {
-        const container = document.getElementById('listaContainer');
-        container.innerHTML = "";
-        const data = snapshot.val();
+    // 1. DESCOBRIR O CAMINHO (Onde o deletar funcionou)
+    let caminhoEncontrado = "";
 
-        if (!data) {
-            container.innerHTML = "<h3>O banco está vazio. Adicione o primeiro jogo!</h3>";
+    db.ref('/').on('value', (snapshot) => {
+        const listaDiv = document.getElementById('lista');
+        listaDiv.innerHTML = "";
+        const dados = snapshot.val();
+        
+        if (!dados) {
+            document.getElementById('debug').innerText = "Banco vazio ou caminho errado.";
             return;
         }
 
-        // Tenta achar onde os jogos estão (na raiz ou em /jogos)
-        const listaBruta = data.jogos ? data.jogos : data;
-        const path = data.jogos ? 'jogos/' : '';
+        // Se os dados estão dentro de uma pasta, vamos usar essa pasta
+        let jogosParaExibir = {};
+        if (dados.jogos) {
+            jogosParaExibir = dados.jogos;
+            caminhoEncontrado = "jogos";
+        } else {
+            jogosParaExibir = dados;
+            caminhoEncontrado = ""; // Raiz
+        }
 
-        Object.keys(listaBruta).forEach(id => {
-            const item = listaBruta[id];
-            // Se o item for apenas uma string, transforma em objeto visualmente
-            const nome = (typeof item === 'object') ? (item.nome || item.title || "Sem Nome") : item;
-            const likes = item.likes || 0;
+        document.getElementById('debug').innerText = "Conectado! Salvando em: /" + caminhoEncontrado;
 
-            container.innerHTML += `
-                <div class="card">
-                    <div class="info">
-                        <h3>${nome}</h3>
-                        <small style="color: #555;">ID: ${id}</small>
-                    </div>
-                    <div class="controls">
-                        <button class="btn-like" onclick="gerenciarLike('${path}${id}', ${likes})">❤️ ${likes}</button>
-                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nome}', '${path}')">✏️</button>
-                        <button class="btn-del" onclick="removerJogo('${path}${id}')">🗑️</button>
+        Object.keys(jogosParaExibir).forEach(id => {
+            const jogo = jogosParaExibir[id];
+            const nome = (typeof jogo === 'object') ? (jogo.nome || "Sem Nome") : jogo;
+            
+            listaDiv.innerHTML += `
+                <div class="jogo-card">
+                    <div><b>${nome}</b><br><small>${id}</small></div>
+                    <div>
+                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nome}')">✏️</button>
+                        <button class="btn-del" onclick="apagar('${id}')">🗑️</button>
                     </div>
                 </div>
             `;
         });
     });
 
-    // --- SALVAR OU ATUALIZAR (CORRIGIDO) ---
-    function processarSalvar() {
+    // 2. FUNÇÃO DE SALVAR "FORÇA BRUTA"
+    window.forcarSalvar = function() {
         const nome = document.getElementById('nomeJogo').value;
-        const key = document.getElementById('keyAtual').value;
+        const idExistente = document.getElementById('keyAtual').value;
 
-        if (!nome) return alert("Escreva o nome do jogo!");
+        if (!nome) return alert("Escreva o nome!");
 
-        if (key) {
-            // EDITAR: Usa o caminho que já existe
-            db.ref(key).update({ nome: nome })
-            .then(() => { resetarForm(); })
-            .catch(err => { 
-                // Se falhar o update por ser string, tenta o set
-                db.ref(key).set({ nome: nome, likes: 0 });
-                resetarForm();
+        if (idExistente) {
+            // EDITAR
+            db.ref(caminhoEncontrado + '/' + idExistente).update({ nome: nome })
+            .then(() => reset())
+            .catch(e => {
+                // Se falhar o update (porque era string), tenta o set
+                db.ref(caminhoEncontrado + '/' + idExistente).set(nome);
+                reset();
             });
         } else {
-            // ADICIONAR NOVO: Sempre cria como objeto para evitar erros futuros
-            db.ref('jogos').push({
+            // ADICIONAR NOVO (Tenta 2 caminhos)
+            const novoRef = db.ref(caminhoEncontrado || 'jogos').push();
+            novoRef.set({
                 nome: nome,
-                likes: 0,
-                criadoEm: Date.now()
+                likes: 0
             }).then(() => {
                 document.getElementById('nomeJogo').value = "";
+                alert("ADICIONADO COM SUCESSO!");
+            }).catch(err => {
+                alert("ERRO: O chefe bloqueou novos jogos. Tente editar um que já existe!");
             });
         }
     }
 
-    // --- LIKES (CORRIGIDO) ---
-    window.gerenciarLike = function(fullPath, likesAtuais) {
-        db.ref(fullPath).update({
-            likes: (likesAtuais || 0) + 1
-        }).catch(e => {
-            // Se o item for uma string, o Firebase não deixa dar update. 
-            // Esse bloco converte string em objeto automaticamente.
-            db.ref(fullPath).once('value', snap => {
-                const nomeAntigo = snap.val();
-                db.ref(fullPath).set({ nome: nomeAntigo, likes: 1 });
-            });
-        });
-    };
-
-    // --- PREPARAR EDIÇÃO ---
-    window.prepararEdicao = function(id, nome, path) {
-        document.getElementById('nomeJogo').value = nome;
-        document.getElementById('keyAtual').value = path + id; // Salva o caminho completo
-        document.getElementById('btnAcao').innerText = "ATUALIZAR";
-        document.getElementById('btnAcao').style.background = "#00a2ff";
-        document.getElementById('nomeJogo').focus();
-    };
-
-    // --- DELETAR ---
-    window.removerJogo = function(fullPath) {
-        if(confirm("Deseja apagar permanentemente?")) {
-            db.ref(fullPath).remove();
+    window.apagar = (id) => {
+        if(confirm("Apagar?")) {
+            db.ref(caminhoEncontrado + '/' + id).remove();
         }
-    };
+    }
 
-    function resetarForm() {
+    window.prepararEdicao = (id, nome) => {
+        document.getElementById('keyAtual').value = id;
+        document.getElementById('nomeJogo').value = nome;
+        window.scrollTo(0,0);
+    }
+
+    function reset() {
         document.getElementById('keyAtual').value = "";
         document.getElementById('nomeJogo').value = "";
-        document.getElementById('btnAcao').innerText = "ADICIONAR";
-        document.getElementById('btnAcao').style.background = "var(--neon)";
     }
 </script>
-
 </body>
 </html>
