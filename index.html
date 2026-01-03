@@ -2,144 +2,144 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NexusHub | Admin Full</title>
+    <title>NexusHub | Recuperação Total</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --green: #00ff88; --bg: #121212; --card: #1e1e1e; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        .form-box { background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
-        input { background: #2a2a2a; border: 1px solid #444; color: white; padding: 12px; border-radius: 5px; width: 250px; margin-right: 10px; }
-        button { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-add { background: var(--green); color: black; }
-        .jogo-card { background: var(--card); padding: 20px; margin-bottom: 15px; border-radius: 10px; border-left: 5px solid var(--green); }
-        .actions { margin-top: 15px; display: flex; gap: 10px; align-items: center; }
-        .btn-del { background: #ff4444; color: white; }
-        .btn-like { background: #444; color: white; }
-        .comment-section { margin-top: 15px; background: #252525; padding: 10px; border-radius: 5px; font-size: 0.9em; }
-        .comment-input { width: 70%; padding: 5px; font-size: 0.8em; }
+        body { background: #0a0a0a; color: #00ff00; font-family: 'Courier New', monospace; padding: 20px; }
+        .painel { border: 2px solid #00ff00; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px #00ff00; }
+        .jogo-item { background: #1a1a1a; border: 1px solid #333; margin: 10px 0; padding: 15px; border-radius: 8px; }
+        .controles { display: flex; gap: 10px; margin-top: 10px; }
+        input { background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 10px; width: 250px; }
+        button { cursor: pointer; padding: 8px 15px; font-weight: bold; border: none; border-radius: 4px; }
+        .btn-del { background: #ff0000; color: white; }
+        .btn-edit { background: #0088ff; color: white; }
+        .btn-save { background: #00ff00; color: black; font-size: 1.2em; }
+        .debug-info { color: #888; font-size: 0.8em; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🎮 Painel NexusHub Pro</h1>
+<div class="painel">
+    <h1>NEXUSHUB - RECONEXÃO FORÇADA</h1>
+    <div id="status">📡 Buscando dados em todas as pastas...</div>
+    <hr>
     
-    <div class="form-box">
-        <input type="hidden" id="editId">
-        <input type="text" id="jogoNome" placeholder="Nome do Jogo...">
-        <button id="btnSalvar" class="btn-add" onclick="salvarJogo()">ADICIONAR JOGO</button>
+    <div style="margin: 20px 0;">
+        <input type="hidden" id="keyAtual">
+        <input type="hidden" id="pathAtual">
+        <input type="text" id="nomeInput" placeholder="NOME DO JOGO">
+        <button class="btn-save" onclick="salvarAlteracao()">SALVAR / ATUALIZAR</button>
     </div>
 
-    <div id="listaJogos">
+    <div id="listaCompleta">
         </div>
 </div>
 
 <script>
-    const firebaseConfig = {
+    const config = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
-        authDomain: "nexushub-b9667.firebaseapp.com",
         databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
         projectId: "nexushub-b9667",
-        storageBucket: "nexushub-b9667.firebasestorage.app",
-        messagingSenderId: "491337953014",
-        appId: "1:491337953014:web:9db7f2f23fd0c85154c6d7"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(config);
     const db = firebase.database();
 
-    // --- FUNÇÃO: SALVAR / EDITAR ---
-    function salvarJogo() {
-        const nome = document.getElementById('jogoNome').value;
-        const id = document.getElementById('editId').value;
+    // 1. VARREDURA TOTAL (Lê a raiz '/' para não perder nada)
+    db.ref('/').on('value', (snapshot) => {
+        const display = document.getElementById('listaCompleta');
+        display.innerHTML = "";
+        document.getElementById('status').innerText = "✅ DADOS SINCRONIZADOS";
         
-        if(!nome) return alert("Digite o nome!");
+        const tudo = snapshot.val();
+        console.log("Banco Completo:", tudo);
 
-        if(id) {
-            // EDITAR
-            db.ref('jogos/' + id).update({ nome: nome });
-            resetForm();
-        } else {
-            // NOVO JOGO
-            db.ref('jogos').push({
-                nome: nome,
-                likes: 0,
-                comentarios: ["Primeiro comentário!"]
-            });
-            document.getElementById('jogoNome').value = "";
+        if (!tudo) {
+            display.innerHTML = "<h3>O banco está totalmente vazio.</h3>";
+            return;
         }
-    }
 
-    // --- FUNÇÃO: LER EM TEMPO REAL (NÃO APAGA O QUE JÁ EXISTE) ---
-    db.ref('jogos').on('value', (snapshot) => {
-        const listaDiv = document.getElementById('listaJogos');
-        listaDiv.innerHTML = ""; // Limpa a tela para re-renderizar sem duplicar
-        
-        snapshot.forEach((child) => {
-            const jogo = child.val();
-            const id = child.key;
-            const comentariosHtml = (jogo.comentarios || []).map(c => `<div>• ${c}</div>`).join('');
+        // Função para desenhar os itens na tela
+        function renderItem(id, data, path) {
+            const nome = data.nome || data.title || (typeof data === 'string' ? data : "Objeto sem nome");
+            const likes = data.likes || 0;
 
-            listaDiv.innerHTML += `
-                <div class="jogo-card">
-                    <h2>${jogo.nome}</h2>
-                    <div class="actions">
-                        <button class="btn-like" onclick="darLike('${id}', ${jogo.likes || 0})">❤️ ${jogo.likes || 0}</button>
-                        <button style="background:#007bff; color:white;" onclick="prepararEdicao('${id}', '${jogo.nome}')">✏️ Editar</button>
-                        <button class="btn-del" onclick="remover('${id}')">🗑️ Apagar</button>
+            const html = `
+                <div class="jogo-item">
+                    <div>
+                        <strong>NOME:</strong> ${nome} <br>
+                        <span class="debug-info">Caminho: ${path}/${id}</span>
                     </div>
-
-                    <div class="comment-section">
-                        <strong>Comentários:</strong>
-                        ${comentariosHtml}
-                        <div style="margin-top:10px">
-                            <input type="text" id="com-in-${id}" class="comment-input" placeholder="Escreva um comentário...">
-                            <button onclick="addComentario('${id}')">Enviar</button>
-                        </div>
+                    <div class="controles">
+                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nome}', '${path}')">✏️ EDITAR</button>
+                        <button class="btn-del" onclick="apagarItem('${id}', '${path}')">🗑️ APAGAR</button>
+                        <button style="background:#444; color:white">❤️ ${likes}</button>
                     </div>
                 </div>
             `;
-        });
+            display.innerHTML += html;
+        }
+
+        // Procura em 'jogos', em 'games' ou na raiz
+        if (tudo.jogos) {
+            Object.keys(tudo.jogos).forEach(key => renderItem(key, tudo.jogos[key], 'jogos'));
+        } else if (tudo.games) {
+            Object.keys(tudo.games).forEach(key => renderItem(key, tudo.games[key], 'games'));
+        } else {
+            // Se os dados estão soltos na raiz
+            Object.keys(tudo).forEach(key => {
+                if (typeof tudo[key] === 'object' || typeof tudo[key] === 'string') {
+                    renderItem(key, tudo[key], '');
+                }
+            });
+        }
     });
 
-    // --- FUNÇÕES DE INTERAÇÃO ---
-    window.darLike = (id, likesAtuais) => {
-        db.ref('jogos/' + id).update({ likes: likesAtuais + 1 });
-    };
+    // 2. FUNÇÃO SALVAR/EDITAR DINÂMICA
+    window.salvarAlteracao = function() {
+        const nome = document.getElementById('nomeInput').value;
+        const key = document.getElementById('keyAtual').value;
+        const path = document.getElementById('pathAtual').value || 'jogos'; // padrão é 'jogos'
 
-    window.addComentario = (id) => {
-        const input = document.getElementById(`com-in-${id}`);
-        if(!input.value) return;
+        if (!nome) return alert("Digite o nome!");
+
+        if (key) {
+            // EDITAR existente
+            db.ref(path + '/' + key).update({ nome: nome })
+              .then(() => alert("Atualizado!"))
+              .catch(e => alert("Erro: " + e.message));
+        } else {
+            // CRIAR novo (Sempre cria em 'jogos' para organizar)
+            db.ref('jogos').push({
+                nome: nome,
+                likes: 0,
+                timestamp: Date.now()
+            });
+        }
         
-        db.ref('jogos/' + id).once('value', snapshot => {
-            let j = snapshot.val();
-            let lista = j.comentarios || [];
-            lista.push(input.value);
-            db.ref('jogos/' + id).update({ comentarios: lista });
-            input.value = "";
-        });
+        // Limpar campos
+        document.getElementById('nomeInput').value = "";
+        document.getElementById('keyAtual').value = "";
     };
 
-    window.remover = (id) => {
-        if(confirm("Deseja apagar este jogo e todos os dados dele?")) {
-            db.ref('jogos/' + id).remove();
+    // 3. PREPARAR EDIÇÃO
+    window.prepararEdicao = function(key, nome, path) {
+        document.getElementById('nomeInput').value = nome;
+        document.getElementById('keyAtual').value = key;
+        document.getElementById('pathAtual').value = path;
+        window.scrollTo(0,0);
+        document.getElementById('nomeInput').focus();
+    };
+
+    // 4. APAGAR
+    window.apagarItem = function(key, path) {
+        if (confirm("TEM CERTEZA? Isso não tem volta!")) {
+            const refPath = path ? path + '/' + key : key;
+            db.ref(refPath).remove();
         }
     };
-
-    window.prepararEdicao = (id, nome) => {
-        document.getElementById('editId').value = id;
-        document.getElementById('jogoNome').value = nome;
-        document.getElementById('btnSalvar').innerText = "ATUALIZAR";
-        window.scrollTo(0,0);
-    };
-
-    function resetForm() {
-        document.getElementById('editId').value = "";
-        document.getElementById('jogoNome').value = "";
-        document.getElementById('btnSalvar').innerText = "ADICIONAR JOGO";
-    }
 </script>
+
 </body>
 </html>
