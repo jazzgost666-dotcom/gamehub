@@ -1,115 +1,154 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>SISTEMA DE RECUPERAÇÃO NEXUSHUB</title>
+    <title>NexusHub | PAINEL DE CONTROLE FINAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #1a0000; color: #fff; font-family: monospace; padding: 20px; }
-        .alert { background: #ff0000; color: #fff; padding: 15px; font-weight: bold; border: 2px solid #fff; margin-bottom: 20px; }
-        .item { background: #000; border: 1px solid #ff0000; padding: 15px; margin: 10px 0; }
-        input { background: #333; color: #fff; border: 1px solid #ff0000; padding: 10px; width: 300px; }
-        button { padding: 10px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        .btn-update { background: #ff0000; color: #fff; }
-        .btn-post { background: #fff; color: #000; margin-top: 10px; padding: 15px; width: 320px; }
-        .raw-data { color: #aaa; font-size: 11px; word-break: break-all; margin-top: 5px; }
+        :root { --cor-neon: #00ff88; --cor-bg: #050505; }
+        body { background: var(--cor-bg); color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .admin-panel { max-width: 700px; margin: auto; background: #111; border: 2px solid #333; border-radius: 15px; padding: 25px; box-shadow: 0 0 20px rgba(0,255,136,0.1); }
+        .header { border-bottom: 2px solid var(--cor-neon); margin-bottom: 20px; padding-bottom: 10px; text-align: center; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; font-size: 16px; }
+        input:focus { border-color: var(--cor-neon); outline: none; }
+        button { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-post { background: var(--cor-neon); color: #000; width: 100%; margin-top: 5px; }
+        .game-card { background: #1a1a1a; padding: 20px; border-radius: 12px; margin: 15px 0; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .game-info b { font-size: 20px; color: var(--cor-neon); display: block; }
+        .game-info span { color: #888; font-size: 13px; }
+        .likes-count { background: #333; padding: 5px 10px; border-radius: 5px; color: #ffcc00; font-weight: bold; margin-top: 5px; display: inline-block; }
+        .actions { display: flex; gap: 8px; }
+        .btn-del { background: #ff4444; color: #fff; }
+        .btn-edit { background: #0088ff; color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="alert">MODO DE SOBREPOSIÇÃO ATIVADO: SE O NOME NÃO APARECE, DIGITE E CLIQUE EM "FORÇAR NOME"</div>
-
-    <div style="border: 2px solid #fff; padding: 20px; margin-bottom: 20px;">
-        <h3>POSTAR NOVO JOGO (FORÇA BRUTA)</h3>
-        <input type="text" id="novoNome" placeholder="NOME DO JOGO">
-        <br>
-        <button class="btn-post" onclick="postarNovo()">POSTAR NA RAIZ DO BANCO</button>
+<div class="admin-panel">
+    <div class="header">
+        <h1>🚀 NEXUSHUB ENGINE</h1>
+        <p id="status">Status: Sincronizando com a Matrix...</p>
     </div>
 
-    <div id="listaTotal">Carregando estrutura do banco...</div>
+    <div id="form-area">
+        <input type="hidden" id="keyAtual">
+        <input type="text" id="nomeJogo" placeholder="Nome do novo jogo ou edição...">
+        <button class="btn-post" id="btnMain" onclick="salvarBruto()">GRAVAR NO BANCO DE DADOS</button>
+    </div>
+
+    <div id="listaJogos" style="margin-top: 30px;"></div>
+</div>
 
 <script>
-    const config = {
+    const firebaseConfig = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
         databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
-        projectId: "nexushub-b9667"
+        projectId: "nexushub-b9667",
     };
 
-    firebase.initializeApp(config);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. SCANNER TOTAL
+    // 1. LEITURA INTELIGENTE (Limpa o JSON feio)
     db.ref('/').on('value', (snapshot) => {
-        const div = document.getElementById('listaTotal');
-        div.innerHTML = "<h2>ITENS DETECTADOS NO BANCO:</h2>";
+        const listDiv = document.getElementById('listaJogos');
+        listDiv.innerHTML = "";
         const data = snapshot.val();
+        document.getElementById('status').innerText = "Status: CONECTADO ✅";
 
         if (!data) {
-            div.innerHTML += "BANCO VAZIO OU SEM PERMISSÃO DE LEITURA.";
+            listDiv.innerHTML = "<p style='text-align:center; color:#666;'>O banco de dados está vazio.</p>";
             return;
         }
 
-        // Função para varrer tudo sem erro
-        Object.keys(data).forEach(key => {
-            const valor = data[key];
+        // Filtra se os dados estão na pasta 'jogos' ou na raiz
+        const root = data.jogos ? data.jogos : data;
+        const prefix = data.jogos ? 'jogos/' : '';
+
+        Object.keys(root).forEach(key => {
+            const item = root[key];
             
-            // Se o valor for um objeto, tenta pegar o nome dentro dele
-            let nomeAtual = "DESCONHECIDO / VAZIO";
-            if (typeof valor === 'string') nomeAtual = valor;
-            else if (valor && typeof valor === 'object') {
-                nomeAtual = valor.nome || valor.title || valor.name || "OBJETO SEM CAMPO NOME";
+            // Extrai o nome ignorando se é objeto ou string
+            let nomeFinal = "";
+            let likesFinal = 0;
+
+            if (typeof item === 'object' && item !== null) {
+                nomeFinal = item.nome || item.name || item.title || "Jogo sem Nome";
+                likesFinal = item.likes || 0;
+            } else {
+                nomeFinal = item; // Era uma string pura
+                likesFinal = 0;
             }
 
-            div.innerHTML += `
-                <div class="item">
-                    <div><strong>ID:</strong> ${key}</div>
-                    <div><strong>NOME ATUAL:</strong> <span style="color:#0f0">${nomeAtual}</span></div>
-                    <div class="raw-data">DADO BRUTO: ${JSON.stringify(valor)}</div>
-                    <div style="margin-top:10px">
-                        <input type="text" id="input-${key}" placeholder="Novo nome para este ID">
-                        <button class="btn-update" onclick="forcarUpdate('${key}')">FORÇAR NOME</button>
-                        <button onclick="apagar('${key}')">APAGAR</button>
+            listDiv.innerHTML += `
+                <div class="game-card">
+                    <div class="game-info">
+                        <b>${nomeFinal}</b>
+                        <div class="likes-count">👍 ${likesFinal} LIKES</div>
+                        <br><span>ID: ${key}</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="prepararEdicao('${key}', '${nomeFinal}', '${prefix}')">✏️</button>
+                        <button class="btn-del" onclick="remover('${prefix}${key}')">🗑️</button>
                     </div>
                 </div>
             `;
         });
     });
 
-    // 2. FORÇAR UPDATE (Muda o nome de algo que já existe)
-    window.forcarUpdate = function(id) {
-        const novoValor = document.getElementById('input-' + id).value;
-        if (!novoValor) return alert("Digite o nome para forçar!");
+    // 2. GRAVAÇÃO COMPLETA (Postar e Editar)
+    window.salvarBruto = function() {
+        const inputNome = document.getElementById('nomeJogo');
+        const key = document.getElementById('keyAtual').value;
 
-        // Se o deletar funciona, o SET tem que funcionar!
-        db.ref(id).set({
-            nome: novoValor,
-            likes: 0
-        }).then(() => alert("FORÇADO COM SUCESSO!"))
-          .catch(e => alert("ERRO: " + e.message));
-    };
+        if (!inputNome.value) return alert("Digite o nome do jogo!");
 
-    // 3. POSTAR NOVO (Cria um novo ID na raiz)
-    window.postarNovo = function() {
-        const nome = document.getElementById('novoNome').value;
-        if (!nome) return alert("Digite o nome!");
+        const objetoJogo = {
+            nome: inputNome.value,
+            likes: 0,
+            data: new Date().getTime()
+        };
 
-        // Tenta postar direto na raiz para não errar o caminho
-        db.ref().push({
-            nome: nome,
-            likes: 0
-        }).then(() => {
-            alert("POSTADO!");
-            document.getElementById('novoNome').value = "";
-        }).catch(e => alert("ERRO AO POSTAR: " + e.message));
-    };
-
-    // 4. APAGAR (O que você disse que funciona)
-    window.apagar = function(id) {
-        if(confirm("DELETAR?")) {
-            db.ref(id).remove();
+        if (key) {
+            // EDITAR: Usa o SET para limpar o JSON antigo e colocar o novo
+            db.ref(key).set(objetoJogo).then(() => {
+                alert("JOGO ATUALIZADO!");
+                resetar();
+            });
+        } else {
+            // POSTAR NOVO: Força a criação dentro da pasta 'jogos'
+            db.ref('jogos').push(objetoJogo).then(() => {
+                inputNome.value = "";
+                alert("NOVO JOGO POSTADO!");
+            }).catch(() => {
+                // Se falhar, tenta postar na raiz
+                db.ref().push(objetoJogo);
+            });
         }
     };
+
+    window.remover = (caminho) => {
+        if(confirm("Deseja mesmo deletar?")) {
+            db.ref(caminho).remove();
+        }
+    };
+
+    window.prepararEdicao = (key, nome, prefix) => {
+        document.getElementById('keyAtual').value = prefix + key;
+        document.getElementById('nomeJogo').value = nome;
+        document.getElementById('btnMain').innerText = "ATUALIZAR JOGO AGORA";
+        document.getElementById('btnMain').style.background = "#0088ff";
+        window.scrollTo(0,0);
+    };
+
+    function resetar() {
+        document.getElementById('keyAtual').value = "";
+        document.getElementById('nomeJogo').value = "";
+        document.getElementById('btnMain').innerText = "GRAVAR NO BANCO DE DADOS";
+        document.getElementById('btnMain').style.background = "var(--cor-neon)";
+    }
 </script>
 </body>
 </html>
