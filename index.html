@@ -2,43 +2,42 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NexusHub | PAINEL DE CONTROLE FINAL</title>
+    <title>NexusHub | PAINEL ADMINISTRATIVO</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --cor-neon: #00ff88; --cor-bg: #050505; }
-        body { background: var(--cor-bg); color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .admin-panel { max-width: 700px; margin: auto; background: #111; border: 2px solid #333; border-radius: 15px; padding: 25px; box-shadow: 0 0 20px rgba(0,255,136,0.1); }
-        .header { border-bottom: 2px solid var(--cor-neon); margin-bottom: 20px; padding-bottom: 10px; text-align: center; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 12px; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; font-size: 16px; }
-        input:focus { border-color: var(--cor-neon); outline: none; }
-        button { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-post { background: var(--cor-neon); color: #000; width: 100%; margin-top: 5px; }
-        .game-card { background: #1a1a1a; padding: 20px; border-radius: 12px; margin: 15px 0; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        .game-info b { font-size: 20px; color: var(--cor-neon); display: block; }
-        .game-info span { color: #888; font-size: 13px; }
-        .likes-count { background: #333; padding: 5px 10px; border-radius: 5px; color: #ffcc00; font-weight: bold; margin-top: 5px; display: inline-block; }
+        :root { --neon: #00ff88; --bg: #0a0a0b; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .admin-panel { max-width: 600px; margin: auto; background: #16161a; border: 1px solid #333; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .header h1 { color: var(--neon); text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
+        .input-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; }
+        input:focus { border-color: var(--neon); outline: none; }
+        button { padding: 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
+        .btn-add { background: var(--neon); color: #000; }
+        .btn-add:hover { box-shadow: 0 0 15px var(--neon); transform: translateY(-2px); }
+        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
+        .game-name { font-size: 18px; font-weight: bold; color: #fff; }
+        .game-meta { color: #888; font-size: 12px; }
         .actions { display: flex; gap: 8px; }
-        .btn-del { background: #ff4444; color: #fff; }
-        .btn-edit { background: #0088ff; color: #fff; }
+        .btn-del { background: #ff4d4d; color: white; width: 40px; }
+        .btn-edit { background: #2d9cdb; color: white; width: 40px; }
     </style>
 </head>
 <body>
 
 <div class="admin-panel">
     <div class="header">
-        <h1>🚀 NEXUSHUB ENGINE</h1>
-        <p id="status">Status: Sincronizando com a Matrix...</p>
+        <h1>NexusHub Admin</h1>
     </div>
 
-    <div id="form-area">
-        <input type="hidden" id="keyAtual">
-        <input type="text" id="nomeJogo" placeholder="Nome do novo jogo ou edição...">
-        <button class="btn-post" id="btnMain" onclick="salvarBruto()">GRAVAR NO BANCO DE DADOS</button>
+    <div class="input-box">
+        <input type="hidden" id="editKey">
+        <input type="text" id="gameInput" placeholder="NOME DO JOGO">
+        <button class="btn-add" id="btnAction" onclick="saveGame()">Gravar no Banco</button>
     </div>
 
-    <div id="listaJogos" style="margin-top: 30px;"></div>
+    <div id="gameList">Sincronizando jogos...</div>
 </div>
 
 <script>
@@ -48,106 +47,79 @@
         projectId: "nexushub-b9667",
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. LEITURA INTELIGENTE (Limpa o JSON feio)
-    db.ref('/').on('value', (snapshot) => {
-        const listDiv = document.getElementById('listaJogos');
-        listDiv.innerHTML = "";
+    // 1. LER APENAS O QUE ESTÁ DENTRO DE "GAMES"
+    db.ref('games').on('value', (snapshot) => {
+        const list = document.getElementById('gameList');
+        list.innerHTML = "";
         const data = snapshot.val();
-        document.getElementById('status').innerText = "Status: CONECTADO ✅";
 
-        if (!data) {
-            listDiv.innerHTML = "<p style='text-align:center; color:#666;'>O banco de dados está vazio.</p>";
+        if (!data || typeof data !== 'object') {
+            list.innerHTML = "<p style='color:#666; text-align:center;'>Nenhum jogo na pasta 'games'. Adicione um acima!</p>";
             return;
         }
 
-        // Filtra se os dados estão na pasta 'jogos' ou na raiz
-        const root = data.jogos ? data.jogos : data;
-        const prefix = data.jogos ? 'jogos/' : '';
-
-        Object.keys(root).forEach(key => {
-            const item = root[key];
+        Object.keys(data).forEach(key => {
+            const game = data[key];
+            const name = (typeof game === 'object') ? (game.nome || "Sem nome") : game;
             
-            // Extrai o nome ignorando se é objeto ou string
-            let nomeFinal = "";
-            let likesFinal = 0;
-
-            if (typeof item === 'object' && item !== null) {
-                nomeFinal = item.nome || item.name || item.title || "Jogo sem Nome";
-                likesFinal = item.likes || 0;
-            } else {
-                nomeFinal = item; // Era uma string pura
-                likesFinal = 0;
-            }
-
-            listDiv.innerHTML += `
+            list.innerHTML += `
                 <div class="game-card">
-                    <div class="game-info">
-                        <b>${nomeFinal}</b>
-                        <div class="likes-count">👍 ${likesFinal} LIKES</div>
-                        <br><span>ID: ${key}</span>
+                    <div>
+                        <div class="game-name">${name}</div>
+                        <div class="game-meta">ID: ${key}</div>
                     </div>
                     <div class="actions">
-                        <button class="btn-edit" onclick="prepararEdicao('${key}', '${nomeFinal}', '${prefix}')">✏️</button>
-                        <button class="btn-del" onclick="remover('${prefix}${key}')">🗑️</button>
+                        <button class="btn-edit" onclick="prepareEdit('${key}', '${name}')">✏️</button>
+                        <button class="btn-del" onclick="deleteGame('${key}')">🗑️</button>
                     </div>
                 </div>
             `;
         });
     });
 
-    // 2. GRAVAÇÃO COMPLETA (Postar e Editar)
-    window.salvarBruto = function() {
-        const inputNome = document.getElementById('nomeJogo');
-        const key = document.getElementById('keyAtual').value;
-
-        if (!inputNome.value) return alert("Digite o nome do jogo!");
-
-        const objetoJogo = {
-            nome: inputNome.value,
-            likes: 0,
-            data: new Date().getTime()
-        };
+    // 2. SALVAR DENTRO DE "GAMES"
+    function saveGame() {
+        const input = document.getElementById('gameInput');
+        const key = document.getElementById('editKey').value;
+        
+        if (!input.value) return alert("Digite o nome!");
 
         if (key) {
-            // EDITAR: Usa o SET para limpar o JSON antigo e colocar o novo
-            db.ref(key).set(objetoJogo).then(() => {
-                alert("JOGO ATUALIZADO!");
-                resetar();
-            });
+            // EDITAR
+            db.ref('games/' + key).update({ nome: input.value })
+                .then(() => { resetForm(); alert("Jogo Atualizado!"); });
         } else {
-            // POSTAR NOVO: Força a criação dentro da pasta 'jogos'
-            db.ref('jogos').push(objetoJogo).then(() => {
-                inputNome.value = "";
-                alert("NOVO JOGO POSTADO!");
-            }).catch(() => {
-                // Se falhar, tenta postar na raiz
-                db.ref().push(objetoJogo);
+            // ADICIONAR NOVO
+            db.ref('games').push({
+                nome: input.value,
+                timestamp: Date.now()
+            }).then(() => {
+                input.value = "";
+                alert("Jogo Adicionado com Sucesso!");
             });
         }
-    };
+    }
 
-    window.remover = (caminho) => {
-        if(confirm("Deseja mesmo deletar?")) {
-            db.ref(caminho).remove();
+    window.deleteGame = (key) => {
+        if(confirm("Deseja apagar?")) {
+            db.ref('games/' + key).remove();
         }
-    };
+    }
 
-    window.prepararEdicao = (key, nome, prefix) => {
-        document.getElementById('keyAtual').value = prefix + key;
-        document.getElementById('nomeJogo').value = nome;
-        document.getElementById('btnMain').innerText = "ATUALIZAR JOGO AGORA";
-        document.getElementById('btnMain').style.background = "#0088ff";
+    window.prepareEdit = (key, name) => {
+        document.getElementById('editKey').value = key;
+        document.getElementById('gameInput').value = name;
+        document.getElementById('btnAction').innerText = "Atualizar Jogo";
         window.scrollTo(0,0);
-    };
+    }
 
-    function resetar() {
-        document.getElementById('keyAtual').value = "";
-        document.getElementById('nomeJogo').value = "";
-        document.getElementById('btnMain').innerText = "GRAVAR NO BANCO DE DADOS";
-        document.getElementById('btnMain').style.background = "var(--cor-neon)";
+    function resetForm() {
+        document.getElementById('editKey').value = "";
+        document.getElementById('gameInput').value = "";
+        document.getElementById('btnAction').innerText = "Gravar no Banco";
     }
 </script>
 </body>
