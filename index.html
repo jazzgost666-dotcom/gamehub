@@ -2,120 +2,142 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NEXUSHUB ADMIN - VERSÃO CORRIGIDA</title>
+    <title>NEXUSHUB ADMIN | SISTEMA FINAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #0a0a0b; color: #fff; font-family: sans-serif; padding: 20px; display: flex; justify-content: center; }
-        .admin-panel { width: 100%; max-width: 500px; background: #16161a; padding: 30px; border-radius: 20px; border: 1px solid #333; }
-        h1 { color: #00ff88; text-align: center; text-transform: uppercase; font-size: 24px; margin-bottom: 25px; }
-        input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; box-sizing: border-box; }
-        .btn-gravar { width: 100%; padding: 15px; background: #00ff88; color: #000; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .card { background: #222; padding: 15px; margin-top: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #00ff88; }
-        .card b { font-size: 18px; display: block; }
-        .card span { color: #888; font-size: 12px; }
-        .btns { display: flex; gap: 10px; }
-        .btn-edit { background: #3498db; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
-        .btn-del { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
+        :root { --neon: #00ff88; --blue: #00d9ff; --red: #ff4d4d; }
+        body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .container { max-width: 550px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
+        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--neon); }
+        
+        .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
+        .btn-main:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--neon); }
+
+        .game-card { background: #1a1a1a; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
+        .game-info b { font-size: 18px; color: #fff; display: block; }
+        .game-info span { color: #666; font-size: 11px; }
+        
+        .actions { display: flex; gap: 10px; }
+        .btn-edit { background: var(--blue); color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .btn-del { background: var(--red); color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="admin-panel">
-    <h1>NEXUSHUB ADMIN</h1>
-    
-    <input type="hidden" id="keyAtual">
-    <input type="text" id="inputNome" placeholder="NOME DO JOGO">
-    <button class="btn-gravar" onclick="salvar()">Gravar no Banco</button>
+<div class="container">
+    <h1>NexusHub Admin</h1>
 
-    <div id="listaJogos">Carregando jogos...</div>
+    <div class="input-group">
+        <input type="hidden" id="editId">
+        <input type="text" id="gameName" placeholder="NOME DO JOGO">
+        <input type="text" id="postedBy" placeholder="POSTADO POR (SEU NOME)">
+        <button class="btn-main" id="saveBtn" onclick="processarSalvar()">Gravar no Banco de Dados</button>
+    </div>
+
+    <div id="displayList">Conectando ao Firebase...</div>
 </div>
 
 <script>
-    // Configuração oficial do seu projeto
     const firebaseConfig = {
         apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
         databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
         projectId: "nexushub-b9667",
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // LER OS JOGOS
+    // 1. LER APENAS A PASTA 'GAMES' (Onde os jogos reais moram)
     db.ref('games').on('value', (snapshot) => {
-        const list = document.getElementById('listaJogos');
+        const list = document.getElementById('displayList');
         list.innerHTML = "";
         const data = snapshot.val();
 
         if (!data) {
-            list.innerHTML = "<p style='text-align:center;color:#666'>Nenhum jogo encontrado.</p>";
+            list.innerHTML = "<p style='text-align:center; color:#555;'>Nenhum jogo na lista.</p>";
             return;
         }
 
-        Object.keys(data).forEach(key => {
-            const jogo = data[key];
-            // TRATAMENTO PARA NÃO DAR UNDEFINED:
-            // Tenta pegar 'nome', se não tiver tenta 'name', se não tiver usa o que estiver no campo.
-            const nomeMostrar = jogo.nome || jogo.name || (typeof jogo === 'string' ? jogo : "Sem nome");
+        Object.keys(data).forEach(id => {
+            const item = data[id];
+            
+            // LÓGICA ANTI-UNDEFINED: Se for objeto pega .nome, se não for usa o texto direto
+            let nomeVal = "";
+            if (typeof item === 'object' && item !== null) {
+                nomeVal = item.nome || item.name || "Sem nome no banco";
+            } else {
+                nomeVal = item;
+            }
+
+            const autor = item.autor || "Desconhecido";
 
             list.innerHTML += `
-                <div class="card">
-                    <div>
-                        <b>${nomeMostrar}</b>
-                        <span>ID: ${key}</span>
+                <div class="game-card">
+                    <div class="game-info">
+                        <b>${nomeVal}</b>
+                        <span>Por: ${autor} | ID: ${id}</span>
                     </div>
-                    <div class="btns">
-                        <button class="btn-edit" onclick="prepararEdicao('${key}', '${nomeMostrar}')">✏️</button>
-                        <button class="btn-del" onclick="deletar('${key}')">🗑️</button>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nomeVal}', '${autor}')">✏️</button>
+                        <button class="btn-del" onclick="remover('${id}')">🗑️</button>
                     </div>
                 </div>
             `;
         });
     });
 
-    // SALVAR E ATUALIZAR
-    function salvar() {
-        const nome = document.getElementById('inputNome').value;
-        const key = document.getElementById('keyAtual').value;
+    // 2. SALVAR COM ESTRUTURA PARA O SITE OFICIAL
+    function processarSalvar() {
+        const nome = document.getElementById('gameName').value;
+        const autor = document.getElementById('postedBy').value;
+        const id = document.getElementById('editId').value;
 
         if (!nome) return alert("Digite o nome do jogo!");
 
-        if (key) {
-            // EDITAR: Força o campo 'nome' para evitar o undefined
-            db.ref('games/' + key).update({
-                nome: nome
-            }).then(() => {
-                alert("Jogo Atualizado!");
-                limpar();
-            });
+        const dadosParaEnviar = {
+            nome: nome,
+            autor: autor || "Admin",
+            likes: 0,
+            data: new Date().getTime()
+        };
+
+        if (id) {
+            // ATUALIZAR (SET força a nova estrutura e mata o undefined)
+            db.ref('games/' + id).set(dadosParaEnviar)
+                .then(() => { alert("ATUALIZADO COM SUCESSO!"); resetar(); });
         } else {
-            // ADICIONAR NOVO
-            db.ref('games').push({
-                nome: nome,
-                likes: 0
-            }).then(() => {
-                alert("Jogo Adicionado!");
-                limpar();
-            });
+            // NOVO JOGO
+            db.ref('games').push(dadosParaEnviar)
+                .then(() => { alert("POSTADO COM SUCESSO!"); resetar(); });
         }
     }
 
-    function deletar(key) {
-        if(confirm("Deseja apagar?")) {
-            db.ref('games/' + key).remove();
+    window.remover = (id) => {
+        if(confirm("Deseja apagar permanentemente?")) {
+            db.ref('games/' + id).remove();
         }
     }
 
-    function prepararEdicao(key, nome) {
-        document.getElementById('keyAtual').value = key;
-        document.getElementById('inputNome').value = nome;
+    window.prepararEdicao = (id, nome, autor) => {
+        document.getElementById('editId').value = id;
+        document.getElementById('gameName').value = nome;
+        document.getElementById('postedBy').value = autor;
+        document.getElementById('saveBtn').innerText = "Atualizar Jogo";
+        document.getElementById('saveBtn').style.background = "#00d9ff";
         window.scrollTo(0,0);
     }
 
-    function limpar() {
-        document.getElementById('keyAtual').value = "";
-        document.getElementById('inputNome').value = "";
+    function resetar() {
+        document.getElementById('editId').value = "";
+        document.getElementById('gameName').value = "";
+        document.getElementById('postedBy').value = "";
+        document.getElementById('saveBtn').innerText = "Gravar no Banco de Dados";
+        document.getElementById('saveBtn').style.background = "#00ff88";
     }
 </script>
 </body>
