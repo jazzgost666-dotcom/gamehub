@@ -2,30 +2,37 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NexusHub | LIMPEZA AUTOMÁTICA</title>
+    <title>GLSHUB | LIMPEZA AUTOMÁTICA</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .status-box { border: 2px solid #ff0000; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 0 20px #ff0000; }
-        .btn-auto { background: #ff0000; color: #fff; border: none; padding: 20px 40px; font-size: 20px; font-weight: bold; border-radius: 10px; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
-        .btn-auto.active { background: #00ff00; color: #000; box-shadow: 0 0 20px #00ff00; }
-        #log { margin-top: 20px; font-size: 14px; color: #888; }
+        body { background: #000; color: #00d9ff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .status-box { border: 2px solid #00d9ff; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 0 20px #00d9ff; background: #050505; }
+        .btn-auto { background: #333; color: #fff; border: 2px solid #00d9ff; padding: 20px 40px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; text-transform: uppercase; margin-top: 20px; transition: 0.3s; }
+        .btn-auto.active { background: #00d9ff; color: #000; box-shadow: 0 0 30px #00d9ff; }
+        #log { margin-top: 20px; font-size: 14px; color: #00ff88; height: 50px; }
+        .warning { color: #ff4444; font-size: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="status-box">
-        <h1 id="txtStatus">MODO FAXINA: DESATIVADO</h1>
-        <button id="btnPower" class="btn-auto" onclick="toggleLimpeza()">Ativar Limpeza Infinita</button>
-        <div id="log">Aguardando comando...</div>
+        <h1 id="txtStatus">SISTEMA GLSHUB: STANDBY</h1>
+        <button id="btnPower" class="btn-auto" onclick="toggleLimpeza()">Ativar Varredura Infinita</button>
+        <div id="log">Aguardando ativação...</div>
+        <p class="warning">CUIDADO: Enquanto ativo, nada sobrevive na pasta /games.</p>
     </div>
 
 <script>
+    // NOVAS CREDENCIAIS GLSHUB
     const firebaseConfig = {
-        apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
-        databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
-        projectId: "nexushub-b9667",
+        apiKey: "AIzaSyCS1NBS0qrLiCpV_OSqpUKoipxzdGiUQ48",
+        authDomain: "glshub.firebaseapp.com",
+        projectId: "glshub",
+        storageBucket: "glshub.firebasestorage.app",
+        messagingSenderId: "1020833468968",
+        appId: "1:1020833468968:web:adb9e1e604ebcc1e98db1d",
+        measurementId: "G-1TGK9KLKQL"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -40,17 +47,17 @@
         const log = document.getElementById('log');
 
         if (limpando) {
-            btn.innerText = "Limpeza Ativada (Rodando...)";
+            btn.innerText = "VARREDURA ATIVA";
             btn.classList.add('active');
-            status.innerText = "MODO FAXINA: ATIVO 24H";
-            status.style.color = "#00ff00";
+            status.innerText = "GLSHUB: LIMPANDO JOGOS...";
+            status.style.color = "#00ff88";
             iniciarEscaneamento();
         } else {
-            btn.innerText = "Ativar Limpeza Infinita";
+            btn.innerText = "Ativar Varredura Infinita";
             btn.classList.remove('active');
-            status.innerText = "MODO FAXINA: DESATIVADO";
-            status.style.color = "#ff0000";
-            db.ref('games').off(); // Para de ouvir o banco
+            status.innerText = "SISTEMA GLSHUB: STANDBY";
+            status.style.color = "#00d9ff";
+            db.ref('games').off(); // Desliga o monitoramento
             log.innerText = "Faxina interrompida.";
         }
     }
@@ -58,13 +65,16 @@
     function iniciarEscaneamento() {
         const log = document.getElementById('log');
         
-        // Sempre que entrar algo novo na pasta 'games'
+        // Fica de olho na pasta 'games' do novo projeto
         db.ref('games').on('child_added', (snapshot) => {
             if (limpando) {
                 const id = snapshot.key;
                 db.ref('games/' + id).remove()
                     .then(() => {
-                        log.innerText = "Detectado e Apagado: " + id + " [" + new Date().toLocaleTimeString() + "]";
+                        log.innerText = "DELETADO: " + id + " às " + new Date().toLocaleTimeString();
+                    })
+                    .catch((e) => {
+                        log.innerText = "ERRO DE PERMISSÃO: " + e.message;
                     });
             }
         });
