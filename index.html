@@ -2,40 +2,48 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>GLSHUB ADMIN | MODO SOBREVIVÊNCIA</title>
+    <title>NEXUSHUB ADMIN | SISTEMA FINAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root { --neon: #00ff88; --blue: #00d9ff; --red: #ff4d4d; }
         body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; }
-        h1 { color: var(--neon); text-align: center; text-transform: uppercase; text-shadow: 0 0 10px var(--neon); }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; background: #1a1a1a; padding: 15px; border-radius: 10px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; }
-        .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.5s; }
-        .info b { font-size: 18px; color: var(--neon); display: block; }
-        .info i { color: #888; font-size: 12px; }
+        .container { max-width: 550px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
+        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--neon); }
+        
+        .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
+        .btn-main:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--neon); }
+
+        .game-card { background: #1a1a1a; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
+        .game-info b { font-size: 18px; color: #fff; display: block; }
+        .game-info span { color: #666; font-size: 11px; }
+        
         .actions { display: flex; gap: 10px; }
-        .btn-del { background: var(--red); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-edit { background: var(--blue); color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .btn-del { background: var(--red); color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>GLSHUB ADMIN V3</h1>
+    <h1>GLSHUB Admin</h1>
+
     <div class="input-group">
         <input type="hidden" id="editId">
         <input type="text" id="gameName" placeholder="NOME DO JOGO">
-        <input type="text" id="postedBy" placeholder="AUTOR / QUEM POSTOU">
-        <button class="btn-main" id="saveBtn" onclick="superSalvar()">GRAVAR TUDO AGORA</button>
+        <input type="text" id="postedBy" placeholder="POSTADO POR (SEU NOME)">
+        <button class="btn-main" id="saveBtn" onclick="processarSalvar()">Gravar no Banco de Dados</button>
     </div>
-    <div id="displayList">Buscando cada bit de dado...</div>
+
+    <div id="displayList">Conectando ao Firebase GLSHUB...</div>
 </div>
 
 <script>
-    // CREDENCIAIS GLSHUB
+    // USANDO AS CREDENCIAIS QUE VOCÊ PASSOU POR ÚLTIMO
     const firebaseConfig = {
         apiKey: "AIzaSyCS1NBS0qrLiCpV_OSqpUKoipxzdGiUQ48",
         authDomain: "glshub.firebaseapp.com",
@@ -49,80 +57,96 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. LEITURA "PEGA-TUDO"
-    db.ref('games').on('value', (snapshot) => {
+    // 1. LER TUDO QUE EXISTE NO BANCO (RAIZ) PRA NÃO PERDER NADA
+    db.ref('/').on('value', (snapshot) => {
         const list = document.getElementById('displayList');
         list.innerHTML = "";
         const data = snapshot.val();
 
         if (!data) {
-            list.innerHTML = "<p style='text-align:center;'>Banco vazio no caminho /games</p>";
+            list.innerHTML = "<p style='text-align:center; color:#555;'>Nenhum dado encontrado no GLSHUB.</p>";
             return;
         }
 
-        Object.keys(data).forEach(id => {
-            const item = data[id];
-            let nomeFinal = "Sem Nome";
-            let autorFinal = "Admin";
+        // Se os dados estiverem dentro de uma pasta 'games', a gente foca nela, senão lê a raiz
+        const jogos = data.games || data;
 
-            // TENTATIVA 1: É um objeto com .nome?
-            if (item.nome) nomeFinal = item.nome;
-            // TENTATIVA 2: É um objeto com .name?
-            else if (item.name) nomeFinal = item.name;
-            // TENTATIVA 3: É apenas uma string de texto?
-            else if (typeof item === 'string') nomeFinal = item;
-            // TENTATIVA 4: É um objeto estranho? Mostra o JSON bruto
-            else nomeFinal = "Dado Bruto: " + JSON.stringify(item).substring(0, 20);
+        Object.keys(jogos).forEach(id => {
+            const item = jogos[id];
+            if(id === 'presence' || id === 'likes' || id === 'comments') return; // Pula as pastas do sistema
 
-            if (item.autor) autorFinal = item.autor;
+            let nomeVal = "";
+            // Tenta pegar o nome de qualquer lugar (objeto ou string direta)
+            if (typeof item === 'object' && item !== null) {
+                nomeVal = item.nome || item.name || "Jogo sem Nome";
+            } else {
+                nomeVal = item;
+            }
+
+            const autor = item.autor || "Sistema";
 
             list.innerHTML += `
                 <div class="game-card">
-                    <div class="info">
-                        <b>${nomeFinal}</b>
-                        <i>Autor: ${autorFinal} | ID: ${id}</i>
+                    <div class="game-info">
+                        <b>${nomeVal}</b>
+                        <span>Por: ${autor} | ID: ${id}</span>
                     </div>
                     <div class="actions">
-                        <button class="btn-del" onclick="remover('${id}')">APAGAR</button>
+                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nomeVal}', '${autor}')">✏️</button>
+                        <button class="btn-del" onclick="remover('${id}')">🗑️</button>
                     </div>
-                </div>`;
+                </div>
+            `;
         });
     });
 
-    // 2. SALVAMENTO MULTI-CAMADA
-    function superSalvar() {
+    function processarSalvar() {
         const nome = document.getElementById('gameName').value;
         const autor = document.getElementById('postedBy').value;
         const id = document.getElementById('editId').value;
 
-        if (!nome) return alert("DIGITE O NOME!");
+        if (!nome) return alert("Digite o nome do jogo!");
 
-        const payload = {
+        const dadosParaEnviar = {
             nome: nome,
-            name: nome, // Salva nos dois formatos pra garantir
             autor: autor || "Admin",
             likes: 0,
-            timestamp: Date.now()
+            data: new Date().getTime()
         };
 
-        const ref = id ? db.ref('games/' + id) : db.ref('games').push();
-
-        // TENTA SALVAR COMO OBJETO COMPLETO
-        ref.set(payload)
-            .then(() => {
-                alert("GRAVADO COM SUCESSO!");
-                document.getElementById('gameName').value = "";
-            })
-            .catch(err => {
-                // SE AS REGRAS BLOQUEAREM, TENTA SALVAR COMO TEXTO PURO (ÚLTIMA CHANCE)
-                ref.set(nome).then(() => alert("SALVO COMO TEXTO PURO (Regras restritas)"));
-            });
+        // Salva sempre dentro da pasta 'games' para ficar organizado
+        if (id) {
+            db.ref('games/' + id).set(dadosParaEnviar)
+                .then(() => { alert("ATUALIZADO!"); resetar(); });
+        } else {
+            db.ref('games').push(dadosParaEnviar)
+                .then(() => { alert("POSTADO COM SUCESSO!"); resetar(); });
+        }
     }
 
     window.remover = (id) => {
-        if(confirm("DELETAR MESMO?")) {
+        if(confirm("Apagar?")) {
+            // Tenta apagar tanto na raiz quanto na pasta games
             db.ref('games/' + id).remove();
+            db.ref('/' + id).remove();
         }
+    }
+
+    window.prepararEdicao = (id, nome, autor) => {
+        document.getElementById('editId').value = id;
+        document.getElementById('gameName').value = nome;
+        document.getElementById('postedBy').value = autor;
+        document.getElementById('saveBtn').innerText = "Atualizar Jogo";
+        document.getElementById('saveBtn').style.background = "#00d9ff";
+        window.scrollTo(0,0);
+    }
+
+    function resetar() {
+        document.getElementById('editId').value = "";
+        document.getElementById('gameName').value = "";
+        document.getElementById('postedBy').value = "";
+        document.getElementById('saveBtn').innerText = "Gravar no Banco de Dados";
+        document.getElementById('saveBtn').style.background = "#00ff88";
     }
 </script>
 </body>
