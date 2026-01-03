@@ -2,37 +2,40 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>GLSHUB ADMIN | MODO FORÇA BRUTA</title>
+    <title>GLSHUB ADMIN | MODO SOBREVIVÊNCIA</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root { --neon: #00ff88; --blue: #00d9ff; --red: #ff4d4d; }
         body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .container { max-width: 550px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
-        h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; outline: none; }
-        .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
-        .game-card { background: #1a1a1a; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 600px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; }
+        h1 { color: var(--neon); text-align: center; text-transform: uppercase; text-shadow: 0 0 10px var(--neon); }
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; background: #1a1a1a; padding: 15px; border-radius: 10px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; }
+        .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.5s; }
+        .info b { font-size: 18px; color: var(--neon); display: block; }
+        .info i { color: #888; font-size: 12px; }
         .actions { display: flex; gap: 10px; }
-        .btn-edit { background: var(--blue); color: #fff; border: none; padding: 10px; border-radius: 5px; }
-        .btn-del { background: var(--red); color: #fff; border: none; padding: 10px; border-radius: 5px; }
+        .btn-del { background: var(--red); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>GLSHUB Admin</h1>
+    <h1>GLSHUB ADMIN V3</h1>
     <div class="input-group">
         <input type="hidden" id="editId">
         <input type="text" id="gameName" placeholder="NOME DO JOGO">
-        <input type="text" id="postedBy" placeholder="POSTADO POR (SEU NOME)">
-        <button class="btn-main" id="saveBtn" onclick="processarSalvar()">Gravar no Banco de Dados</button>
+        <input type="text" id="postedBy" placeholder="AUTOR / QUEM POSTOU">
+        <button class="btn-main" id="saveBtn" onclick="superSalvar()">GRAVAR TUDO AGORA</button>
     </div>
-    <div id="displayList">Verificando conexão com GLSHUB...</div>
+    <div id="displayList">Buscando cada bit de dado...</div>
 </div>
 
 <script>
+    // CREDENCIAIS GLSHUB
     const firebaseConfig = {
         apiKey: "AIzaSyCS1NBS0qrLiCpV_OSqpUKoipxzdGiUQ48",
         authDomain: "glshub.firebaseapp.com",
@@ -46,86 +49,80 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // LEITURA QUE ACEITA QUALQUER FORMATO
+    // 1. LEITURA "PEGA-TUDO"
     db.ref('games').on('value', (snapshot) => {
         const list = document.getElementById('displayList');
         list.innerHTML = "";
         const data = snapshot.val();
 
         if (!data) {
-            list.innerHTML = "<p style='text-align:center;'>Banco vazio. Tente postar algo!</p>";
+            list.innerHTML = "<p style='text-align:center;'>Banco vazio no caminho /games</p>";
             return;
         }
 
         Object.keys(data).forEach(id => {
             const item = data[id];
-            let nomeVal = "Sem nome";
-            
-            // Tenta todas as possibilidades de onde o nome pode estar
-            if (typeof item === 'string') nomeVal = item;
-            else if (item && typeof item === 'object') {
-                nomeVal = item.nome || item.name || item.game || "Objeto sem nome";
-            }
+            let nomeFinal = "Sem Nome";
+            let autorFinal = "Admin";
 
-            const autor = item.autor || "Admin";
+            // TENTATIVA 1: É um objeto com .nome?
+            if (item.nome) nomeFinal = item.nome;
+            // TENTATIVA 2: É um objeto com .name?
+            else if (item.name) nomeFinal = item.name;
+            // TENTATIVA 3: É apenas uma string de texto?
+            else if (typeof item === 'string') nomeFinal = item;
+            // TENTATIVA 4: É um objeto estranho? Mostra o JSON bruto
+            else nomeFinal = "Dado Bruto: " + JSON.stringify(item).substring(0, 20);
+
+            if (item.autor) autorFinal = item.autor;
 
             list.innerHTML += `
                 <div class="game-card">
-                    <div>
-                        <b>${nomeVal}</b>
-                        <small style="color:#666; display:block;">Por: ${autor}</small>
+                    <div class="info">
+                        <b>${nomeFinal}</b>
+                        <i>Autor: ${autorFinal} | ID: ${id}</i>
                     </div>
                     <div class="actions">
-                        <button class="btn-edit" onclick="prepararEdicao('${id}', '${nomeVal}', '${autor}')">✏️</button>
-                        <button class="btn-del" onclick="remover('${id}')">🗑️</button>
+                        <button class="btn-del" onclick="remover('${id}')">APAGAR</button>
                     </div>
                 </div>`;
         });
     });
 
-    function processarSalvar() {
+    // 2. SALVAMENTO MULTI-CAMADA
+    function superSalvar() {
         const nome = document.getElementById('gameName').value;
         const autor = document.getElementById('postedBy').value;
         const id = document.getElementById('editId').value;
 
-        if (!nome) return alert("Digite o nome!");
+        if (!nome) return alert("DIGITE O NOME!");
 
         const payload = {
             nome: nome,
+            name: nome, // Salva nos dois formatos pra garantir
             autor: autor || "Admin",
-            data: new Date().getTime()
+            likes: 0,
+            timestamp: Date.now()
         };
 
-        // TENTA GRAVAR EM DOIS CAMINHOS DIFERENTES PARA GARANTIR
-        const target = id ? db.ref('games/' + id) : db.ref('games').push();
-        
-        target.set(payload)
+        const ref = id ? db.ref('games/' + id) : db.ref('games').push();
+
+        // TENTA SALVAR COMO OBJETO COMPLETO
+        ref.set(payload)
             .then(() => {
-                alert("SUCESSO!");
-                resetar();
+                alert("GRAVADO COM SUCESSO!");
+                document.getElementById('gameName').value = "";
             })
-            .catch((err) => {
-                console.error(err);
-                // SE DER ERRO DE REGRA, TENTA GRAVAR COMO TEXTO SIMPLES (ÀS VEZES PASSA)
-                target.set(nome).then(() => alert("SALVO COMO TEXTO!"));
+            .catch(err => {
+                // SE AS REGRAS BLOQUEAREM, TENTA SALVAR COMO TEXTO PURO (ÚLTIMA CHANCE)
+                ref.set(nome).then(() => alert("SALVO COMO TEXTO PURO (Regras restritas)"));
             });
     }
 
-    window.remover = (id) => { if(confirm("Apagar?")) db.ref('games/' + id).remove(); }
-
-    window.prepararEdicao = (id, nome, autor) => {
-        document.getElementById('editId').value = id;
-        document.getElementById('gameName').value = nome;
-        document.getElementById('postedBy').value = autor;
-        document.getElementById('saveBtn').innerText = "Atualizar";
-        window.scrollTo(0,0);
-    }
-
-    function resetar() {
-        document.getElementById('editId').value = "";
-        document.getElementById('gameName').value = "";
-        document.getElementById('postedBy').value = "";
-        document.getElementById('saveBtn').innerText = "Gravar no Banco de Dados";
+    window.remover = (id) => {
+        if(confirm("DELETAR MESMO?")) {
+            db.ref('games/' + id).remove();
+        }
     }
 </script>
 </body>
