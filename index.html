@@ -2,29 +2,38 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>GLSHUB | LIMPEZA AUTOMÁTICA</title>
+    <title>GLSHUB | ADMIN PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #000; color: #00d9ff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .status-box { border: 2px solid #00d9ff; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 0 20px #00d9ff; background: #050505; }
-        .btn-auto { background: #333; color: #fff; border: 2px solid #00d9ff; padding: 20px 40px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; text-transform: uppercase; margin-top: 20px; transition: 0.3s; }
-        .btn-auto.active { background: #00d9ff; color: #000; box-shadow: 0 0 30px #00d9ff; }
-        #log { margin-top: 20px; font-size: 14px; color: #00ff88; height: 50px; }
-        .warning { color: #ff4444; font-size: 12px; margin-top: 10px; }
+        :root { --accent: #00d9ff; --bg: #0a0a0b; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: #16161a; border: 1px solid #333; padding: 25px; border-radius: 15px; }
+        h1 { color: var(--accent); text-align: center; text-transform: uppercase; }
+        .input-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; }
+        button { padding: 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn-add { background: var(--accent); color: #000; }
+        .game-card { background: #222; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
+        .actions { display: flex; gap: 8px; }
+        .btn-del { background: #ff4d4d; color: white; }
+        .btn-edit { background: #2d9cdb; color: white; }
     </style>
 </head>
 <body>
 
-    <div class="status-box">
-        <h1 id="txtStatus">SISTEMA GLSHUB: STANDBY</h1>
-        <button id="btnPower" class="btn-auto" onclick="toggleLimpeza()">Ativar Varredura Infinita</button>
-        <div id="log">Aguardando ativação...</div>
-        <p class="warning">CUIDADO: Enquanto ativo, nada sobrevive na pasta /games.</p>
+<div class="container">
+    <h1>GLSHUB ADMIN</h1>
+    <div class="input-box">
+        <input type="hidden" id="editKey">
+        <input type="text" id="gameInput" placeholder="NOME DO JOGO">
+        <button class="btn-add" id="btnAction" onclick="saveGame()">Gravar no Banco</button>
     </div>
+    <div id="gameList">Conectando ao projeto glshub...</div>
+</div>
 
 <script>
-    // NOVAS CREDENCIAIS GLSHUB
+    // CREDENCIAIS ATUALIZADAS GLSHUB
     const firebaseConfig = {
         apiKey: "AIzaSyCS1NBS0qrLiCpV_OSqpUKoipxzdGiUQ48",
         authDomain: "glshub.firebaseapp.com",
@@ -37,47 +46,67 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    
-    let limpando = false;
 
-    function toggleLimpeza() {
-        limpando = !limpando;
-        const btn = document.getElementById('btnPower');
-        const status = document.getElementById('txtStatus');
-        const log = document.getElementById('log');
+    // LER JOGOS (Sempre olha para a pasta 'games')
+    db.ref('games').on('value', (snapshot) => {
+        const list = document.getElementById('gameList');
+        list.innerHTML = "";
+        const data = snapshot.val();
 
-        if (limpando) {
-            btn.innerText = "VARREDURA ATIVA";
-            btn.classList.add('active');
-            status.innerText = "GLSHUB: LIMPANDO JOGOS...";
-            status.style.color = "#00ff88";
-            iniciarEscaneamento();
+        if (!data) {
+            list.innerHTML = "<p style='color:#666; text-align:center;'>Nenhum jogo encontrado no glshub.</p>";
+            return;
+        }
+
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const nome = (typeof item === 'object') ? (item.nome || "Sem nome") : item;
+            
+            list.innerHTML += `
+                <div class="game-card">
+                    <div><b>${nome}</b><br><small style="color:#555">${key}</small></div>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="prepareEdit('${key}', '${nome}')">✏️</button>
+                        <button class="btn-del" onclick="deleteGame('${key}')">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    function saveGame() {
+        const input = document.getElementById('gameInput');
+        const key = document.getElementById('editKey').value;
+        if (!input.value) return alert("Digite o nome!");
+
+        const gameData = { nome: input.value, timestamp: Date.now() };
+
+        if (key) {
+            db.ref('games/' + key).set(gameData).then(() => { resetForm(); alert("Atualizado!"); });
         } else {
-            btn.innerText = "Ativar Varredura Infinita";
-            btn.classList.remove('active');
-            status.innerText = "SISTEMA GLSHUB: STANDBY";
-            status.style.color = "#00d9ff";
-            db.ref('games').off(); // Desliga o monitoramento
-            log.innerText = "Faxina interrompida.";
+            db.ref('games').push(gameData).then(() => { input.value = ""; alert("Postado!"); });
         }
     }
 
-    function iniciarEscaneamento() {
-        const log = document.getElementById('log');
-        
-        // Fica de olho na pasta 'games' do novo projeto
-        db.ref('games').on('child_added', (snapshot) => {
-            if (limpando) {
-                const id = snapshot.key;
-                db.ref('games/' + id).remove()
-                    .then(() => {
-                        log.innerText = "DELETADO: " + id + " às " + new Date().toLocaleTimeString();
-                    })
-                    .catch((e) => {
-                        log.innerText = "ERRO DE PERMISSÃO: " + e.message;
-                    });
-            }
-        });
+    window.deleteGame = (key) => {
+        if(confirm("Deseja apagar?")) {
+            db.ref('games/' + key).remove()
+              .then(() => alert("Apagado com sucesso!"))
+              .catch(e => alert("ERRO DE PERMISSÃO: Vá no Firebase Console > Realtime Database > Rules e mude para true."));
+        }
+    }
+
+    window.prepareEdit = (key, nome) => {
+        document.getElementById('editKey').value = key;
+        document.getElementById('gameInput').value = nome;
+        document.getElementById('btnAction').innerText = "Atualizar Jogo";
+        window.scrollTo(0,0);
+    }
+
+    function resetForm() {
+        document.getElementById('editKey').value = "";
+        document.getElementById('gameInput').value = "";
+        document.getElementById('btnAction').innerText = "Gravar no Banco";
     }
 </script>
 </body>
