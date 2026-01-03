@@ -2,131 +2,117 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel NexusHub - Admin</title>
+    <title>NexusHub Ultra Sync</title>
     <style>
-        :root { --primary: #6200ee; --danger: #ff4d4d; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; width: 100%; max-width: 600px; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #333; margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
-        .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
-        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.3s; }
-        #btnSalvar { background: var(--primary); color: white; }
-        .btn-delete { background: #fee; color: var(--danger); }
-        .btn-edit { background: #eef; color: var(--primary); margin-right: 5px; }
-        .item { background: #fff; border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .status { font-size: 12px; color: #666; margin-bottom: 10px; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        .box { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
+        input { padding: 10px; border-radius: 5px; border: none; width: 200px; }
+        button { padding: 10px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        .jogo { background: #252525; padding: 10px; margin: 10px 0; display: flex; justify-content: space-between; border-left: 4px solid #007bff; }
+        .erro { color: #ff4444; font-weight: bold; }
+        .sucesso { color: #00ff00; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>🎮 NexusHub Admin</h2>
-    <div id="connectionStatus" class="status">Verificando conexão...</div>
-    
-    <div class="form-group">
-        <input type="hidden" id="jogoId">
-        <input type="text" id="nomeJogo" placeholder="Nome do jogo ou plataforma...">
-        <button id="btnSalvar">Adicionar</button>
+    <div class="box">
+        <h2>🚀 NexusHub - Painel de Emergência</h2>
+        <div id="debug">Status: Tentando conectar...</div>
+        <br>
+        <input type="text" id="nomeJogo" placeholder="Nome do Jogo">
+        <button onclick="enviarDados()">ADICIONAR JOGO</button>
+        <button onclick="tentarSincronizarNovamente()" style="background: #555;">FORÇAR RECARGA</button>
     </div>
 
-    <div id="listaJogos">
-        </div>
-</div>
+    <div id="lista" class="box">
+        <h3>Lista de Jogos:</h3>
+        <div id="display">Carregando...</div>
+    </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
-        authDomain: "nexushub-b9667.firebaseapp.com",
-        databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
-        projectId: "nexushub-b9667",
-        storageBucket: "nexushub-b9667.firebasestorage.app",
-        messagingSenderId: "491337953014",
-        appId: "1:491337953014:web:9db7f2f23fd0c85154c6d7",
-        measurementId: "G-X4BVBFRKDP"
-    };
+        const config = {
+            apiKey: "AIzaSyBZTuu5I2FNx4ky1UcVohro_Ri_yo3YQfs",
+            databaseURL: "https://nexushub-b9667-default-rtdb.firebaseio.com",
+            projectId: "nexushub-b9667",
+        };
 
-    // Inicialização
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const dbPath = 'jogos'; // Tente mudar para '/' se não carregar nada
+        const app = initializeApp(config);
+        const db = getDatabase(app);
 
-    const inputNome = document.getElementById('nomeJogo');
-    const inputId = document.getElementById('jogoId');
-    const btnSalvar = document.getElementById('btnSalvar');
-    const statusDiv = document.getElementById('connectionStatus');
-
-    // --- CARREGAR DADOS ---
-    onValue(ref(db, dbPath), (snapshot) => {
-        const listaDiv = document.getElementById('listaJogos');
-        listaDiv.innerHTML = "";
-        statusDiv.innerText = "Sincronizado com Firebase ✅";
-        
-        if (snapshot.exists()) {
-            snapshot.forEach((child) => {
-                const jogo = child.val();
-                const id = child.key;
-                
-                listaDiv.innerHTML += `
-                    <div class="item">
-                        <strong>${jogo.nome}</strong>
-                        <div>
-                            <button class="btn-edit" onclick="prepararEdicao('${id}', '${jogo.nome}')">✏️</button>
-                            <button class="btn-delete" onclick="deletarJogo('${id}')">🗑️</button>
-                        </div>
-                    </div>
-                `;
+        // Função de Enviar
+        window.enviarDados = function() {
+            const nome = document.getElementById('nomeJogo').value;
+            if(!nome) return alert("Digite algo!");
+            
+            // Tentativa via SDK
+            push(ref(db, 'jogos'), { nome: nome })
+            .then(() => { alert("Enviado!"); document.getElementById('nomeJogo').value = ""; })
+            .catch(err => {
+                console.error(err);
+                // TENTATIVA 2: SE O SDK FALHAR, TENTA VIA REST API (FORÇA BRUTA)
+                enviarViaRest(nome);
             });
-        } else {
-            listaDiv.innerHTML = "<p>Nenhum jogo encontrado no banco.</p>";
         }
-    }, (error) => {
-        console.error(error);
-        statusDiv.innerHTML = `<b style="color:red">ERRO: Sem permissão de acesso. Peça ao chefe para liberar as "Rules" do Database!</b>`;
-    });
 
-    // --- SALVAR / EDITAR ---
-    btnSalvar.onclick = () => {
-        const nome = inputNome.value;
-        const id = inputId.value;
+        // Função de Listar (Tempo Real)
+        onValue(ref(db, 'jogos'), (snapshot) => {
+            renderizar(snapshot.val());
+            document.getElementById('debug').innerHTML = "<span class='sucesso'>Conectado via SDK! ✅</span>";
+        }, (error) => {
+            document.getElementById('debug').innerHTML = "<span class='erro'>Erro no SDK. Tentando Modo REST...</span>";
+            carregarViaRest();
+        });
 
-        if(!nome) return alert("Digite o nome!");
-
-        if(id) {
-            update(ref(db, `${dbPath}/${id}`), { nome: nome })
-                .then(() => resetForm());
-        } else {
-            const novoRef = push(ref(db, dbPath));
-            set(novoRef, { nome: nome })
-                .then(() => resetForm());
+        window.deletar = function(id) {
+            remove(ref(db, 'jogos/' + id));
         }
-    };
 
-    // --- FUNÇÕES GLOBAIS (PARA O ONCLICK) ---
-    window.prepararEdicao = (id, nome) => {
-        inputId.value = id;
-        inputNome.value = nome;
-        btnSalvar.innerText = "Atualizar";
-        btnSalvar.style.background = "#28a745";
-    };
-
-    window.deletarJogo = (id) => {
-        if(confirm("Deseja mesmo excluir?")) {
-            remove(ref(db, `${dbPath}/${id}`));
+        function renderizar(dados) {
+            const display = document.getElementById('display');
+            display.innerHTML = "";
+            if (!dados) { display.innerHTML = "Banco vazio."; return; }
+            
+            Object.keys(dados).forEach(id => {
+                display.innerHTML += `
+                    <div class="jogo">
+                        ${dados[id].nome || dados[id]} 
+                        <button onclick="deletar('${id}')" style="background:red">X</button>
+                    </div>`;
+            });
         }
-    };
 
-    function resetForm() {
-        inputId.value = "";
-        inputNome.value = "";
-        btnSalvar.innerText = "Adicionar";
-        btnSalvar.style.background = "var(--primary)";
-    }
-</script>
+        // TENTATIVA 2: MODO REST (FETCH API) - Ignora o SDK e vai direto na URL
+        async function carregarViaRest() {
+            try {
+                const res = await fetch("https://nexushub-b9667-default-rtdb.firebaseio.com/jogos.json");
+                const data = await res.json();
+                renderizar(data);
+                document.getElementById('debug').innerHTML = "<span class='sucesso'>Conectado via REST! 🌐</span>";
+            } catch (e) {
+                document.getElementById('debug').innerHTML = "<span class='erro'>FALHA TOTAL: O banco deve estar privado.</span>";
+            }
+        }
 
+        async function enviarViaRest(nome) {
+            await fetch("https://nexushub-b9667-default-rtdb.firebaseio.com/jogos.json", {
+                method: 'POST',
+                body: JSON.stringify({ nome: nome })
+            });
+            carregarViaRest();
+        }
+
+        window.tentarSincronizarNovamente = () => carregarViaRest();
+
+    </script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Se o seu chefe configurou o Firebase muito antigo, este script v8 pode ser a salvação
+        console.log("Sistema de backup v8 carregado.");
+    </script>
 </body>
 </html>
