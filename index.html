@@ -49,46 +49,38 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // --- SOLUÇÃO 1: LOGIN AUTOMÁTICO PARA FURAR REGRAS ---
-    // Substitua pelos seus dados de admin para o Firebase te dar permissão total
+    // Login automático (Lembre de colocar sua senha se necessário)
     auth.signInWithEmailAndPassword("admin12ofcl@gmail.com", "SUA_SENHA_AQUI")
         .then(() => {
             document.getElementById('auth-status').innerText = "✅ Autenticado como Admin";
             carregarJogos();
         })
         .catch(err => {
-            document.getElementById('auth-status').innerText = "⚠️ Erro de Acesso: " + err.message;
-            // Mesmo com erro, tentamos carregar caso as regras estejam abertas
+            document.getElementById('auth-status').innerText = "⚠️ Modo Visitante: " + err.message;
             carregarJogos();
         });
 
     function carregarJogos() {
-        // --- SOLUÇÃO 2: TESTAR MÚLTIPLOS NOMES DE COLEÇÃO ---
-        // Se 'games' não funcionar, tentaremos outras comuns
         db.collection('games').onSnapshot((snapshot) => {
             const list = document.getElementById('displayList');
             list.innerHTML = "";
 
             if (snapshot.empty) {
-                list.innerHTML = "<p style='text-align:center;'>Nenhum jogo achado na pasta 'games'.</p>";
+                list.innerHTML = "<p style='text-align:center;'>Nenhum jogo encontrado.</p>";
                 return;
             }
 
             snapshot.forEach(doc => {
                 const item = doc.data();
-                // --- SOLUÇÃO 3: ACEITAR QUALQUER NOME DE CAMPO ---
                 const nome = item.title || item.nome || item.gameName || "Sem Nome";
                 const autor = item.author || item.autor || "Desconhecido";
 
                 list.innerHTML += `
                     <div class="game-card">
                         <div><b>${nome}</b><br><small>Por: ${autor}</small></div>
-                        <button onclick="remover('${doc.id}')" style="background:red; color:white; border:none; padding:5px; border-radius:5px;">🗑️</button>
+                        <button onclick="remover('${doc.id}')" style="background:red; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">🗑️</button>
                     </div>`;
             });
-        }, err => {
-            console.error("Erro ao ler:", err);
-            document.getElementById('displayList').innerHTML = "<p style='color:red;'>Erro de Permissão (Firebase Rules)</p>";
         });
     }
 
@@ -97,18 +89,21 @@
         const autor = document.getElementById('postedBy').value;
         if (!nome) return alert("Nome vazio!");
 
-        // Salvando com os dois nomes (title e nome) para garantir que apareça em qualquer lugar
         db.collection('games').add({
             title: nome,
             nome: nome,
             author: autor,
             autor: autor,
             data: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => { alert("Salvo!"); });
+        }).then(() => { 
+            document.getElementById('gameName').value = "";
+            document.getElementById('postedBy').value = "";
+        });
     }
 
+    // REMOVER DIRETO SEM CONFIRMAÇÃO
     window.remover = (id) => {
-        if(confirm("Apagar?")) db.collection('games').doc(id).delete();
+        db.collection('games').doc(id).delete();
     }
 </script>
 </body>
