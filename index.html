@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NEXUSHUB ADMIN | SISTEMA COMPLETO</title>
+    <title>NEXUSHUB ADMIN | COM EDITOR DE CÓDIGO</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -11,14 +11,27 @@
         body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
         .container { max-width: 550px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
         h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
+        
         .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 14px; outline: none; }
-        input:focus { border-color: var(--neon); }
+        
+        input, textarea { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; }
+        input:focus, textarea:focus { border-color: var(--neon); }
+        
+        /* Estilo especial para o campo de código */
+        textarea { 
+            height: 120px; 
+            font-family: 'Courier New', monospace; 
+            color: var(--neon); 
+            resize: vertical; 
+            font-size: 12px;
+        }
+
         .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
-        .game-card { background: #1a1a1a; padding: 12px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .game-card:hover { background: #222; }
+        
+        .game-card { background: #1a1a1a; padding: 12px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
         .game-card img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; margin-right: 12px; border: 1px solid #333; }
         .info-flex { display: flex; align-items: center; flex: 1; cursor: pointer; }
+        
         .status-msg { text-align: center; padding: 10px; font-size: 11px; color: var(--blue); opacity: 0.7; }
         .btn-del { background: var(--red); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
     </style>
@@ -33,7 +46,10 @@
         <input type="hidden" id="editId">
         <input type="text" id="gameName" placeholder="NOME DO JOGO">
         <input type="text" id="postedBy" placeholder="POSTADO POR">
-        <input type="text" id="gameCover" placeholder="URL DA CAPA (LINK DA IMAGEM)">
+        <input type="text" id="gameCover" placeholder="URL DA CAPA (IMAGEM)">
+        
+        <textarea id="gameCode" placeholder=""></textarea>
+        
         <button class="btn-main" id="saveBtn" onclick="processarSalvar()">Postar Jogo</button>
     </div>
 
@@ -52,8 +68,11 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
+    
+    // Variável para guardar os dados dos jogos e evitar bugs com aspas no HTML
+    let jogosCache = {}; 
 
-    // Login automático para ter permissão de escrita
+    // Login (Lembre de por sua senha)
     auth.signInWithEmailAndPassword("admin12ofcl@gmail.com", "SUA_SENHA_AQUI")
         .then(() => {
             document.getElementById('auth-status').innerText = "✅ CONECTADO AO SITE";
@@ -68,6 +87,7 @@
         db.collection('games').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
             const list = document.getElementById('displayList');
             list.innerHTML = "";
+            jogosCache = {}; // Limpa o cache
 
             if (snapshot.empty) {
                 list.innerHTML = "<p style='text-align:center;'>Nenhum jogo no site.</p>";
@@ -76,18 +96,28 @@
 
             snapshot.forEach(doc => {
                 const item = doc.data();
-                // Tenta pegar o nome e capa de qualquer campo que existir
+                const id = doc.id;
+                
+                // Salva no cache para usarmos na edição
+                jogosCache[id] = item;
+
                 const nome = item.title || item.nome || "Sem Nome";
                 const autor = item.author || item.autor || "Admin";
                 const capa = item.cover || item.capa || "https://via.placeholder.com/50";
+                
+                // Verifica se tem código HTML salvo para mostrar um ícone indicativo (opcional)
+                const temHtml = (item.htmlCode && item.htmlCode.length > 5) ? "💻" : "";
 
                 list.innerHTML += `
                     <div class="game-card">
-                        <div class="info-flex" onclick="prepararEdicao('${doc.id}', '${nome}', '${autor}', '${capa}')">
+                        <div class="info-flex" onclick="prepararEdicao('${id}')">
                             <img src="${capa}" onerror="this.src='https://via.placeholder.com/50'">
-                            <div><b>${nome}</b><br><small>Por: ${autor}</small></div>
+                            <div>
+                                <b>${nome} ${temHtml}</b><br>
+                                <small>Por: ${autor}</small>
+                            </div>
                         </div>
-                        <button onclick="remover('${doc.id}')" class="btn-del">🗑️</button>
+                        <button onclick="remover('${id}')" class="btn-del">🗑️</button>
                     </div>`;
             });
         });
@@ -98,43 +128,48 @@
         const nome = document.getElementById('gameName').value;
         const autor = document.getElementById('postedBy').value;
         const capa = document.getElementById('gameCover').value;
+        const codigo = document.getElementById('gameCode').value; // Pega o HTML
 
         if (!nome) return alert("Digite ao menos o nome!");
 
-        // Objeto completo para NÃO BUGAR o site oficial
         const dados = {
-            title: nome,     // Padrão de muitos sites
-            nome: nome,      // Padrão reserva
+            title: nome,
+            nome: nome,
             author: autor || "Admin",
             autor: autor || "Admin",
             cover: capa || "", 
             capa: capa || "",
+            htmlCode: codigo || "", // Salva o HTML opcional
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         if (id) {
-            // ATUALIZAR JOGO EXISTENTE
             db.collection('games').doc(id).update(dados)
                 .then(() => { alert("Atualizado!"); resetarForm(); })
                 .catch(e => alert("Erro: " + e));
         } else {
-            // POSTAR NOVO JOGO
             db.collection('games').add(dados)
                 .then(() => { alert("Postado no Site!"); resetarForm(); })
                 .catch(e => alert("Erro: " + e));
         }
     }
 
-    window.prepararEdicao = (id, nome, autor, capa) => {
-        document.getElementById('editId').value = id;
-        document.getElementById('gameName').value = nome;
-        document.getElementById('postedBy').value = autor;
-        document.getElementById('gameCover').value = capa;
+    // Agora buscamos os dados direto da memória (jogosCache) para não bugar o HTML
+    window.prepararEdicao = (id) => {
+        const item = jogosCache[id];
         
-        const btn = document.getElementById('saveBtn');
-        btn.innerText = "Atualizar Jogo";
-        btn.style.background = "#00d9ff";
-        window.scrollTo(0,0);
+        if (item) {
+            document.getElementById('editId').value = id;
+            document.getElementById('gameName').value = item.title || item.nome;
+            document.getElementById('postedBy').value = item.author || item.autor;
+            document.getElementById('gameCover').value = item.cover || item.capa;
+            document.getElementById('gameCode').value = item.htmlCode || ""; // Carrega o HTML aqui
+
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = "Atualizar Jogo e Código";
+            btn.style.background = "#00d9ff";
+            window.scrollTo(0,0);
+        }
     }
 
     window.remover = (id) => {
@@ -146,6 +181,7 @@
         document.getElementById('gameName').value = "";
         document.getElementById('postedBy').value = "";
         document.getElementById('gameCover').value = "";
+        document.getElementById('gameCode').value = ""; // Limpa o código
         const btn = document.getElementById('saveBtn');
         btn.innerText = "Postar Jogo";
         btn.style.background = "#00ff88";
