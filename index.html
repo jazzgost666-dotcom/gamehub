@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>NEXUSHUB ADMIN | ACESSO TOTAL</title>
+    <title>NEXUSHUB ADMIN | SISTEMA COMPLETO</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -12,28 +12,32 @@
         .container { max-width: 550px; margin: auto; background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
         h1 { color: var(--neon); text-align: center; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
         .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 16px; outline: none; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; font-size: 14px; outline: none; }
         input:focus { border-color: var(--neon); }
         .btn-main { background: var(--neon); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
-        .game-card { background: #1a1a1a; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; }
-        .status-msg { text-align: center; padding: 10px; font-size: 12px; color: var(--blue); }
+        .game-card { background: #1a1a1a; padding: 12px; margin: 10px 0; border-radius: 10px; border-left: 5px solid var(--neon); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .game-card:hover { background: #222; }
+        .game-card img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; margin-right: 12px; border: 1px solid #333; }
+        .info-flex { display: flex; align-items: center; flex: 1; cursor: pointer; }
+        .status-msg { text-align: center; padding: 10px; font-size: 11px; color: var(--blue); opacity: 0.7; }
+        .btn-del { background: var(--red); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>NexusHub Admin</h1>
-    
-    <div id="auth-status" class="status-msg">Iniciando conexão...</div>
+    <div id="auth-status" class="status-msg">Conectando...</div>
 
     <div class="input-group">
         <input type="hidden" id="editId">
         <input type="text" id="gameName" placeholder="NOME DO JOGO">
         <input type="text" id="postedBy" placeholder="POSTADO POR">
-        <button class="btn-main" id="saveBtn" onclick="processarSalvar()">Gravar no Firestore</button>
+        <input type="text" id="gameCover" placeholder="URL DA CAPA (LINK DA IMAGEM)">
+        <button class="btn-main" id="saveBtn" onclick="processarSalvar()">Postar Jogo</button>
     </div>
 
-    <div id="displayList">Carregando lista de jogos...</div>
+    <div id="displayList">Carregando lista...</div>
 </div>
 
 <script>
@@ -49,61 +53,102 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Login automático (Lembre de colocar sua senha se necessário)
+    // Login automático para ter permissão de escrita
     auth.signInWithEmailAndPassword("admin12ofcl@gmail.com", "SUA_SENHA_AQUI")
         .then(() => {
-            document.getElementById('auth-status').innerText = "✅ Autenticado como Admin";
+            document.getElementById('auth-status').innerText = "✅ CONECTADO AO SITE";
             carregarJogos();
         })
         .catch(err => {
-            document.getElementById('auth-status').innerText = "⚠️ Modo Visitante: " + err.message;
-            carregarJogos();
+            document.getElementById('auth-status').innerText = "⚠️ ERRO DE LOGIN: " + err.message;
+            carregarJogos(); 
         });
 
     function carregarJogos() {
-        db.collection('games').onSnapshot((snapshot) => {
+        db.collection('games').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
             const list = document.getElementById('displayList');
             list.innerHTML = "";
 
             if (snapshot.empty) {
-                list.innerHTML = "<p style='text-align:center;'>Nenhum jogo encontrado.</p>";
+                list.innerHTML = "<p style='text-align:center;'>Nenhum jogo no site.</p>";
                 return;
             }
 
             snapshot.forEach(doc => {
                 const item = doc.data();
-                const nome = item.title || item.nome || item.gameName || "Sem Nome";
-                const autor = item.author || item.autor || "Desconhecido";
+                // Tenta pegar o nome e capa de qualquer campo que existir
+                const nome = item.title || item.nome || "Sem Nome";
+                const autor = item.author || item.autor || "Admin";
+                const capa = item.cover || item.capa || "https://via.placeholder.com/50";
 
                 list.innerHTML += `
                     <div class="game-card">
-                        <div><b>${nome}</b><br><small>Por: ${autor}</small></div>
-                        <button onclick="remover('${doc.id}')" style="background:red; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">🗑️</button>
+                        <div class="info-flex" onclick="prepararEdicao('${doc.id}', '${nome}', '${autor}', '${capa}')">
+                            <img src="${capa}" onerror="this.src='https://via.placeholder.com/50'">
+                            <div><b>${nome}</b><br><small>Por: ${autor}</small></div>
+                        </div>
+                        <button onclick="remover('${doc.id}')" class="btn-del">🗑️</button>
                     </div>`;
             });
         });
     }
 
     function processarSalvar() {
+        const id = document.getElementById('editId').value;
         const nome = document.getElementById('gameName').value;
         const autor = document.getElementById('postedBy').value;
-        if (!nome) return alert("Nome vazio!");
+        const capa = document.getElementById('gameCover').value;
 
-        db.collection('games').add({
-            title: nome,
-            nome: nome,
-            author: autor,
-            autor: autor,
-            data: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => { 
-            document.getElementById('gameName').value = "";
-            document.getElementById('postedBy').value = "";
-        });
+        if (!nome) return alert("Digite ao menos o nome!");
+
+        // Objeto completo para NÃO BUGAR o site oficial
+        const dados = {
+            title: nome,     // Padrão de muitos sites
+            nome: nome,      // Padrão reserva
+            author: autor || "Admin",
+            autor: autor || "Admin",
+            cover: capa || "", 
+            capa: capa || "",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (id) {
+            // ATUALIZAR JOGO EXISTENTE
+            db.collection('games').doc(id).update(dados)
+                .then(() => { alert("Atualizado!"); resetarForm(); })
+                .catch(e => alert("Erro: " + e));
+        } else {
+            // POSTAR NOVO JOGO
+            db.collection('games').add(dados)
+                .then(() => { alert("Postado no Site!"); resetarForm(); })
+                .catch(e => alert("Erro: " + e));
+        }
     }
 
-    // REMOVER DIRETO SEM CONFIRMAÇÃO
+    window.prepararEdicao = (id, nome, autor, capa) => {
+        document.getElementById('editId').value = id;
+        document.getElementById('gameName').value = nome;
+        document.getElementById('postedBy').value = autor;
+        document.getElementById('gameCover').value = capa;
+        
+        const btn = document.getElementById('saveBtn');
+        btn.innerText = "Atualizar Jogo";
+        btn.style.background = "#00d9ff";
+        window.scrollTo(0,0);
+    }
+
     window.remover = (id) => {
         db.collection('games').doc(id).delete();
+    }
+
+    function resetarForm() {
+        document.getElementById('editId').value = "";
+        document.getElementById('gameName').value = "";
+        document.getElementById('postedBy').value = "";
+        document.getElementById('gameCover').value = "";
+        const btn = document.getElementById('saveBtn');
+        btn.innerText = "Postar Jogo";
+        btn.style.background = "#00ff88";
     }
 </script>
 </body>
