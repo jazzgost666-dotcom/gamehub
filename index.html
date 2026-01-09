@@ -58,10 +58,8 @@
 
     let jogosCache = {};
 
-    // Notifica que está conectado
     document.getElementById('auth-status').innerText = "✅ REALTIME DATABASE ATIVO";
 
-    // Escutar dados (Equivalente ao onSnapshot)
     onValue(gamesRef, (snapshot) => {
         const list = document.getElementById('displayList');
         list.innerHTML = "";
@@ -96,7 +94,6 @@
         });
     });
 
-    // Funções globais para os botões do HTML funcionarem
     window.processarSalvar = function() {
         const id = document.getElementById('editId').value;
         const nome = document.getElementById('gameName').value;
@@ -146,9 +143,7 @@
     };
 
     window.remover = function(id) {
-        if(confirm("Deseja realmente excluir?")) {
-            remove(ref(db, 'games/' + id));
-        }
+        remove(ref(db, 'games/' + id));
     };
 
     window.resetarForm = function() {
